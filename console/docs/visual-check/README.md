@@ -43,3 +43,28 @@ Checked end to end against the API, with zero page errors:
 - The three Export CSV buttons called the posts-by-area, review-time and admin-activity exports.
 
 The video check used a stored poster with no real MP4 file. The player, its poster and its controls render, but playback was not tested.
+
+## Change check: session login, permissions and temporary passwords, 2026-10-21
+
+Every console screen at 1440x900, compared with the console as committed before this change (`17b9b53`). The new backend was still being built, so this run used a small test adapter that speaks the new session interface in front of the previous backend. Repeat the run against the new backend before release (`.claude/backlog.md`, item 1).
+
+| Screen | Pixels that differ | What differs |
+|---|---|---|
+| Login | 0.02% | The field label is "Username" instead of "Username or email". Email is contact only now. |
+| Change password, dashboard, geography, users, posts, post panel, reports, audit, settings | 0% to 6.3% | Data only: seed dates, counts and audit rows. Settings no longer has the "Default passwords by role" card, which sat below the fold. |
+
+New, in the existing styles:
+
+| Change | Screenshot |
+|---|---|
+| Login errors in the existing toast: wrong password, locked out (with minutes left), blocked, not a console user. | `auth-01-wrong-password.png` |
+| Forced change at first login; "Change password" in the profile menu opens the same card with "‹ Back". | `auth-02-forced-change.png`, `auth-03-profile-menu.png`, `auth-04-change-password.png` |
+| User panel: Reset password, and Unlock while the user is locked out; the Status line says "locked after failed logins". | `auth-05-user-panel-unlock.png` |
+| Reset password dialog: a temporary password field with Generate; empty means the server generates one. | `auth-06-reset-dialog.png` |
+| A generated password is shown once, with Copy and Done and no Cancel. | `auth-07-password-shown-once.png` |
+| Add User: Username (required), Email and Mobile optional, "Temporary password (optional)" with Generate, and a help line about handing the password over in person. | `auth-08-add-user.png` |
+| Menus follow permissions: without `geography.manage_master_data` and `audit.view_audit_log` those pages are gone, and Add User offers only the roles the user may manage. | `auth-09-limited-permissions.png` |
+
+Checked in the browser, all passing: wrong password, refusal of a District Admin, forced change, reload keeps the session, Generate, the password shown once, Copy to the clipboard, Unlock, the voluntary change, logout, and a reload after logout. There were zero page errors. No request carried an Authorization header, and every write sent `X-CSRFToken`.
+
+Not checked yet, because they need the new backend: creating a user without an email, the server-generated password, the lockout and blocked messages from real responses, and the 30-minute idle timeout.

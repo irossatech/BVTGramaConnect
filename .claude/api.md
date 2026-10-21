@@ -62,39 +62,56 @@ Called on page load and again the first time the language is switched, with `Acc
 
 ## Console (`console/`)
 
-This section lists what the console calls today, read from `console/tools/logic.js` and `console/src/gc-api.js`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the bearer token.
+This section lists what the console calls today, read from `console/tools/logic.js` and `console/src/gc-api.js`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the session cookie (same-origin); every POST, PATCH and DELETE also sends `X-CSRFToken` from the `csrftoken` cookie.
 
 ### By screen
 
 | Screen | Calls |
 |---|---|
-| Page load | `POST /auth/refresh/` (cookie), then `GET /me/` |
-| Login | `POST /auth/login/` `{username, password, client: "web_admin"}` |
-| Change password | `POST /auth/password/change/` `{current_password, new_password}`; then `GET /me/` |
-| Sign out | `POST /auth/logout/` |
+| Page load | `GET /auth/csrf/` (sets `csrftoken`), then `GET /me/`; 401 keeps the login screen. Uses `permissions`, `groups`, `must_change_password` |
+| Login | `GET /auth/csrf/`, then `POST /auth/session/login/` `{username, password}` → `{user}` and the `sessionid` cookie |
+| Change password (forced, or from the profile menu) | `POST /auth/password/change/` `{current_password, new_password}`; keeps this session and ends the others; then `GET /me/` |
+| Sign out | `POST /auth/session/logout/` → 204 |
 | Shell, Posts badge | the pending count comes from the dashboard's `kpis.pending` and from `status_counts.PENDING` on the posts list |
 | Dashboard | `GET /admin/dashboard/` |
 | Geography | `GET /geo/tree/?villages=1`; `POST /geo/districts/`, `/geo/mandals/`, `/geo/villages/`; `PATCH /geo/{districts,mandals,villages}/{id}/` for edits and `{is_active}`; CSV import: `POST /geo/villages/import/?dry_run=1` (multipart `file`), then the same without `dry_run` |
-| Users | `GET /users/?role=&district=&status=&q=&page=&page_size=20`; `POST /users/` `{name, name_te, email, username?, mobile?, role, area: {level, id}}`; `POST /users/{id}/block/` or `/unblock/`; `PATCH /users/{id}/role-assignments/{ra_id}/` `{area}` to reassign |
-| User panel | `GET /posts/?author={id}&page_size=5` for recent posts; `GET /users/{id}/` after a change; `POST /users/{id}/reset-password/`; `POST /users/{id}/role-assignments/` `{role, area: {level, id}}` to add a role; `DELETE /users/{id}/role-assignments/{ra_id}/` to remove one |
+| Users | `GET /users/?role=&district=&status=&is_active=&q=&page=&page_size=20`; `POST /users/` `{username, name, name_te, email?, mobile?, password?, role, area: {level, id}}` (`role` is a group key such as `VILLAGE_ADMIN`; without `password` the answer carries `temporary_password`, shown once); `POST /users/{id}/block/` or `/unblock/`; `PATCH /users/{id}/role-assignments/{ra_id}/` `{area}` to reassign |
+| User panel | `GET /posts/?author={id}&page_size=5` for recent posts; `GET /users/{id}/` after a change; `POST /users/{id}/reset-password/` `{password?}` (without `password` the answer carries `temporary_password`, shown once); `POST /users/{id}/unlock/` when `locked_out` is true; buttons follow the user's `allowed_actions` (`reassign`, `reset_password`, `unlock`, `block` / `unblock`, `add_assignment`, `remove_assignment`); `POST /users/{id}/role-assignments/` `{role, area: {level, id}}` to add a role; `DELETE /users/{id}/role-assignments/{ra_id}/` to remove one |
 | Posts | `GET /posts/?status=&district=&category=&q=&page=&page_size=20` (uses `status_counts` for the tabs); `GET /categories/` for the filter |
 | Post panel | `GET /posts/{id}/`, `GET /posts/{id}/history/`; `POST /posts/{id}/review/` with `{action: publish}`, `{action: recheck, comment}`, `{action: discard, comment}`, `{action: unpublish, comment}` or `{action: reverse, to_status, comment}`; `POST /posts/{id}/urgent/` `{is_urgent}` when `allowed_actions` has `set_urgent`. Shows `event`, `is_urgent` and video media (`kind: "video"`, `url`, `poster_url`) |
 | Reports | `GET /admin/reports/posts-by-area/`, `GET /admin/reports/review-time/`, `GET /admin/reports/admin-activity/?page_size=8`; CSV only, one per report: `GET /admin/reports/{posts-by-area,review-time,admin-activity}/export/?format=csv` |
 | Audit log | `GET /audit/?q=&page=&page_size=20`; CSV: `GET /audit/export/?q=` |
 | Contact messages | `GET /admin/contact-messages/?status=new\|handled&q=&page=&page_size=20` (no `status` for All); `PATCH /admin/contact-messages/{id}/` `{handled}` |
-| Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}`; `GET /admin/role-passwords/`, `PATCH /admin/role-passwords/{ROLE}/` `{password}` |
+| Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}` |
 
-CSV downloads go through `GC_API.download`, which fetches with the bearer token and saves the file, because a plain link cannot carry the token.
+CSV downloads go through `GC_API.download`, which fetches with the session cookie and saves the file under a dated name.
+
+### Permissions the console reads from `GET /me/`
+
+| Shown when the user has | What |
+|---|---|
+| `web_admin.access_web_console` | the console at all; otherwise back to login with "This console is for Super Admins only" |
+| `web_admin.view_dashboard` | Dashboard |
+| `geography.manage_master_data` | Geography |
+| any `accounts.manage_district_admin`, `manage_mandal_admin`, `manage_village_admin`, `manage_panchayat_member` | Users; Add User and Add role offer only those roles |
+| `posts.view_review_queue` | Posts & Moderation (post buttons follow each post's `allowed_actions`) |
+| `web_admin.view_reports` | Reports |
+| `audit.view_audit_log` / `audit.export_audit_log` | Audit Log / its Export CSV |
+| `web_public.manage_contact_messages` | Contact messages |
+| any `posts.manage_settings`, `posts.manage_categories`, `notifications.manage_templates` | Settings (sidebar and profile menu) |
+
+The first page after login is the first one the user may open. The source of these names is the BackEnd repo's `apps/accounts/role_matrix.py`.
 
 ### Error codes the console handles
 
 | Code | What the console does |
 |---|---|
-| `token_expired` (401) | `gc-api.js` refreshes once through the cookie and retries |
-| other 401 (`session_revoked`, `token_invalid`, `not_authenticated`) | back to the login screen with "Your session has ended" |
+| any 401 (`session_revoked`, `not_authenticated`: idle timeout, logout elsewhere, block, reset) | back to the login screen with "Your session has ended" |
 | `password_change_required` (403) | shows the change-password screen |
-| `not_console_user` (403) | toast with the server's message on the login screen |
-| `invalid_credentials` (400) | toast; the password field is cleared |
+| `not_console_user` (403) | toast "This console is for Super Admins only. Use the mobile app." |
+| `account_blocked` (403) | toast "This account is blocked. Contact your administrator." |
+| `locked_out` (429) | toast "Too many failed attempts. Try again in N minutes." from `retry_after_s` |
+| `invalid_credentials` (400) | toast "Wrong username or password."; the password field is cleared |
 | `already_decided` (409) | toast "Already decided by <name> (<role>)", then reloads the post list and the post |
 | `validation_error` (400) | toast with the message and the first field error |
 | `throttled` (429) | toast with the server's message |

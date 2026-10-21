@@ -50,15 +50,9 @@ Install the browser once in this folder: `npm install --no-save playwright`, the
 
 **Console** (1440x900):
 1. Run the backend with sample data on port 8102 (`python manage.py runserver 127.0.0.1:8102`), log in once at http://127.0.0.1:8102/console/ as `super.admin` and set a new password.
-2. Save a console session cookie:
-   ```
-   curl -c cookies.txt -H "Content-Type: application/json" -H "Origin: http://127.0.0.1:8102" \
-     -d '{"username":"super.admin","password":"<new password>","client":"web_admin"}' \
-     http://127.0.0.1:8102/api/v1/auth/login/
-   ```
-3. Serve the prototype folder: `python -m http.server 8198` inside "BVT Grama Connect mobile prototype".
-4. `node console/tools/visual-check.mjs console/docs/visual-check cookies.txt`
-5. `python console/tools/visual_diff.py console/docs/visual-check`, then update the table in `console/docs/visual-check/README.md`.
+2. Serve the prototype folder: `python -m http.server 8198` inside "BVT Grama Connect mobile prototype".
+3. `node console/tools/visual-check.mjs console/docs/visual-check super.admin "<new password>"`. The script logs in through the form with a real session.
+4. `python console/tools/visual_diff.py console/docs/visual-check`, then update the table in `console/docs/visual-check/README.md`.
 
 ## Deploy
 

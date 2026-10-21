@@ -23,7 +23,7 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 | Website fetch helper | `src/gc-api.js` | `npm run build` |
 | Console behaviour, data, API calls | `console/tools/logic.js` | `npm run port:console`, then `npm run build` |
 | Console markup | `console/tools/port.py`, as a new exact replacement or checked line edit | same |
-| Console fetch, auth, refresh | `console/src/gc-api.js` | `npm run build` |
+| Console fetch, session login, CSRF | `console/src/gc-api.js` | `npm run build` |
 | API base URL or console URL | nothing; set `GC_API_BASE` / `GC_CONSOLE_URL` in the environment or `.env` | `npm run build` |
 
 ## Files you never edit
@@ -49,7 +49,7 @@ Only files that are byte-identical for both apps: the runtime, React, the design
 - New console UI reuses an existing element's inline style: copy the pill button, input, card or table-row style from the nearest similar element. Add no stylesheet, class or font.
 - Keep the template bound to the same keys; map API data into those shapes in `logic.js` instead of changing the template.
 - Every request goes through `window.GC_API` (`this.api`). Do not call `fetch` directly. Report errors with `this.fail(e)`.
-- Never store a token in `localStorage`, `sessionStorage` or a readable cookie.
+- Never store a token or password in `localStorage`, `sessionStorage` or a readable cookie. The console's only readable cookie is Django's `csrftoken`.
 - The console only hides buttons. The backend enforces every permission.
 
 ## API changes

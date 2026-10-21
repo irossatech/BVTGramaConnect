@@ -65,41 +65,61 @@ PRIMARY = (
     'color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: {{ %(op)s }}">%(label)s ›</button>'
 )
 LOGIN_FIELDS = "\n".join([
-    FIELD % {"label": "Username or email", "name": "username", "type": "text", "value": "username", "change": "onLogin", "key": "onLoginKey", "auto": "username"},
+    FIELD % {"label": "Username", "name": "username", "type": "text", "value": "username", "change": "onLogin", "key": "onLoginKey", "auto": "username"},
     FIELD % {"label": "Password", "name": "password", "type": "password", "value": "password", "change": "onLogin", "key": "onLoginKey", "auto": "current-password"},
     PRIMARY % {"go": "signIn", "off": "cannotSignIn", "op": "signInOpacity", "label": "Sign in"},
 ])
 CHANGE_CARD = "\n".join([
     '            <div><div style="font-family:\'Rubik\',sans-serif;font-size:26px;font-weight:700;color:#0A2550">Change password</div>'
-    '<div style="color:#6b7a8c;margin-top:4px">Choose your own password before you continue.</div></div>',
+    '<div style="color:#6b7a8c;margin-top:4px">{{ cpSub }}</div></div>',
     FIELD % {"label": "Current password", "name": "current", "type": "password", "value": "cpCurrent", "change": "onCp", "key": "onCpKey", "auto": "current-password"},
     FIELD % {"label": "New password", "name": "next", "type": "password", "value": "cpNext", "change": "onCp", "key": "onCpKey", "auto": "new-password"},
     PRIMARY % {"go": "changePassword", "off": "cannotChange", "op": "changeOpacity", "label": "Save & continue"},
-    '            <div style="display:flex;justify-content:space-between"><button onClick="{{ toLogin }}" style="background:none;border:0;color:#6b7a8c;font-weight:700;cursor:pointer">‹ Sign out</button></div>',
+    '            <div style="display:flex;justify-content:space-between"><button onClick="{{ cpBack }}" style="background:none;border:0;color:#6b7a8c;font-weight:700;cursor:pointer">{{ cpBackLabel }}</button></div>',
 ])
 PANEL_BTN = (
+    '<sc-if value="{{ su.canReset }}" hint-placeholder-val="{{ true }}">'
     '<button onClick="{{ su.reset }}" style="height:42px;padding:0 18px;border-radius:999px;font-weight:700;cursor:pointer;'
-    'font-size:13px;border:1.5px solid #cfd8e3;background:#fff;color:#3b4a5c">Reset password</button>'
+    'font-size:13px;border:1.5px solid #cfd8e3;background:#fff;color:#3b4a5c">Reset password</button></sc-if>'
+    '<sc-if value="{{ su.canUnlock }}" hint-placeholder-val="{{ false }}">'
+    '<button onClick="{{ su.unlock }}" style="height:42px;padding:0 18px;border-radius:999px;font-weight:700;cursor:pointer;'
+    'font-size:13px;border:1.5px solid #cfd8e3;background:#fff;color:#3b4a5c">Unlock</button></sc-if>'
 )
 DRAWER_FIELD = (
     '          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700;color:#0A2550">%(label)s</span>'
     '<input name="%(name)s" type="%(type)s" value="{{ nu.%(name)s }}" onChange="{{ onNU }}" placeholder="%(ph)s" '
     'style="height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A"></label>'
 )
-ROLE_PASSWORDS_CARD = "\n".join([
-    '          <div style="background:#fff;border:1px solid #eef2f6;border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:12px">',
-    '            <span style="font-family:\'Rubik\',sans-serif;font-size:16px;font-weight:700;color:#0A2550">Default passwords by role</span>',
-    '            <div style="font-size:13px;color:#3b4a5c;line-height:1.5">New users and password resets get the default password of their role and must change it at first login. A change here affects only future invites and resets.</div>',
-    '            <sc-for list="{{ rolePasswords }}" as="rp" hint-placeholder-count="4">',
-    '              <div style="display:grid;grid-template-columns:200px 1fr 1fr auto;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid #f3f5f8">',
-    '                <span><span style="display:block;font-weight:700;color:#0A2550">{{ rp.role }}</span></span>',
-    '                <span style="font-size:13px;color:#3b4a5c;line-height:1.5;letter-spacing:.08em">{{ rp.masked }}</span>',
-    '                <span style="font-size:12px;color:#6b7a8c;line-height:1.5">{{ rp.updated }}</span>',
-    '                <button onClick="{{ rp.edit }}" style="height:32px;padding:0 14px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px">Edit</button>',
-    '              </div>',
-    '            </sc-for>',
-    '          </div>',
-])
+PASSWORD_FIELD = (
+    '          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700;color:#0A2550">Temporary password (optional)</span>'
+    '<span style="display:flex;gap:10px"><input name="password" type="text" value="{{ nu.password }}" onChange="{{ onNU }}" placeholder="Leave empty to generate one" autocomplete="off" '
+    'style="flex:1;height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A">'
+    '<button onClick="{{ genNU }}" style="height:44px;padding:0 18px;border:1.5px solid #cfd8e3;border-radius:999px;background:#fff;color:#3b4a5c;font-weight:700;cursor:pointer">Generate</button></span></label>'
+)
+# Modal: a one-line input with Generate, and a value shown once with Copy.
+MODAL_INPUT = (
+    '<sc-if value="{{ modal.hasInput }}" hint-placeholder-val="{{ false }}"><label style="display:flex;flex-direction:column;gap:6px">'
+    '<span style="font-size:12px;font-weight:700;color:#0A2550">{{ modal.inputLabel }}</span><span style="display:flex;gap:10px">'
+    '<input type="text" value="{{ modalText }}" onChange="{{ onModalText }}" placeholder="{{ modal.inputPh }}" autocomplete="off" '
+    'style="flex:1;height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A">'
+    '<button onClick="{{ genModal }}" style="height:44px;padding:0 18px;border:1.5px solid #cfd8e3;border-radius:999px;background:#fff;color:#3b4a5c;font-weight:700;cursor:pointer">Generate</button>'
+    '</span></label></sc-if>'
+    '<sc-if value="{{ modal.hasSecret }}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:10px">'
+    '<input type="text" value="{{ modal.secret }}" onChange="{{ noop }}" autocomplete="off" '
+    'style="flex:1;height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A;letter-spacing:.08em">'
+    '<button onClick="{{ copySecret }}" style="height:44px;padding:0 18px;border:1.5px solid #cfd8e3;border-radius:999px;background:#fff;color:#3b4a5c;font-weight:700;cursor:pointer">Copy</button>'
+    '</span></sc-if>'
+)
+MENU_CHANGE = (
+    '\n              <button onClick="{{ menuChangePassword }}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;'
+    'border-radius:8px;cursor:pointer;font-size:14px;color:#17212e">Change password</button>'
+)
+
+
+def shown_if(flag: str, html: str, hint: str = "true") -> str:
+    """Wrap an element so it shows only when the signed-in user may use it."""
+    return '<sc-if value="{{ %s }}" hint-placeholder-val="{{ %s }}">%s</sc-if>' % (flag, hint, html)
+
 
 # Contact messages page: same layout, table and paging as the Audit Log page.
 CONTACT_PAGE = "\n".join([
@@ -125,11 +145,11 @@ CONTACT_PAGE = "\n".join([
 # User panel: every role assignment, with Add role and Remove.
 ROLES_BLOCK = (
     '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;color:#0A2550">Roles</span>'
-    '<button onClick="{{ su.addRole }}" style="height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px">+ Add role</button></div>\n'
+    '<sc-if value="{{ su.canAddRole }}" hint-placeholder-val="{{ true }}"><button onClick="{{ su.addRole }}" style="height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px">+ Add role</button></sc-if></div>\n'
     '            <sc-for list="{{ su.roles }}" as="r" hint-placeholder-count="1"><div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #eef2f6;border-radius:10px;background:#fff">'
     '<span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: {{ r.rbg }};color: {{ r.rcolor }}">{{ r.label }}</span>'
     '<span style="flex:1;font-size:13px;color:#3b4a5c">{{ r.area }}</span>'
-    '<button onClick="{{ r.remove }}" style="height:28px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#b3261e;font-weight:700;cursor:pointer;font-size:12px">Remove</button></div></sc-for>\n'
+    '<sc-if value="{{ r.canRemove }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.remove }}" style="height:28px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#b3261e;font-weight:700;cursor:pointer;font-size:12px">Remove</button></sc-if></div></sc-for>\n'
     "            "
 )
 
@@ -157,8 +177,6 @@ def line_edits(lines: list[str]) -> None:
         51: "Demo login as Super Admin",  # L52
         56: "Enter OTP",                  # L57
         59: "Fill demo OTP",              # L60
-        309: "          </div>",          # L310 end of the templates card
-        310: "        </sc-if>",          # L311 end of the settings page
         236: "Posts by area",              # L237 report card
         241: "Average review time by level",  # L242 report card
         252: "Admin activity",             # L253 report card
@@ -171,8 +189,6 @@ def line_edits(lines: list[str]) -> None:
         if lines[index].count("{{ exportCsv }}") != 1:
             raise SystemExit(f"Line {index + 1}: expected one Export CSV button")
         lines[index] = lines[index].replace("{{ exportCsv }}", "{{ %s }}" % handler)
-    # Settings: role passwords card after the notification templates card.
-    lines[309] = lines[309] + "\n" + ROLE_PASSWORDS_CARD
     # Change-password card replaces the OTP card's contents (L57-L60).
     lines[56:60] = [CHANGE_CARD]
     # Login: username + password + Sign in replace mobile, Send OTP, "or" and demo login (L48-L52).
@@ -194,6 +210,12 @@ def line_edits(lines: list[str]) -> None:
 def edits(lines: list[str]) -> list[tuple[str, str]]:
     """(old, new) pairs. Each old string must occur exactly once in the page."""
     audit_body = lines[267]    # L268: audit table body
+    page = "\n".join(lines)
+    audit_export = re.search(r'<button onClick="\{\{ exportCsv \}\}".*?</button>', lines[263]).group(0)  # L264
+    mobile = re.search(r'<label[^\n]*?Mobile</span><input name="mobile".*?</label>', page).group(0)
+    role_select = re.search(r'<select name="role" value="\{\{ nu\.role \}\}"[^>]*>.*?</select>', page).group(0)
+    role_options = role_select[role_select.index(">") + 1:-len("</select>")]
+    button = lambda handler: re.search(r'<button onClick="\{\{ %s \}\}".*?</button>' % re.escape(handler), page).group(0)
     add_district = re.search(r'<button onClick="\{\{ addDistrict \}\}".*?</button>', lines[144]).group(0)
     return [
         # Head: local React before the runtime, then config and the API client.
@@ -205,22 +227,34 @@ def edits(lines: list[str]) -> list[tuple[str, str]]:
             '<script src="config.js"></script>\n<script src="gc-api.js"></script>\n'
             '<script src="./support.js"></script>',
         ),
-        # Reset password in the user panel, next to Reassign and Block.
-        ('<button onClick="{{ su.toggle }}"', PANEL_BTN + '<button onClick="{{ su.toggle }}"'),
-        # Add User: email (required) and username; mobile optional; no SMS.
+        # Panel buttons by permission: Reassign, Reset password, Unlock, Block.
+        (button("su.reassign"), shown_if("su.canReassign", button("su.reassign"))),
+        (button("su.toggle"), PANEL_BTN + shown_if("su.canToggle", button("su.toggle"))),
+        # Users table row buttons by permission.
+        (button("u.reassign"), shown_if("u.canReassign", button("u.reassign"))),
+        (button("u.toggle"), shown_if("u.canToggle", button("u.toggle"))),
+        (button("openAddUser"), shown_if("canAddUser", button("openAddUser"))),
+        (audit_export, shown_if("canExportAudit", audit_export)),
+        # Profile menu: Settings by permission, then Change password.
+        (button("goSettingsM"), shown_if("canSettings", button("goSettingsM")) + MENU_CHANGE),
+        # Screen name: the OTP card is now the change-password card.
+        ("{{ is.otp }}", "{{ is.changePassword }}"),
+        ("<!-- LOGIN / OTP -->", "<!-- LOGIN / CHANGE PASSWORD -->"),
+        # Modal: password input with Generate, a value shown once, and no Cancel on that last one.
+        ("</textarea></label></sc-if>", "</textarea></label></sc-if>" + MODAL_INPUT),
+        (button("closeModal"), shown_if("modal.hasCancel", button("closeModal"))),
+        # Add User: username (required), email and mobile optional, temporary password; no email invite.
         (
             '<input name="te" value="{{ nu.te }}" onChange="{{ onNU }}" style="height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A"></label>',
             '<input name="te" value="{{ nu.te }}" onChange="{{ onNU }}" style="height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A"></label>\n'
-            + DRAWER_FIELD % {"label": "Email", "name": "email", "type": "email", "ph": "name@example.com"} + "\n"
-            + DRAWER_FIELD % {"label": "Username (optional)", "name": "username", "type": "text", "ph": "Defaults to the email"},
+            + DRAWER_FIELD % {"label": "Username", "name": "username", "type": "text", "ph": "e.g. ravi.kumar"} + "\n"
+            + DRAWER_FIELD % {"label": "Email (optional)", "name": "email", "type": "email", "ph": "name@example.com"},
         ),
-        (
-            '<span style="font-size:12px;font-weight:700;color:#0A2550">Mobile</span><input name="mobile"',
-            '<span style="font-size:12px;font-weight:700;color:#0A2550">Mobile (optional)</span><input name="mobile"',
-        ),
+        (mobile, mobile.replace('>Mobile</span>', '>Mobile (optional)</span>') + "\n" + PASSWORD_FIELD),
+        (role_select, role_select.replace(role_options, '<sc-for list="{{ nuRoles }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>')),
         (
             "The user receives an SMS with an OTP login link.",
-            "They get an email with their username and a temporary password.",
+            "Leave the password empty to generate one. It is shown once after you save: give it to the person yourself. They choose their own password at first login.",
         ),
         # Signed-in official instead of the mock identity.
         (">S</span><span style=\"text-align:left;line-height:1.2\">", ">{{ meInitial }}</span><span style=\"text-align:left;line-height:1.2\">"),

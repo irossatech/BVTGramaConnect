@@ -67,7 +67,7 @@ Django serves `dist/` at `/` (`WEB_PUBLIC_DIR`, default `../BVTGramaConnect/dist
 7. Each page has its own URL: `#how`, `#officials`, `#faq`, `#contact` and `#admin`; home has none. Back and Forward move between pages (owner decision Q16).
 8. The phone in the hero shows the newest posts from `GET /api/v1/public/showcase/` in the chosen language. Without data it keeps the prototype's static picture (owner decision Q16).
 
-**Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen, server-side paging, loading and empty rows, email and username in Add User, CSV import for villages, a "Default passwords by role" card, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
+**Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen (forced at first login, and from the profile menu), server-side paging, loading and empty rows, Add User with username, optional email and mobile and a temporary password (typed or generated), Reset password and Unlock in the user panel, a dialog that shows a temporary password once with Copy, menus and buttons that follow the signed-in user's permissions, CSV import for villages, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
 
 ## When the designer re-exports the console
 
@@ -80,9 +80,11 @@ npm run build
 
 ## Console sign-in and session
 
-- Username or email plus password, `client: "web_admin"`; only Super Admins get in.
-- The access token is kept in memory only. The refresh token is an HttpOnly, Secure, SameSite=Strict cookie (`gc_refresh`, path `/api/v1/auth/`) that page scripts never see. A page reload refreshes the session through that cookie.
-- CSRF: the cookie is only sent on same-site requests and the server also checks the Origin header on the cookie routes. Every other request carries the bearer token.
+- Username and password. The console uses a Django session: `POST /api/v1/auth/session/login/` sets the HttpOnly `sessionid` cookie, so page scripts never see a token. Only users with the `web_admin.access_web_console` permission get in (today the Super Admin).
+- CSRF: `gc-api.js` gets the `csrftoken` cookie from `GET /api/v1/auth/csrf/` and sends it as `X-CSRFToken` on every write.
+- The session ends after 30 idle minutes, at logout, when the user is blocked, or when their password is changed or reset. The next call answers 401 and the console shows the login screen.
+- No email is sent. Add User and Reset password take a temporary password, or generate one, and show it once for the admin to hand over in person. The person must choose their own password at first login.
+- The mobile app keeps its JWT login; nothing here changes it.
 
 ## Visual checks
 

@@ -3,7 +3,8 @@ import { chromium } from "playwright";
 import fs from "node:fs";
 
 const OUT = process.argv[2];
-const COOKIES = process.argv[3];
+// Usage: node console/tools/visual-check.mjs <out dir> <username> <password> (an account that already chose its own password)
+const [USERNAME, PASSWORD] = process.argv.slice(3, 5);
 fs.mkdirSync(OUT, { recursive: true });
 const PROTO = "http://127.0.0.1:8198/Super%20Admin%20Console.dc.html";
 const PORT = "http://127.0.0.1:8102/console/";
@@ -71,13 +72,12 @@ const browser = await chromium.launch();
   await page.close();
 }
 
-// Port: login and change-password screens (login response faked; backend login is still being built)
+// Port: login and the forced change-password screen (the login answer is faked so no real password is spent)
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   watch(page, "port");
-  await page.route("**/api/v1/auth/refresh/", (route) => route.fulfill({ status: 401, json: { error: { code: "session_revoked", message: "x" } } }));
-  await page.route("**/api/v1/auth/login/", (route) =>
-    route.fulfill({ json: { access: "fake", user: { id: "1", name: "Sita Mahalakshmi", username: "sita", email: "sita@example.in", must_change_password: true, role_assignments: [] } } }),
+  await page.route("**/api/v1/auth/session/login/", (route) =>
+    route.fulfill({ json: { user: { id: "1", name: "Sita Mahalakshmi", username: "sita", must_change_password: true, permissions: ["web_admin.access_web_console"], role_assignments: [] } } }),
   );
   await page.goto(PORT);
   await settle(page);
@@ -90,15 +90,16 @@ const browser = await chromium.launch();
   await page.close();
 }
 
-// Port: signed in through the HttpOnly refresh cookie
+// Port: signed in with a real Django session (login form, then every screen)
 {
-  const line = fs.readFileSync(COOKIES, "utf8").split("\n").find((l) => l.includes("gc_refresh"));
-  const value = line.trim().split("\t").pop();
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  await context.addCookies([{ name: "gc_refresh", value, domain: "127.0.0.1", path: "/api/v1/auth/", httpOnly: true, sameSite: "Strict" }]);
   const page = await context.newPage();
   watch(page, "port");
   await page.goto(PORT);
+  await settle(page);
+  await page.locator("input[name=username]").fill(USERNAME);
+  await page.locator("input[name=password]").fill(PASSWORD);
+  await page.getByRole("button", { name: "Sign in ›" }).click();
   await settle(page);
   await page.waitForTimeout(1500);
   await tour(page, "port");
