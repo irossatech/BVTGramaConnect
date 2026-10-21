@@ -34,7 +34,7 @@ Request: `{"name", "mobile", "village_text", "message", "language", "website"}`.
 - `website` is a hidden honeypot field. When a bot fills it, the server answers `201` with `id` 0 and stores nothing.
 - At most 5 messages per IP per hour (`CONTACT_MESSAGES_PER_IP_PER_HOUR`), then `429` with `Retry-After`. The page shows the `toastBusy` text.
 - Other failures show the `toastFail` text.
-- Messages are read in Django admin.
+- Messages are read and marked handled in the console's Contact messages page.
 
 ### Errors
 
@@ -46,9 +46,19 @@ Every error has the same shape:
 
 `GCApi` rejects with that `error` object plus `status` (`0` for a network failure).
 
-### Not used yet
+### GET /public/showcase/
 
-The home page's phone mockup could show live posts from `GET /feed/?village_id=` or a future `/public/showcase` endpoint. That is open question Q16; until it is answered the mockup stays static.
+Called on page load and again the first time the language is switched, with `Accept-Language` set to the page language. It fills the phone picture in the hero.
+
+```json
+{"location": {"level": "VILLAGE", "id": 1, "name": "…", "path": "Kolakaluru · Tenali · Guntur"},
+ "featured": {"id": "…", "category": "news", "title": "…", "area": {"level", "id", "name"}, "published_at": "…", "thumbnail_url": null, "event": null, "is_urgent": false, "video": null},
+ "items": [ /* two more posts, same shape */ ]}
+```
+
+- The page uses `location.path` (or `name`), and from each post `category`, `title`, `published_at`, `area.name` and `thumbnail_url`.
+- The backend's `SITE_SHOWCASE_VILLAGE_ID` picks the village; without it the backend chooses.
+- When `featured` is null or the call fails, the prototype's static picture stays.
 
 ## Console (`console/`)
 
@@ -65,12 +75,13 @@ This section lists what the console calls today, read from `console/tools/logic.
 | Shell, Posts badge | the pending count comes from the dashboard's `kpis.pending` and from `status_counts.PENDING` on the posts list |
 | Dashboard | `GET /admin/dashboard/` |
 | Geography | `GET /geo/tree/?villages=1`; `POST /geo/districts/`, `/geo/mandals/`, `/geo/villages/`; `PATCH /geo/{districts,mandals,villages}/{id}/` for edits and `{is_active}`; CSV import: `POST /geo/villages/import/?dry_run=1` (multipart `file`), then the same without `dry_run` |
-| Users | `GET /users/?role=&district=&status=&q=&page=&page_size=20`; `POST /users/` `{name, name_te, email, username?, mobile?, role, area: {level, id}}`; `POST /users/{id}/block/` or `/unblock/`; `POST /users/{id}/reset-password/`; `PATCH /users/{id}/role-assignments/{ra_id}/` `{area}` to reassign |
-| User panel | `GET /posts/?author={id}&page_size=5` for recent posts |
+| Users | `GET /users/?role=&district=&status=&q=&page=&page_size=20`; `POST /users/` `{name, name_te, email, username?, mobile?, role, area: {level, id}}`; `POST /users/{id}/block/` or `/unblock/`; `PATCH /users/{id}/role-assignments/{ra_id}/` `{area}` to reassign |
+| User panel | `GET /posts/?author={id}&page_size=5` for recent posts; `GET /users/{id}/` after a change; `POST /users/{id}/reset-password/`; `POST /users/{id}/role-assignments/` `{role, area: {level, id}}` to add a role; `DELETE /users/{id}/role-assignments/{ra_id}/` to remove one |
 | Posts | `GET /posts/?status=&district=&category=&q=&page=&page_size=20` (uses `status_counts` for the tabs); `GET /categories/` for the filter |
-| Post panel | `GET /posts/{id}/`, `GET /posts/{id}/history/`; `POST /posts/{id}/review/` with `{action: publish}`, `{action: recheck, comment}`, `{action: discard, comment}`, `{action: unpublish, comment}` or `{action: reverse, to_status, comment}` |
-| Reports | `GET /admin/reports/posts-by-area/`, `GET /admin/reports/review-time/`, `GET /admin/reports/admin-activity/?page_size=8`; CSV: `GET /admin/reports/posts-by-area/export/?format=csv` |
+| Post panel | `GET /posts/{id}/`, `GET /posts/{id}/history/`; `POST /posts/{id}/review/` with `{action: publish}`, `{action: recheck, comment}`, `{action: discard, comment}`, `{action: unpublish, comment}` or `{action: reverse, to_status, comment}`; `POST /posts/{id}/urgent/` `{is_urgent}` when `allowed_actions` has `set_urgent`. Shows `event`, `is_urgent` and video media (`kind: "video"`, `url`, `poster_url`) |
+| Reports | `GET /admin/reports/posts-by-area/`, `GET /admin/reports/review-time/`, `GET /admin/reports/admin-activity/?page_size=8`; CSV only, one per report: `GET /admin/reports/{posts-by-area,review-time,admin-activity}/export/?format=csv` |
 | Audit log | `GET /audit/?q=&page=&page_size=20`; CSV: `GET /audit/export/?q=` |
+| Contact messages | `GET /admin/contact-messages/?status=new\|handled&q=&page=&page_size=20` (no `status` for All); `PATCH /admin/contact-messages/{id}/` `{handled}` |
 | Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}`; `GET /admin/role-passwords/`, `PATCH /admin/role-passwords/{ROLE}/` `{password}` |
 
 CSV downloads go through `GC_API.download`, which fetches with the bearer token and saves the file, because a plain link cannot carry the token.

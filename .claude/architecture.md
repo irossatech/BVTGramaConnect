@@ -50,9 +50,9 @@ Each page is its own document. Their global CSS (`:root`, `body`, links, inputs)
 ## Website
 
 - `src/index.html` is the approved prototype `Public Website.dc.html` with the allowed port changes.
-- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `admin`. Browser Back leaves the site. Below 820 px a ResizeObserver switches to the mobile layout.
+- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `admin`. `go()` pushes `#<page>` (home: no hash) onto the history, and `hashchange` and `popstate` set the page from the hash, so links like `/#faq` open that page and Back and Forward work. Below 820 px a ResizeObserver switches to the mobile layout.
 - The Telugu and English dictionary is `Component.T`. Telugu is the default.
-- Data: on mount `GET /public/site-config/` fills the office details and store links; the Contact form posts to `POST /public/contact-messages/`. The hero's phone mockup is a static illustration on purpose.
+- Data: on mount `GET /public/site-config/` fills the office details and store links; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
 
 ## Console
 
@@ -67,7 +67,7 @@ prototype folder (read-only)          console/tools/logic.js     console/tools/p
 - `port.py` applies every change as an exact text replacement or a checked line edit. A replacement that no longer matches exactly once stops the script, so a designer re-export cannot drift silently. It finds the prototype folder three levels above `console/tools/`.
 - `logic.js` holds all behaviour. Loaders per page call the API through `this.api` (`window.GC_API`). Adapters turn API objects into the exact view-model shapes the prototype's template binds to, so the template stays as designed. Static maps translate API enums such as `UNPUBLISHED` into prototype keys such as `TakenDown`. `fail(e)` is the single error handler.
 - **Sign-in:** username or email plus password with `client: "web_admin"`; only Super Admins get in. The access token lives in memory inside `gc-api.js`. The refresh token is the `gc_refresh` cookie: HttpOnly, SameSite=Strict, path `/api/v1/auth/`. On page load the console calls `/auth/refresh/` then `/me/`. `gc-api.js` refreshes once on `401 token_expired`. When `must_change_password` is set, the change-password screen (the prototype's OTP card) comes first.
-- **Additions to the prototype**, all in the prototype's own inline styles: username and password fields; the change-password card; a pager under Users, Posts and Audit (server-side, 20 per page); empty and loading rows; "Reset" and "Reset password"; Email and optional Username in Add User; "Import CSV"; a "Default passwords by role" card; bindings for the signed-in name, state name, category filter and real photos. A `409 already_decided` review answer shows in the existing toast.
+- **Additions to the prototype**, all in the prototype's own inline styles: username and password fields; the change-password card; a pager under Users, Posts and Audit (server-side, 20 per page); empty and loading rows; "Reset password" in the user panel; a Roles list with Remove and "+ Add role" in the user panel; a Contact messages page after Audit Log, built like the Audit Log page; Urgent and event chips, a video player and Mark urgent in the post panel; one Export CSV handler per report and no Export PDF; labels for every audit action key; Email and optional Username in Add User; "Import CSV"; a "Default passwords by role" card; bindings for the signed-in name, state name, category filter and real photos. A `409 already_decided` review answer shows in the existing toast.
 - The console is a fixed 1440 px canvas, as designed.
 
 ## Build and serving

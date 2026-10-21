@@ -77,10 +77,6 @@ CHANGE_CARD = "\n".join([
     PRIMARY % {"go": "changePassword", "off": "cannotChange", "op": "changeOpacity", "label": "Save & continue"},
     '            <div style="display:flex;justify-content:space-between"><button onClick="{{ toLogin }}" style="background:none;border:0;color:#6b7a8c;font-weight:700;cursor:pointer">‹ Sign out</button></div>',
 ])
-SMALL_BTN = (
-    '<button onClick="{{ %(go)s }}" style="height:30px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;'
-    'color:#3b4a5c;font-weight:700;cursor:pointer;font-size:12px;margin-left:6px">Reset</button>'
-)
 PANEL_BTN = (
     '<button onClick="{{ su.reset }}" style="height:42px;padding:0 18px;border-radius:999px;font-weight:700;cursor:pointer;'
     'font-size:13px;border:1.5px solid #cfd8e3;background:#fff;color:#3b4a5c">Reset password</button>'
@@ -105,6 +101,54 @@ ROLE_PASSWORDS_CARD = "\n".join([
     '          </div>',
 ])
 
+# Contact messages page: same layout, table and paging as the Audit Log page.
+CONTACT_PAGE = "\n".join([
+    "        <!-- CONTACT MESSAGES -->",
+    '        <sc-if value="{{ pg.contact }}" hint-placeholder-val="{{ false }}">',
+    '          <div style="display:flex;gap:12px;align-items:center">',
+    '            <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;background:#fff;width:360px;color:#6b7a8c">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>'
+    + '<input value="{{ contactQ }}" onChange="{{ onContactQ }}" placeholder="Search name, mobile, village, message…" style="flex:1;border:0;outline:none;font-size:13px;background:transparent"></div>',
+    '            <select value="{{ contactFilter }}" onChange="{{ onContactFilter }}" style="height:40px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;background:#fff;font-size:13px;min-width:170px"><sc-for list="{{ contactFilters }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select>',
+    '            <span style="font-size:13px;color:#6b7a8c">{{ contactCount }}</span>',
+    "          </div>",
+    '          <div style="background:#fff;border:1px solid #eef2f6;border-radius:14px;overflow:hidden">',
+    '            <table style="width:100%;font-size:13px"><thead><tr style="background:#f7f9fb;color:#6b7a8c;text-align:left;font-size:12px"><th style="padding:12px 16px;font-weight:600">Received</th><th style="padding:12px 16px;font-weight:600">Name</th><th style="padding:12px 16px;font-weight:600">Mobile</th><th style="padding:12px 16px;font-weight:600">Village / Mandal</th><th style="padding:12px 16px;font-weight:600">Message</th><th style="padding:12px 16px;font-weight:600">Status</th><th style="padding:12px 16px"></th></tr></thead>',
+    '            <tbody><sc-for list="{{ contactRows }}" as="c" hint-placeholder-count="6"><tr style="border-top:1px solid #f3f5f8"><td style="padding:10px 16px;color:#6b7a8c;white-space:nowrap;font-variant-numeric:tabular-nums">{{ c.time }}</td><td style="padding:10px 16px;font-weight:700;color:#0A2550">{{ c.name }}</td><td style="padding:10px 16px;color:#3b4a5c;white-space:nowrap">{{ c.mobile }}</td><td style="padding:10px 16px;color:#3b4a5c">{{ c.village }}</td><td style="padding:10px 16px;color:#17212e;line-height:1.5">{{ c.message }}</td><td style="padding:10px 16px"><span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: {{ c.sbg }};color: {{ c.scolor }}">{{ c.status }}</span></td><td style="padding:10px 16px;text-align:right;white-space:nowrap"><button onClick="{{ c.toggle }}" style="height:30px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#3b4a5c;font-weight:700;cursor:pointer;font-size:12px">{{ c.toggleLabel }}</button></td></tr></sc-for>'
+    + EMPTY_ROW % {"flag": "contactEmpty", "cols": 7, "text": "contactEmptyText"} + "</tbody></table>",
+    PAGER % {"p": "contactPager"},
+    "          </div>",
+    "        </sc-if>",
+    "",
+])
+
+# User panel: every role assignment, with Add role and Remove.
+ROLES_BLOCK = (
+    '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;color:#0A2550">Roles</span>'
+    '<button onClick="{{ su.addRole }}" style="height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px">+ Add role</button></div>\n'
+    '            <sc-for list="{{ su.roles }}" as="r" hint-placeholder-count="1"><div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #eef2f6;border-radius:10px;background:#fff">'
+    '<span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: {{ r.rbg }};color: {{ r.rcolor }}">{{ r.label }}</span>'
+    '<span style="flex:1;font-size:13px;color:#3b4a5c">{{ r.area }}</span>'
+    '<button onClick="{{ r.remove }}" style="height:28px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#b3261e;font-weight:700;cursor:pointer;font-size:12px">Remove</button></div></sc-for>\n'
+    "            "
+)
+
+# Post panel: urgent and event chips next to the category, and the post's video.
+POST_CHIPS = (
+    '<sc-if value="{{ sp.urgent }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#fde7e5;color:#b3261e">Urgent</span></sc-if>'
+    '<sc-if value="{{ sp.hasEvent }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: {{ sp.eventBg }};color: {{ sp.eventColor }}">{{ sp.eventLabel }}</span></sc-if>'
+)
+VIDEO_BLOCK = (
+    '<sc-if value="{{ sp.hasVideo }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ sp.videos }}" as="v" hint-placeholder-count="1">'
+    '<video src="{{ v.src }}" poster="{{ v.poster }}" controls="{{ true }}" preload="none" style="width:100%;aspect-ratio:16/9;border-radius:10px;background:#0A2550;object-fit:contain"></video>'
+    "</sc-for></sc-if>\n            "
+)
+
+EXPORT_PDF = (
+    '<button onClick="{{ exportPdf }}" style="height:32px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;'
+    'color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px">Export PDF</button>'
+)
+
 
 def line_edits(lines: list[str]) -> None:
     """Edits made by position, because the same text appears more than once."""
@@ -115,10 +159,18 @@ def line_edits(lines: list[str]) -> None:
         59: "Fill demo OTP",              # L60
         309: "          </div>",          # L310 end of the templates card
         310: "        </sc-if>",          # L311 end of the settings page
+        236: "Posts by area",              # L237 report card
+        241: "Average review time by level",  # L242 report card
+        252: "Admin activity",             # L253 report card
     }
     for index, text in expect.items():
         if text not in lines[index]:
             raise SystemExit(f"Line {index + 1} changed in the prototype: {lines[index][:80]!r}")
+    # Reports: one export per report card (CSV only).
+    for index, handler in ((236, "exportByArea"), (241, "exportReviewTime"), (252, "exportActivity")):
+        if lines[index].count("{{ exportCsv }}") != 1:
+            raise SystemExit(f"Line {index + 1}: expected one Export CSV button")
+        lines[index] = lines[index].replace("{{ exportCsv }}", "{{ %s }}" % handler)
     # Settings: role passwords card after the notification templates card.
     lines[309] = lines[309] + "\n" + ROLE_PASSWORDS_CARD
     # Change-password card replaces the OTP card's contents (L57-L60).
@@ -153,8 +205,7 @@ def edits(lines: list[str]) -> list[tuple[str, str]]:
             '<script src="config.js"></script>\n<script src="gc-api.js"></script>\n'
             '<script src="./support.js"></script>',
         ),
-        # Reset password next to Reassign and Block (row and side panel).
-        ('<button onClick="{{ u.toggle }}"', SMALL_BTN % {"go": "u.reset"} + '<button onClick="{{ u.toggle }}"'),
+        # Reset password in the user panel, next to Reassign and Block.
         ('<button onClick="{{ su.toggle }}"', PANEL_BTN + '<button onClick="{{ su.toggle }}"'),
         # Add User: email (required) and username; mobile optional; no SMS.
         (
@@ -202,6 +253,17 @@ def edits(lines: list[str]) -> list[tuple[str, str]]:
             )
             + "\n" + PAGER % {"p": "auditPager"},
         ),
+        # CSV only: no PDF export.
+        (EXPORT_PDF, ""),
+        # Contact messages page before Settings.
+        ("        <!-- SETTINGS -->", CONTACT_PAGE + "        <!-- SETTINGS -->"),
+        # User panel: roles with Add role and Remove.
+        ('<div style="font-weight:700;color:#0A2550">Recent posts by this user</div>',
+         ROLES_BLOCK + '<div style="font-weight:700;color:#0A2550">Recent posts by this user</div>'),
+        # Post panel: urgent and event chips, video.
+        ('<span style="font-size:12px;color:#6b7a8c">{{ sp.area }} · {{ sp.date }}</span>',
+         POST_CHIPS + '<span style="font-size:12px;color:#6b7a8c">{{ sp.area }} · {{ sp.date }}</span>'),
+        ('<sc-if value="{{ sp.hasPhoto }}"', VIDEO_BLOCK + '<sc-if value="{{ sp.hasPhoto }}"'),
     ]
 
 

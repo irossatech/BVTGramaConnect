@@ -64,10 +64,10 @@ Django serves `dist/` at `/` (`WEB_PUBLIC_DIR`, default `../BVTGramaConnect/dist
 4. Store buttons open `play_store_url` and `app_store_url`; while a URL is empty they show the prototype's "coming soon" toast.
 5. The contact form posts to `POST /api/v1/public/contact-messages/`, with an invisible honeypot input. Two toast texts were added in Telugu and English.
 6. "Admin Login" sends officials to `/console/`.
+7. Each page has its own URL: `#how`, `#officials`, `#faq`, `#contact` and `#admin`; home has none. Back and Forward move between pages (owner decision Q16).
+8. The phone in the hero shows the newest posts from `GET /api/v1/public/showcase/` in the chosen language. Without data it keeps the prototype's static picture (owner decision Q16).
 
-The phone mockup in the hero stays a static illustration on purpose (open question Q16).
-
-**Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen, server-side paging, loading and empty rows, reset password, email and username in Add User, CSV import for villages, a "Default passwords by role" card, and an "Already decided by …" toast for review conflicts. Full list: `.claude/architecture.md`.
+**Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen, server-side paging, loading and empty rows, email and username in Add User, CSV import for villages, a "Default passwords by role" card, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
 
 ## When the designer re-exports the console
 
