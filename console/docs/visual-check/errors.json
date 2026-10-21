@@ -1,0 +1,16 @@
+{
+  "proto": [
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.d }}\".",
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.chev }}\"."
+  ],
+  "port": [
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.d }}\".",
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.chev }}\".",
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.d }}\".",
+    "console: Error: <path> attribute d: Expected moveto path command ('M' or 'm'), \"{{ n.chev }}\".",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

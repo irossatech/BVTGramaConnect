@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html data-ds-base="assets">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./config.js"></script>
+<script src="./gc-api.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/styles.css">
+  <script src="_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{--blue-900:#0D3B7A;--green-600:#1F8A3B;--orange-500:#E9791E;--text-heading:#0A2550;--font-latin:"Rubik","Noto Sans Telugu",sans-serif;--font-telugu:"Nunito Sans","Noto Sans Telugu",sans-serif}
+    body{margin:0;background:#e6ebe3;font-family:"Nunito Sans","Noto Sans Telugu",sans-serif;color:#17212e}
+    a{color:#0D3B7A}a:hover{color:#0A2550}
+    input,textarea,select,button{font-family:inherit}
+    @keyframes mk-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+<div style="min-height:100vh;display:flex;justify-content:center">
+<div ref="{{ rootRef }}" data-screen-label="{{ page }}" style="width:100%;background:#F6F8F3;font-family:'Nunito Sans','Noto Sans Telugu',sans-serif;color:#17212e;display:flex;flex-direction:column;min-height:100vh;position:relative;overflow:hidden;max-width: {{ frameW }}">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:30;background:rgba(246,248,243,.92);backdrop-filter:blur(8px);border-bottom:1px solid #e3e8df">
+    <div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);height:72px;display:flex;align-items:center;gap:16px">
+      <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;text-align:left"><img src="assets/logo-mark.png" alt="BVT Grama Connect" style="width:44px;height:44px;border-radius:50%"><span><span style="display:block;font-family:'Rubik',sans-serif;font-weight:700;font-size:15px;color:#0A2550;letter-spacing:.03em;line-height:1.1">BVT GRAMA CONNECT</span><span style="display:block;font-size:11px;color:#1F8A3B;font-weight:700">{{ t.taglineShort }}</span></span></button>
+      <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+        <nav style="display:flex;gap:4px;margin-left:auto">
+          <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5"><button onClick="{{ n.go }}" style="height:40px;padding:0 14px;border:0;border-radius:999px;cursor:pointer;font-size:14px;font-weight:700;background: {{ n.bg }};color: {{ n.color }}">{{ n.label }}</button></sc-for>
+        </nav>
+      </sc-if>
+      <button onClick="{{ toggleLang }}" style="margin-left: {{ langMargin }};height:36px;padding:0 12px;border:1.5px solid #0D3B7A;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;font-size:13px;cursor:pointer;font-family:'Rubik','Noto Sans Telugu',sans-serif">{{ langLabel }}</button>
+      <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><button onClick="{{ goContact }}" style="height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;font-size:14px;cursor:pointer">{{ t.getApp }} ›</button></sc-if>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleMenu }}" aria-label="Menu" style="width:44px;height:44px;border:0;background:none;cursor:pointer;color:#0A2550;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="{{ menuIcon }}"></path></svg></button></sc-if>
+    </div>
+    <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+      <nav style="display:flex;flex-direction:column;padding:8px 16px 16px;gap:4px;border-top:1px solid #e3e8df;background:#F6F8F3;animation:mk-fade .15s ease-out">
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5"><button onClick="{{ n.go }}" style="height:48px;padding:0 14px;border:0;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700;text-align:left;background: {{ n.bg }};color: {{ n.color }}">{{ n.label }}</button></sc-for>
+        <button onClick="{{ goContact }}" style="height:48px;margin-top:6px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;font-size:15px;cursor:pointer">{{ t.getApp }} ›</button>
+      </nav>
+    </sc-if>
+  </header>
+
+  <main style="flex:1;display:flex;flex-direction:column">
+
+  <!-- HOME -->
+  <sc-if value="{{ pg.home }}" hint-placeholder-val="{{ true }}">
+    <section style="position:relative;overflow:hidden;background:#fff">
+      <div style="max-width:1180px;margin:0 auto;padding:clamp(32px,6vw,72px) clamp(16px,4vw,40px) 0;display:flex;flex-wrap:wrap;align-items:center;gap:clamp(24px,4vw,56px)">
+        <div style="flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:18px;animation:mk-fade .3s ease-out">
+          <span style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:6px 12px 6px 8px;border-radius:999px;background:#e4f4df;color:#1d7a33;font-size:13px;font-weight:700"><span style="display:flex;height:10px;width:30px;border-radius:2px;overflow:hidden"><span style="flex:1;background:#E9791E"></span><span style="flex:1;background:#fff"></span><span style="flex:1;background:#1F8A3B"></span></span>{{ t.heroBadge }}</span>
+          <h1 style="margin:0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:800;font-size:clamp(28px,4.2vw,50px);line-height:1.2;color:#0A2550;text-wrap:pretty">{{ t.heroTitle }}</h1>
+          <p style="margin:0;font-size:clamp(16px,1.4vw,19px);line-height:1.6;color:#3b4a5c;max-width:560px;text-wrap:pretty">{{ t.heroSub }}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px">
+            <button onClick="{{ playClick }}" style="height:54px;padding:0 18px 0 14px;border:0;border-radius:12px;background:#0A2550;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M4 3.5v17c0 .4.4.6.7.4l9.6-8.5a.5.5 0 0 0 0-.8L4.7 3.1c-.3-.2-.7 0-.7.4zM14.9 11.3l2.6-2.3 2.9 1.6c.7.4.7 1.4 0 1.8l-2.9 1.6-2.6-2.3a.3.3 0 0 1 0-.4z" opacity=".9"></path></svg><span><span style="display:block;font-size:10px;opacity:.8;letter-spacing:.04em;text-transform:uppercase">Get it on</span><span style="display:block;font-family:'Rubik',sans-serif;font-weight:700;font-size:17px;line-height:1.1">Google Play</span></span></button>
+            <button onClick="{{ appClick }}" style="height:54px;padding:0 18px 0 14px;border:0;border-radius:12px;background:#0A2550;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3.1 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8 2.2-1.2 3-2.4c.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.7-1-2.7-3.9zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.9-1 2.9 1.1.1 2.2-.6 2.8-1.4z"></path></svg><span><span style="display:block;font-size:10px;opacity:.8;letter-spacing:.04em;text-transform:uppercase">Download on the</span><span style="display:block;font-family:'Rubik',sans-serif;font-weight:700;font-size:17px;line-height:1.1">App Store</span></span></button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:#6b7a8c;margin-top:4px"><span>✓ {{ t.free }}</span><span>✓ {{ t.verified }}</span><span>✓ {{ t.noLogin }}</span></div>
+        </div>
+        <div style="flex:1 1 320px;min-width:0;display:flex;justify-content:center;align-items:flex-end;align-self:stretch;position:relative;min-height:380px">
+          <div style="position:absolute;inset:auto 0 0 0;height:78%;border-radius:32px 32px 0 0;overflow:hidden"><img src="assets/village-landscape.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 70%"><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(10,37,80,.35))"></div></div>
+          <div style="position:relative;width:250px;height:500px;background:#0A2550;border-radius:36px;padding:10px;box-shadow:0 30px 60px rgba(10,37,80,.35);margin-bottom:-60px">
+            <div style="width:100%;height:100%;background:#F6F8F3;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="background:#0D3B7A;color:#fff;padding:26px 14px 10px;display:flex;align-items:center;gap:8px"><img src="assets/logo-mark.png" alt="" style="width:24px;height:24px;border-radius:50%;background:#fff"><span style="font-family:'Rubik',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;flex:1">BVT GRAMA CONNECT</span><span style="font-size:9px;border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:2px 6px">EN</span></div>
+              <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #eef2f6;font-size:10px;color:#0A2550;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#1F8A3B"></span>కొలకలూరు · తెనాలి · గుంటూరు</div>
+                <div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eef2f6"><img src="assets/village-landscape.jpg" alt="" style="width:100%;height:84px;object-fit:cover;display:block"><div style="padding:9px 10px"><span style="display:inline-block;padding:2px 7px;border-radius:999px;background:#e4f4df;color:#1d7a33;font-size:8px;font-weight:700">గ్రామ చాటింపులు</span><div style="font-weight:700;font-size:11px;color:#0A2550;margin-top:5px;line-height:1.3">తాగునీటి సరఫరా సమయం మార్పు</div><div style="font-size:9px;color:#6b7a8c;margin-top:3px">14 అక్టో · కొలకలూరు</div></div></div>
+                <sc-for list="{{ miniCards }}" as="c" hint-placeholder-count="2"><div style="display:flex;gap:8px;align-items:center;background:#fff;border-radius:12px;padding:8px 10px;border:1px solid #eef2f6"><img src="{{ c.icon }}" alt="" style="width:28px;height:28px;border-radius:50%"><span style="flex:1;min-width:0"><span style="display:block;font-weight:700;font-size:10px;color:#0A2550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</span><span style="display:block;font-size:8.5px;color:#6b7a8c">{{ c.sub }}</span></span></div></sc-for>
+              </div>
+              <div style="margin-top:auto;display:flex;justify-content:space-around;padding:8px 6px 12px;background:#fff;border-top:1px solid #eef2f6;font-size:8px;color:#6b7a8c;font-weight:700"><span style="color:#0D3B7A">Home</span><span>News</span><span>Notices</span><span>Profile</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:60px;background:#0A2550"></div>
+    </section>
+
+    <section style="background:#0A2550;color:#fff;padding:0 0 clamp(40px,6vw,72px)">
+      <div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:28px">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px"><div><div style="font-size:13px;font-weight:700;color:#f2dd3d;letter-spacing:.06em;text-transform:uppercase">{{ t.servicesKicker }}</div><h2 style="margin:6px 0 0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;line-height:1.25">{{ t.servicesTitle }}</h2></div><div style="font-size:15px;opacity:.85;max-width:420px;line-height:1.5">{{ t.servicesSub }}</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px">
+          <sc-for list="{{ features }}" as="f" hint-placeholder-count="5">
+            <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:12px;min-height:200px">
+              <img src="{{ f.icon }}" alt="" style="width:56px;height:56px;border-radius:50%">
+              <div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:18px;line-height:1.3">{{ f.title }}</div>
+              <div style="font-size:14px;line-height:1.55;opacity:.85">{{ f.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding:clamp(40px,6vw,80px) 0;background:#F6F8F3">
+      <div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:32px">
+        <div style="text-align:center;max-width:640px;margin:0 auto"><div style="font-size:13px;font-weight:700;color:#1F8A3B;letter-spacing:.06em;text-transform:uppercase">{{ t.howKicker }}</div><h2 style="margin:6px 0 0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;color:#0A2550;line-height:1.25">{{ t.howTitle }}</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e3e8df;border-radius:18px;padding:26px 24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 8px rgba(0,64,126,.06);position:relative">
+              <span style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Rubik',sans-serif;font-weight:700;font-size:18px;background: {{ s.bg }}">{{ s.n }}</span>
+              <div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:20px;color:#0A2550;line-height:1.3">{{ s.title }}</div>
+              <div style="font-size:15px;line-height:1.6;color:#3b4a5c">{{ s.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="text-align:center"><button onClick="{{ goHow }}" style="height:46px;padding:0 22px;border:1.5px solid #0D3B7A;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;font-size:15px;cursor:pointer">{{ t.howMore }} ›</button></div>
+      </div>
+    </section>
+
+    <section style="padding:0 0 clamp(40px,6vw,80px);background:#F6F8F3">
+      <div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:28px">
+        <h2 style="margin:0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(24px,3vw,36px);font-weight:700;color:#0A2550;line-height:1.25;text-align:center">{{ t.whoTitle }}</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+          <sc-for list="{{ audiences }}" as="a" hint-placeholder-count="3">
+            <div style="border-radius:18px;padding:26px 24px;display:flex;flex-direction:column;gap:12px;background: {{ a.bg }};border:1px solid {{ a.border }}">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color: {{ a.accent }}">{{ a.kicker }}</div>
+              <div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:22px;color:#0A2550">{{ a.title }}</div>
+              <div style="font-size:15px;line-height:1.6;color:#3b4a5c;flex:1">{{ a.desc }}</div>
+              <button onClick="{{ a.go }}" style="align-self:flex-start;height:40px;padding:0 16px;border:0;border-radius:999px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;background: {{ a.accent }}">{{ a.cta }} ›</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- HOW IT WORKS -->
+  <sc-if value="{{ pg.how }}" hint-placeholder-val="{{ false }}">
+    <section style="background:#fff;border-bottom:1px solid #e3e8df"><div style="max-width:1180px;margin:0 auto;padding:clamp(32px,5vw,64px) clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:12px;animation:mk-fade .25s ease-out"><div style="font-size:13px;font-weight:700;color:#1F8A3B;letter-spacing:.06em;text-transform:uppercase">{{ t.nav_how }}</div><h1 style="margin:0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(28px,3.6vw,44px);font-weight:800;color:#0A2550;line-height:1.2;max-width:820px;text-wrap:pretty">{{ t.how2Title }}</h1><p style="margin:0;font-size:17px;line-height:1.6;color:#3b4a5c;max-width:720px">{{ t.how2Sub }}</p></div></section>
+    <section style="padding:clamp(32px,5vw,64px) 0"><div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:14px">
+      <sc-for list="{{ levels }}" as="l" hint-placeholder-count="4">
+        <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;background:#fff;border:1px solid #e3e8df;border-radius:18px;padding:22px 24px;margin-left: {{ l.indent }}">
+          <div style="display:flex;align-items:center;gap:12px;flex:0 0 240px"><span style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Rubik',sans-serif;font-weight:700;font-size:16px;background: {{ l.bg }}">{{ l.short }}</span><span><span style="display:block;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:20px;color:#0A2550">{{ l.name }}</span><span style="display:block;font-size:13px;color:#6b7a8c">{{ l.example }}</span></span></div>
+          <div style="flex:1 1 300px;min-width:0"><div style="font-weight:700;color:#0A2550;margin-bottom:4px">{{ l.role }}</div><div style="font-size:15px;line-height:1.6;color:#3b4a5c">{{ l.desc }}</div></div>
+        </div>
+      </sc-for>
+    </div></section>
+    <section style="padding:0 0 clamp(40px,6vw,80px)"><div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3"><div style="background:#0A2550;color:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:10px"><span style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Rubik',sans-serif;font-weight:700;background: {{ s.bg }}">{{ s.n }}</span><div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:19px">{{ s.title }}</div><div style="font-size:14px;line-height:1.6;opacity:.85">{{ s.desc }}</div></div></sc-for>
+    </div></section>
+  </sc-if>
+
+  <!-- FOR OFFICIALS -->
+  <sc-if value="{{ pg.officials }}" hint-placeholder-val="{{ false }}">
+    <section style="background:#fff;border-bottom:1px solid #e3e8df"><div style="max-width:1180px;margin:0 auto;padding:clamp(32px,5vw,64px) clamp(16px,4vw,40px);display:flex;flex-wrap:wrap;gap:32px;align-items:center;animation:mk-fade .25s ease-out"><div style="flex:1 1 400px;display:flex;flex-direction:column;gap:12px"><div style="font-size:13px;font-weight:700;color:#E9791E;letter-spacing:.06em;text-transform:uppercase">{{ t.nav_officials }}</div><h1 style="margin:0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(28px,3.6vw,44px);font-weight:800;color:#0A2550;line-height:1.2;text-wrap:pretty">{{ t.offTitle }}</h1><p style="margin:0;font-size:17px;line-height:1.6;color:#3b4a5c">{{ t.offSub }}</p></div><div style="flex:1 1 300px;border-radius:20px;overflow:hidden;min-height:240px"><img src="assets/village-landscape.jpg" alt="" style="width:100%;height:100%;min-height:240px;object-fit:cover;display:block"></div></div></section>
+    <section style="padding:clamp(32px,5vw,64px) 0"><div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+      <sc-for list="{{ offCards }}" as="c" hint-placeholder-count="3">
+        <div style="background:#fff;border:1px solid #e3e8df;border-radius:18px;padding:26px 24px;display:flex;flex-direction:column;gap:14px"><div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:21px;color:#0A2550">{{ c.title }}</div>
+          <sc-for list="{{ c.items }}" as="i" hint-placeholder-count="3"><div style="display:flex;gap:10px;font-size:15px;line-height:1.55;color:#3b4a5c"><span style="width:22px;height:22px;border-radius:50%;background:#e4f4df;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span>{{ i.text }}</span></div></sc-for>
+        </div>
+      </sc-for>
+    </div></section>
+    <section style="padding:0 0 clamp(40px,6vw,80px)"><div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px)"><div style="background:#0D3B7A;color:#fff;border-radius:22px;padding:clamp(24px,4vw,40px);display:flex;flex-wrap:wrap;gap:20px;align-items:center"><div style="flex:1 1 360px"><div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:clamp(20px,2.4vw,28px);line-height:1.3">{{ t.offLoginTitle }}</div><div style="margin-top:8px;font-size:15px;line-height:1.6;opacity:.9">{{ t.offLoginBody }}</div></div><div style="display:flex;flex-wrap:wrap;gap:10px"><button onClick="{{ goContact }}" style="height:48px;padding:0 20px;border:0;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;font-size:15px;cursor:pointer">{{ t.contactUs }} ›</button><button onClick="{{ goAdmin }}" style="height:48px;padding:0 20px;border:1.5px solid rgba(255,255,255,.7);border-radius:999px;background:transparent;color:#fff;font-weight:700;font-size:15px;cursor:pointer">{{ t.adminLogin }}</button></div></div></div></section>
+  </sc-if>
+
+  <!-- FAQ -->
+  <sc-if value="{{ pg.faq }}" hint-placeholder-val="{{ false }}">
+    <section style="background:#fff;border-bottom:1px solid #e3e8df"><div style="max-width:1180px;margin:0 auto;padding:clamp(32px,5vw,64px) clamp(16px,4vw,40px);animation:mk-fade .25s ease-out"><div style="font-size:13px;font-weight:700;color:#1F8A3B;letter-spacing:.06em;text-transform:uppercase">FAQ</div><h1 style="margin:6px 0 0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(28px,3.6vw,44px);font-weight:800;color:#0A2550;line-height:1.2">{{ t.faqTitle }}</h1></div></section>
+    <section style="padding:clamp(32px,5vw,64px) 0 clamp(40px,6vw,80px)"><div style="max-width:860px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+        <div style="background:#fff;border:1px solid #e3e8df;border-radius:14px;overflow:hidden">
+          <button onClick="{{ f.toggle }}" style="display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:14px 20px;border:0;background:#fff;cursor:pointer;text-align:left"><span style="flex:1;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:17px;color:#0A2550;line-height:1.35">{{ f.q }}</span><span style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s;background: {{ f.iconBg }};color: {{ f.iconColor }};transform: {{ f.rot }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span></button>
+          <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}"><div style="padding:0 20px 18px;font-size:15px;line-height:1.65;color:#3b4a5c;animation:mk-fade .2s ease-out">{{ f.a }}</div></sc-if>
+        </div>
+      </sc-for>
+      <div style="margin-top:20px;text-align:center;color:#6b7a8c;font-size:15px">{{ t.faqMore }} <button onClick="{{ goContact }}" style="background:none;border:0;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:15px;padding:0">{{ t.contactUs }} ›</button></div>
+    </div></section>
+  </sc-if>
+
+  <!-- CONTACT -->
+  <sc-if value="{{ pg.contact }}" hint-placeholder-val="{{ false }}">
+    <section style="padding:clamp(32px,5vw,64px) 0 clamp(40px,6vw,80px)"><div style="max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;animation:mk-fade .25s ease-out">
+      <div style="flex:1 1 320px;display:flex;flex-direction:column;gap:18px">
+        <h1 style="margin:0;font-family:'Rubik','Noto Sans Telugu',sans-serif;font-size:clamp(28px,3.6vw,44px);font-weight:800;color:#0A2550;line-height:1.2">{{ t.contactTitle }}</h1>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#3b4a5c">{{ t.contactSub }}</p>
+        <div style="background:#fff;border:1px solid #e3e8df;border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:12px"><span style="width:38px;height:38px;border-radius:50%;background:#e3f0fb;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D3B7A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></span><span style="font-size:15px;line-height:1.55;color:#3b4a5c"><b style="color:#0A2550">{{ t.officeLabel }}</b><br>{{ contact.addr1 }}<br>{{ contact.addr2 }}</span></div>
+          <div style="display:flex;gap:12px"><span style="width:38px;height:38px;border-radius:50%;background:#e4f4df;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2z"></path></svg></span><span style="font-size:15px;line-height:1.55;color:#3b4a5c"><b style="color:#0A2550">{{ t.phoneLabel }}</b><br>{{ contact.phone }} · {{ contact.hours }}<br>{{ contact.email }}</span></div>
+        </div>
+      </div>
+      <div style="flex:1 1 380px;background:#fff;border:1px solid #e3e8df;border-radius:18px;padding:clamp(20px,3vw,32px);box-shadow:0 2px 8px rgba(0,64,126,.06)">
+        <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 0;animation:mk-fade .25s ease-out"><span style="width:64px;height:64px;border-radius:50%;background:#1F8A3B;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:24px;color:#0A2550">{{ t.sentTitle }}</div><div style="font-size:15px;line-height:1.6;color:#3b4a5c;max-width:360px">{{ t.sentBody }} <b>{{ form.name }}</b>, +91 {{ form.mobile }}</div><button onClick="{{ resetForm }}" style="margin-top:8px;height:44px;padding:0 20px;border:1.5px solid #0D3B7A;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer">{{ t.sendAnother }}</button></div>
+        </sc-if>
+        <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#0A2550">{{ t.fName }}</span><input name="name" value="{{ form.name }}" onChange="{{ onField }}" style="height:48px;padding:0 14px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;outline-color:#0D3B7A"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#0A2550">{{ t.fMobile }}</span><input name="mobile" type="tel" maxlength="10" value="{{ form.mobile }}" onChange="{{ onField }}" placeholder="98765 43210" style="height:48px;padding:0 14px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;outline-color:#0D3B7A"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#0A2550">{{ t.fVillage }}</span><input name="village" value="{{ form.village }}" onChange="{{ onField }}" placeholder="{{ t.fVillagePh }}" style="height:48px;padding:0 14px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;outline-color:#0D3B7A"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#0A2550">{{ t.fMessage }}</span><textarea name="message" rows="4" value="{{ form.message }}" onChange="{{ onField }}" style="padding:12px 14px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;line-height:1.5;resize:vertical;outline-color:#0D3B7A"></textarea></label>
+            <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;opacity:0"><sc-if value="{{ formError }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#b3261e;font-weight:700">{{ t.fError }}</div></sc-if>
+            <button onClick="{{ submitForm }}" style="height:50px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;font-size:16px;cursor:pointer">{{ t.fSend }} ›</button>
+          </div>
+        </sc-if>
+      </div>
+    </div></section>
+  </sc-if>
+
+  <!-- ADMIN LOGIN PLACEHOLDER -->
+  <sc-if value="{{ pg.admin }}" hint-placeholder-val="{{ false }}">
+    <section style="flex:1;display:flex;align-items:center;justify-content:center;padding:clamp(32px,5vw,64px) clamp(16px,4vw,40px);background:#0A2550;position:relative;overflow:hidden"><img src="assets/village-landscape.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.25">
+      <div style="position:relative;width:100%;max-width:420px;background:#fff;border-radius:20px;padding:clamp(24px,4vw,36px);display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:mk-fade .25s ease-out">
+        <img src="assets/logo-mark.png" alt="" style="width:56px;height:56px;border-radius:50%">
+        <div style="font-family:'Rubik',sans-serif;font-weight:700;font-size:24px;color:#0A2550">{{ t.adminLogin }}</div>
+        <div style="font-size:14px;color:#6b7a8c;line-height:1.55">{{ t.adminBody }}</div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#0A2550">{{ t.fMobile }}</span><input type="tel" placeholder="98765 43210" style="height:48px;padding:0 14px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px"></label>
+        <button onClick="{{ adminOtp }}" style="height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;font-size:15px;cursor:pointer">{{ t.sendOtp }} ›</button>
+        <a href="{{ consoleUrl }}" style="text-align:center;font-weight:700;font-size:14px;color:#0D3B7A;text-decoration:none;padding:8px">{{ t.openConsole }} ›</a>
+        <button onClick="{{ goHome }}" style="background:none;border:0;color:#6b7a8c;font-weight:700;cursor:pointer;font-size:13px">‹ {{ t.backSite }}</button>
+      </div>
+    </section>
+  </sc-if>
+
+  </main>
+
+  <!-- FOOTER -->
+  <sc-if value="{{ showFooter }}" hint-placeholder-val="{{ true }}">
+  <footer style="background:#0A2550;color:#fff">
+    <div style="height:6px;display:flex"><span style="flex:1;background:#E9791E"></span><span style="flex:1;background:#fff"></span><span style="flex:1;background:#1F8A3B"></span></div>
+    <div style="max-width:1180px;margin:0 auto;padding:clamp(32px,5vw,56px) clamp(16px,4vw,40px) 24px;display:flex;flex-direction:column;gap:32px">
+      <div style="display:flex;flex-wrap:wrap;gap:32px;justify-content:space-between">
+        <div style="flex:1 1 300px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:10px"><img src="assets/logo-mark.png" alt="" style="width:44px;height:44px;border-radius:50%;background:#fff"><span style="font-family:'Rubik',sans-serif;font-weight:700;font-size:16px;letter-spacing:.03em">BVT GRAMA CONNECT</span></div><div style="font-family:'Rubik','Noto Sans Telugu',sans-serif;font-weight:700;font-size:20px;color:#f2dd3d;line-height:1.4">ప్రతి గ్రామం... ప్రతి కుటుంబం... మన లక్ష్యం!</div><div style="font-size:14px;opacity:.85">మన గ్రామం – మన సేవలు – మన అభివృద్ధి · Connecting Villages, Empowering India</div></div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:160px"><div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.7">{{ t.footPages }}</div><sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5"><button onClick="{{ n.go }}" style="background:none;border:0;padding:0;color:#fff;font-size:15px;cursor:pointer;text-align:left;opacity:.9">{{ n.label }}</button></sc-for></div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:200px"><div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.7">{{ t.footGet }}</div><button onClick="{{ playClick }}" style="background:none;border:0;padding:0;color:#fff;font-size:15px;cursor:pointer;text-align:left;opacity:.9">Google Play</button><button onClick="{{ appClick }}" style="background:none;border:0;padding:0;color:#fff;font-size:15px;cursor:pointer;text-align:left;opacity:.9">App Store</button><button onClick="{{ goAdmin }}" style="margin-top:8px;align-self:flex-start;height:38px;padding:0 14px;border:1.5px solid rgba(255,255,255,.6);border-radius:999px;background:transparent;color:#fff;font-weight:700;font-size:13px;cursor:pointer">{{ t.adminLogin }} ›</button></div>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.15);padding-top:18px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;font-size:13px;opacity:.75"><span>© 2026 BVT Grama Connect · Andhra Pradesh</span><span>{{ t.footPrivacy }} · {{ t.footTerms }}</span></div>
+    </div>
+  </footer>
+  </sc-if>
+
+  <sc-if value="{{ toast.show }}" hint-placeholder-val="{{ false }}"><div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#0A2550;color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,64,126,.3);z-index:50;animation:mk-fade .2s ease-out;white-space:nowrap">{{ toast.text }}</div></sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'desktop'|'mobile'&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  static T={
+    te:{taglineShort:'మన గ్రామం – మన సేవలు',getApp:'యాప్ పొందండి',nav_home:'హోమ్',nav_how:'ఇది ఎలా పనిచేస్తుంది',nav_officials:'అధికారుల కోసం',nav_faq:'ప్రశ్నలు',nav_contact:'సంప్రదించండి',
+      heroBadge:'ఆంధ్రప్రదేశ్ గ్రామాల కోసం',heroTitle:'గ్రామ చాటింపు & ప్రభుత్వ సమాచారం – మీ మొబైల్‌లోనే!',heroSub:'Village announcements and government information, right on your mobile. Verified by your Panchayat and local administration – in Telugu, free, no login needed.',free:'పూర్తిగా ఉచితం',verified:'అధికారులు ధృవీకరించిన వార్తలు',noLogin:'లాగిన్ అవసరం లేదు',
+      servicesKicker:'మా సేవలు',servicesTitle:'ఐదు సేవలు – ఒకే యాప్‌లో',servicesSub:'మీ గ్రామం, మండలం, జిల్లా నుంచి వచ్చే ప్రతి ముఖ్యమైన సమాచారం ఒకే చోట.',
+      f1:'గ్రామ చాటింపులు',f1d:'ప్రకటనలు, నోటీసులు, ముఖ్యమైన సమాచారం – చాటింపు వినకపోయినా యాప్‌లో చూడండి.',f2:'ప్రభుత్వ పథకాలు',f2d:'పథకాలు, అర్హతలు, దరఖాస్తు చివరి తేదీలు – సకాలంలో మీకు.',f3:'గ్రామ వార్తలు & నోటీసులు',f3d:'రోడ్డు పనులు, నీటి సరఫరా, శిబిరాలు – మీ గ్రామ తాజా వార్తలు.',f4:'ప్రజలకు ఉపయోగకరమైన అప్‌డేట్లు',f4d:'వైద్య శిబిరాలు, బస్సు సమయాలు, వాతావరణ హెచ్చరికలు.',f5:'గ్రామం / మండలం / జిల్లా సమాచారం',f5d:'మీ ప్రాంతానికి సంబంధించిన సమాచారం మాత్రమే – మూడు స్థాయిలలో.',
+      howKicker:'ఇది ఎలా పనిచేస్తుంది',howTitle:'మూడు దశల్లో ధృవీకరించిన వార్త',s1:'పంచాయతీ పోస్ట్ చేస్తుంది',s1d:'పంచాయతీ సభ్యుడు యాప్‌లో చాటింపు లేదా నోటీసును ఫోటోలతో సమర్పిస్తారు.',s2:'అడ్మిన్ ధృవీకరిస్తారు',s2d:'గ్రామ / మండల / జిల్లా అడ్మిన్ సమీక్షించి ప్రచురిస్తారు, సవరణకు పంపుతారు లేదా తిరస్కరిస్తారు.',s3:'పౌరులకు ధృవీకరించిన వార్త',s3d:'ప్రచురించిన వెంటనే గ్రామంలోని అందరి మొబైల్‌కు నోటిఫికేషన్ వస్తుంది.',howMore:'పూర్తి వివరాలు',
+      whoTitle:'ఇది ఎవరి కోసం?',a1k:'పౌరులు',a1t:'ప్రతి కుటుంబానికి',a1d:'యాప్ డౌన్‌లోడ్ చేసి మీ గ్రామం ఎంచుకోండి. లాగిన్ అవసరం లేదు. ధృవీకరించిన వార్తలు మాత్రమే కనిపిస్తాయి.',a1c:'యాప్ పొందండి',a2k:'పంచాయతీ సభ్యులు',a2t:'మీ గ్రామ గొంతుక',a2d:'చాటింపులు, నోటీసులు, పథకాల సమాచారం పోస్ట్ చేయండి. అడ్మిన్ సమీక్ష తర్వాత పౌరులకు చేరుతుంది.',a2c:'ఎలా పోస్ట్ చేయాలి',a3k:'అడ్మిన్లు',a3t:'గ్రామం · మండలం · జిల్లా',a3d:'మీ పరిధిలోని పోస్టులను సమీక్షించండి, వినియోగదారులను నిర్వహించండి, మీ ప్రాంతం మొత్తానికి ప్రకటనలు పంపండి.',a3c:'అధికారుల కోసం',
+      how2Title:'రాష్ట్రం → జిల్లా → మండలం → గ్రామం: ప్రతి స్థాయికి ఒక బాధ్యత',how2Sub:'సమాచారం పైనుంచి కిందకు ప్రవహిస్తుంది; ధృవీకరణ కిందనుంచి పైకి. ప్రతి స్థాయి తన పరిధిని మాత్రమే చూస్తుంది.',
+      l1:'రాష్ట్రం',l1e:'ఆంధ్రప్రదేశ్',l1r:'సూపర్ అడ్మిన్',l1d:'జిల్లాలు, మండలాలు, గ్రామాల మాస్టర్ డేటా; అడ్మిన్ల నియామకం; వర్గాలు, భాషలు, ఎస్కలేషన్ సమయం వంటి సెట్టింగ్‌లు. ఏ నిర్ణయాన్నైనా సమీక్షించగలరు.',l2:'జిల్లా',l2e:'ఉదా: గుంటూరు',l2r:'జిల్లా అడ్మిన్',l2d:'జిల్లా మొత్తానికి ప్రకటనలు (వైద్య శిబిరాలు, పథకాల గడువులు). మండల అడ్మిన్లను నిర్వహిస్తారు; ఎస్కలేట్ అయిన పోస్టులను సమీక్షిస్తారు.',l3:'మండలం',l3e:'ఉదా: తెనాలి, మంగళగిరి',l3r:'మండల అడ్మిన్',l3d:'మండల స్థాయి సమాచారం (పంటల బీమా, బస్సు సమయాలు). గ్రామ అడ్మిన్లను, పంచాయతీ సభ్యులను నిర్వహిస్తారు.',l4:'గ్రామం',l4e:'ఉదా: కొలకలూరు, నందివెలుగు, పెదరావూరు',l4r:'గ్రామ అడ్మిన్ & పంచాయతీ సభ్యులు',l4d:'పంచాయతీ సభ్యులు పోస్ట్ చేస్తారు; గ్రామ అడ్మిన్ 24 గంటల్లో సమీక్షించి ప్రచురిస్తారు. ఆలస్యమైతే మండల అడ్మిన్‌కు ఎస్కలేట్ అవుతుంది.',
+      offTitle:'పంచాయతీ సభ్యులు, అడ్మిన్ల కోసం',offSub:'మీ గ్రామానికి సమాచారం చేరవేయడం ఇప్పుడు ఒక నిమిషం పని. ఎలా పోస్ట్ చేయాలో, ఎలా సమీక్షించాలో, లాగిన్ ఎలా పొందాలో ఇక్కడ తెలుసుకోండి.',
+      o1:'పోస్ట్ చేయడం',o1a:'శీర్షిక, వివరణ, వర్గం ఎంచుకొని గరిష్టంగా 3 ఫోటోలు జోడించండి.',o1b:'పంచాయతీ సభ్యుల పోస్టులు “సమీక్ష కోసం పంపబడ్డాయి” అనే స్థితిలో ఉంటాయి.',o1c:'అడ్మిన్ పోస్టులు వెంటనే ప్రచురితమవుతాయి; మండల/జిల్లా అడ్మిన్లు లక్ష్య ప్రాంతాన్ని ఎంచుకోవచ్చు.',o2:'సమీక్షించడం',o2a:'ప్రచురించండి, వ్యాఖ్యతో మళ్ళీ తనిఖీకి పంపండి లేదా కారణంతో తిరస్కరించండి.',o2b:'మళ్ళీ తనిఖీకి వచ్చిన పోస్టును సభ్యుడు సవరించి తిరిగి సమర్పించవచ్చు.',o2c:'ప్రచురించిన పోస్టును ఎప్పుడైనా తొలగించవచ్చు; ప్రతి చర్య ఆడిట్ లాగ్‌లో నమోదవుతుంది.',o3:'లాగిన్ పొందడం',o3a:'పంచాయతీ సభ్యులు: మీ గ్రామ అడ్మిన్ లేదా మండల అడ్మిన్‌ను సంప్రదించండి.',o3b:'గ్రామ అడ్మిన్లు: మీ మండల అడ్మిన్ లేదా జిల్లా అడ్మిన్‌ను సంప్రదించండి.',o3c:'మీ మొబైల్ నంబర్‌కు OTP లింక్ SMS వస్తుంది – పాస్‌వర్డ్ అవసరం లేదు.',
+      offLoginTitle:'లాగిన్ కావాలా? మీ మండల లేదా జిల్లా అడ్మిన్‌ను సంప్రదించండి.',offLoginBody:'ఎవరిని సంప్రదించాలో తెలియకపోతే, మా బృందం మీ గ్రామ అడ్మిన్‌తో మిమ్మల్ని కలుపుతుంది.',contactUs:'సంప్రదించండి',adminLogin:'అడ్మిన్ లాగిన్',
+      faqTitle:'తరచుగా అడిగే ప్రశ్నలు',faqMore:'ఇంకా ప్రశ్నలు ఉన్నాయా?',
+      q1:'యాప్ ఉచితమేనా?',ans1:'అవును. BVT Grama Connect పౌరులకు పూర్తిగా ఉచితం. ప్రకటనలు లేవు, చందా లేదు.',q2:'వార్తలు ధృవీకరించినవేనా?',ans2:'అవును. పంచాయతీ సభ్యుడు పోస్ట్ చేసిన ప్రతి సమాచారాన్ని గ్రామ, మండల లేదా జిల్లా అడ్మిన్ సమీక్షించిన తర్వాతే పౌరులకు కనిపిస్తుంది. అడ్మిన్లు ప్రచురించిన పోస్టులు వారి అధికారిక పాత్రతో నమోదవుతాయి.',q3:'పౌరులు లాగిన్ అవ్వాలా?',ans3:'అవసరం లేదు. యాప్ తెరిచి భాష, గ్రామం ఎంచుకుంటే చాలు. అధికారులు మాత్రమే OTPతో లాగిన్ అవుతారు.',q4:'ఏ భాషలు అందుబాటులో ఉన్నాయి?',ans4:'తెలుగు ప్రధాన భాష. హెడర్‌లోని టోగుల్‌తో ఇంగ్లీష్‌కు మారవచ్చు. పోస్టులు అడ్మిన్లు రాసిన భాషలో కనిపిస్తాయి.',q5:'నా గ్రామం యాప్‌లో లేకపోతే?',ans5:'సంప్రదించండి పేజీ ద్వారా మీ గ్రామం, మండలం తెలియజేయండి. జిల్లా అడ్మిన్ మాస్టర్ డేటాలో చేర్చిన తర్వాత మీకు SMS వస్తుంది.',q6:'నోటిఫికేషన్లు ఎలా వస్తాయి?',ans6:'మీరు ఎంచుకున్న గ్రామానికి కొత్త పోస్ట్ ప్రచురితమైన వెంటనే పుష్ నోటిఫికేషన్ వస్తుంది. మండల, జిల్లా ప్రకటనలు కూడా అదే ఫీడ్‌లో కనిపిస్తాయి.',q7:'తక్కువ ధర ఫోన్లలో పనిచేస్తుందా?',ans7:'అవును. యాప్ 2GB RAM ఉన్న Android ఫోన్లలో, 2G/3G నెట్‌వర్క్‌లో కూడా పనిచేసేలా రూపొందించాం. ఫోటోలు తక్కువ డేటాలో లోడ్ అవుతాయి.',
+      contactTitle:'మాతో మాట్లాడండి',contactSub:'మీ గ్రామాన్ని చేర్చాలా? లాగిన్ కావాలా? సమస్య నివేదించాలా? ఫారమ్ నింపండి – 2 పని దినాల్లో స్పందిస్తాము.',officeLabel:'కార్యాలయం',phoneLabel:'ఫోన్ & ఇమెయిల్',hours:'సోమ–శని 10:00–18:00',
+      fName:'పేరు',fMobile:'మొబైల్ నంబర్',fVillage:'గ్రామం / మండలం',fVillagePh:'ఉదా: కొలకలూరు, తెనాలి',fMessage:'సందేశం',fSend:'పంపండి',fError:'దయచేసి పేరు, 10 అంకెల మొబైల్ నంబర్, సందేశం నింపండి.',sentTitle:'మీ సందేశం అందింది!',sentBody:'ధన్యవాదాలు',sendAnother:'మరో సందేశం పంపండి',
+      adminBody:'ఈ లాగిన్ అధికారులకు మాత్రమే. పౌరులకు లాగిన్ అవసరం లేదు – యాప్ డౌన్‌లోడ్ చేసుకోండి.',sendOtp:'OTP పంపండి',openConsole:'సూపర్ అడ్మిన్ కన్సోల్ తెరవండి',backSite:'వెబ్‌సైట్‌కు తిరిగి వెళ్ళండి',
+      footPages:'పేజీలు',footGet:'యాప్ పొందండి',footPrivacy:'గోప్యతా విధానం',footTerms:'నిబంధనలు',toastStore:'యాప్ త్వరలో స్టోర్‌లలో విడుదల – డెమో లింక్',toastOtp:'డెమో: OTP లాగిన్ మొబైల్ యాప్‌లో పనిచేస్తుంది',toastFail:'సందేశం పంపడం కుదరలేదు. మళ్ళీ ప్రయత్నించండి.',toastBusy:'చాలా సందేశాలు వచ్చాయి. కొద్దిసేపటి తర్వాత ప్రయత్నించండి.'},
+    en:{taglineShort:'Our village – our services',getApp:'Get the app',nav_home:'Home',nav_how:'How It Works',nav_officials:'For Officials',nav_faq:'FAQ',nav_contact:'Contact',
+      heroBadge:'For the villages of Andhra Pradesh',heroTitle:'Village announcements & government information – right on your mobile!',heroSub:'గ్రామ చాటింపు & ప్రభుత్వ సమాచారం – మీ మొబైల్‌లోనే! Verified by your Panchayat and local administration – in Telugu, free, no login needed.',free:'Completely free',verified:'Verified by officials',noLogin:'No login needed',
+      servicesKicker:'Our services',servicesTitle:'Five services – one app',servicesSub:'Every important update from your village, mandal and district in one place.',
+      f1:'Village announcements',f1d:'Notices, alerts and important information – even if you missed the drum announcement.',f2:'Govt schemes',f2d:'Schemes, eligibility and application deadlines, in time.',f3:'Village news & notices',f3d:'Road works, water supply, camps – the latest from your village.',f4:'Public updates',f4d:'Health camps, bus timings, weather warnings.',f5:'Village / Mandal / District info',f5d:'Only information relevant to your area – at three levels.',
+      howKicker:'How it works',howTitle:'Verified news in three steps',s1:'Panchayat posts',s1d:'A Panchayat member submits an announcement or notice in the app, with photos.',s2:'Admin verifies',s2d:'The Village, Mandal or District Admin reviews it: publish, send back for recheck, or discard.',s3:'Citizens get verified news',s3d:'The moment it is published, everyone in the village gets a notification.',howMore:'See the full process',
+      whoTitle:'Who is it for?',a1k:'Citizens',a1t:'For every family',a1d:'Download the app and pick your village. No login. You only ever see verified posts.',a1c:'Get the app',a2k:'Panchayat members',a2t:'The voice of your village',a2d:'Post announcements, notices and scheme information. After admin review it reaches every citizen.',a2c:'How to post',a3k:'Admins',a3t:'Village · Mandal · District',a3d:'Review posts in your area, manage users, and send announcements to your whole area.',a3c:'For officials',
+      how2Title:'State → District → Mandal → Village: one responsibility at every level',how2Sub:'Information flows down; verification flows up. Each level sees only its own area.',
+      l1:'State',l1e:'Andhra Pradesh',l1r:'Super Admin',l1d:'Master data for districts, mandals and villages; appointing admins; settings such as categories, languages and escalation time. Can review any decision.',l2:'District',l2e:'e.g. Guntur',l2r:'District Admin',l2d:'District-wide announcements (health camps, scheme deadlines). Manages Mandal Admins and reviews escalated posts.',l3:'Mandal',l3e:'e.g. Tenali, Mangalagiri',l3r:'Mandal Admin',l3d:'Mandal-level information (crop insurance, bus timings). Manages Village Admins and Panchayat members.',l4:'Village',l4e:'e.g. Kolakaluru, Nandivelugu, Pedaravuru',l4r:'Village Admin & Panchayat members',l4d:'Panchayat members post; the Village Admin reviews within 24 hours and publishes. If delayed, it escalates to the Mandal Admin.',
+      offTitle:'For Panchayat members and admins',offSub:'Getting information to your village is now a one-minute job. Learn how to post, how to review, and how to get a login.',
+      o1:'Posting',o1a:'Choose a title, description and category, and add up to 3 photos.',o1b:'Posts by Panchayat members are marked “Sent for review”.',o1c:'Admin posts publish immediately; Mandal and District admins can pick the target area.',o2:'Reviewing',o2a:'Publish, send back for recheck with a comment, or discard with a reason.',o2b:'A member can edit and resubmit a post sent for recheck.',o2c:'Published posts can be taken down at any time; every action is recorded in the audit log.',o3:'Getting a login',o3a:'Panchayat members: contact your Village Admin or Mandal Admin.',o3b:'Village Admins: contact your Mandal Admin or District Admin.',o3c:'You receive an OTP login link by SMS – no password needed.',
+      offLoginTitle:'Need a login? Contact your Mandal or District admin.',offLoginBody:'Not sure whom to contact? Our team will connect you with your area admin.',contactUs:'Contact us',adminLogin:'Admin Login',
+      faqTitle:'Frequently asked questions',faqMore:'Still have questions?',
+      q1:'Is the app free?',ans1:'Yes. BVT Grama Connect is completely free for citizens. No ads, no subscription.',q2:'Is the news verified?',ans2:'Yes. Everything a Panchayat member posts is reviewed by the Village, Mandal or District Admin before citizens see it. Posts by admins are recorded under their official role.',q3:'Do citizens need to log in?',ans3:'No. Open the app, choose your language and village, and you are done. Only officials log in, with an OTP.',q4:'Which languages are available?',ans4:'Telugu is the primary language. A toggle in the header switches to English. Posts appear in the language the admin wrote them in.',q5:'What if my village is not in the app?',ans5:'Tell us your village and mandal through the Contact page. Once the District Admin adds it to the master data you will get an SMS.',q6:'How do notifications work?',ans6:'As soon as a new post is published for your chosen village you get a push notification. Mandal and district announcements appear in the same feed.',q7:'Does it work on budget phones?',ans7:'Yes. The app is built for Android phones with 2 GB RAM and 2G/3G networks. Photos load in low-data mode.',
+      contactTitle:'Talk to us',contactSub:'Want your village added? Need a login? Reporting a problem? Fill in the form – we respond within 2 working days.',officeLabel:'Office',phoneLabel:'Phone & email',hours:'Mon–Sat 10:00–18:00',
+      fName:'Name',fMobile:'Mobile number',fVillage:'Village / Mandal',fVillagePh:'e.g. Kolakaluru, Tenali',fMessage:'Message',fSend:'Send message',fError:'Please fill in your name, a 10-digit mobile number and a message.',sentTitle:'Message received!',sentBody:'Thank you',sendAnother:'Send another message',
+      adminBody:'This login is for officials only. Citizens do not need to log in – just download the app.',sendOtp:'Send OTP',openConsole:'Open the Super Admin console',backSite:'Back to website',
+      footPages:'Pages',footGet:'Get the app',footPrivacy:'Privacy policy',footTerms:'Terms',toastStore:'App coming soon to the stores – demo link',toastOtp:'Demo: OTP login works in the mobile app prototype',toastFail:'Could not send your message. Please try again.',toastBusy:'Too many messages. Please try again later.'}
+  };
+  state={page:'home',lang:'te',menuOpen:false,w:1440,faqOpen:0,form:{name:'',mobile:'',village:'',message:''},sent:false,formError:false,toast:null,site:null,sending:false};
+  componentDidMount(){this._loadSite();if(this._el&&window.ResizeObserver){this._ro=new ResizeObserver(en=>{const w=en[0].contentRect.width;if(Math.abs(w-this.state.w)>2)this.setState({w})});this._ro.observe(this._el)}}
+  componentWillUnmount(){this._dead=true;if(this._ro)this._ro.disconnect();clearTimeout(this._tt)}
+  _loadSite(){if(!window.GCApi)return;window.GCApi.get('/public/site-config/').then(site=>{if(!this._dead)this.setState({site})}).catch(()=>{})}
+  _openStore(url,t){if(url){window.open(url,'_blank','noopener')}else{this.toast(t.toastStore)}}
+  _send(f,L,t){if(this.state.sending)return;const hp=this._el&&this._el.querySelector('input[name=website]');if(!window.GCApi){this.setState({sent:true,formError:false});return}this.setState({sending:true});window.GCApi.post('/public/contact-messages/',{name:f.name.trim(),mobile:f.mobile,village_text:f.village.trim(),message:f.message.trim(),language:L,website:hp?hp.value:''},{lang:L}).then(()=>{if(!this._dead)this.setState({sent:true,formError:false,sending:false})}).catch(err=>{if(this._dead)return;this.setState({sending:false});if(err&&err.status===400){this.setState({formError:true})}else{this.toast(err&&err.status===429?t.toastBusy:t.toastFail)}})}
+  go(p){this.setState({page:p,menuOpen:false});try{(this._el.closest('[style*="overflow"]')||window).scrollTo({top:0})}catch(e){}window.scrollTo({top:0})}
+  toast(text){this.setState({toast:text});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:null}),2600)}
+  renderVals(){
+    const s=this.state,L=s.lang,t=Component.T[L];
+    const vp=this.props.viewport||'auto';
+    const frameW=vp==='mobile'?'390px':vp==='desktop'?'1440px':'100%';
+    const mobile=vp==='mobile'||(vp==='auto'&&s.w<820);
+    const pg={};pg[s.page]=true;
+    const navItems=[['home','nav_home'],['how','nav_how'],['officials','nav_officials'],['faq','nav_faq'],['contact','nav_contact']].map(([k,lk])=>{const on=s.page===k;return {label:t[lk],bg:on?'#e3f0fb':'transparent',color:on?'#0D3B7A':'#17212e',go:()=>this.go(k)}});
+    const icons={announce:'assets/icon-announce.png',schemes:'assets/icon-schemes.png',news:'assets/icon-news.png',updates:'assets/icon-updates.png',location:'assets/icon-location.png'};
+    const features=[['announce','f1'],['schemes','f2'],['news','f3'],['updates','f4'],['location','f5']].map(([i,k])=>({icon:icons[i],title:t[k],desc:t[k+'d']}));
+    const steps=[['s1','#E9791E'],['s2','#0D3B7A'],['s3','#1F8A3B']].map(([k,bg],i)=>({n:i+1,title:t[k],desc:t[k+'d'],bg}));
+    const audiences=[{k:'a1',bg:'#e4f4df',border:'#cfe9c7',accent:'#1F8A3B',go:()=>this._openStore((s.site||{}).play_store_url,t)},{k:'a2',bg:'#fff0dc',border:'#f6ddb8',accent:'#E9791E',go:()=>this.go('officials')},{k:'a3',bg:'#e3f0fb',border:'#c9dff5',accent:'#0D3B7A',go:()=>this.go('officials')}].map(a=>({kicker:t[a.k+'k'],title:t[a.k+'t'],desc:t[a.k+'d'],cta:t[a.k+'c'],bg:a.bg,border:a.border,accent:a.accent,go:a.go}));
+    const levels=[['l1','S','#0A2550'],['l2','D','#0D3B7A'],['l3','M','#07818e'],['l4','V','#1F8A3B']].map(([k,short,bg],i)=>({name:t[k],example:t[k+'e'],role:t[k+'r'],desc:t[k+'d'],short,bg,indent:mobile?'0':(i*36)+'px'}));
+    const offCards=['o1','o2','o3'].map(k=>({title:t[k],items:['a','b','c'].map(x=>({text:t[k+x]}))}));
+    const faqs=[1,2,3,4,5,6,7].map((n,i)=>{const open=s.faqOpen===i;return {q:t['q'+n],a:t['ans'+n],open,iconBg:open?'#0D3B7A':'#eef2f6',iconColor:open?'#fff':'#0A2550',rot:open?'rotate(45deg)':'none',toggle:()=>this.setState({faqOpen:open?-1:i})}});
+    const miniCards=[{icon:icons.schemes,title:L==='te'?'రేషన్ కార్డు శిబిరం – అక్టోబర్ 18':'Ration card camp – 18 Oct',sub:L==='te'?'ప్రభుత్వ పథకాలు · 13 అక్టో':'Govt Schemes · 13 Oct'},{icon:icons.news,title:L==='te'?'రోడ్డు మరమ్మతు నోటీసు':'Road repair notice',sub:L==='te'?'వార్తలు & నోటీసులు · 14 అక్టో':'News & Notices · 14 Oct'}];
+    const f=s.form;
+    const site=s.site||{};
+    const addr=(site['office_address_'+L]||'BVT Grama Connect, 2nd Floor, Collectorate Road,\nGuntur – 522004, Andhra Pradesh').split('\n');
+    const contact={addr1:addr[0]||'',addr2:addr.slice(1).join(' '),phone:site.phone||'+91 863 223 4567',hours:site['hours_'+L]||t.hours,email:site.email||'help@bvtgramaconnect.in'};
+    const consoleUrl=(window.GC_CONFIG&&window.GC_CONFIG.consoleUrl)||'/console/';
+    return {page:s.page,rootRef:el=>{this._el=el},frameW,desktop:!mobile,mobile,menuOpen:mobile&&s.menuOpen,menuIcon:s.menuOpen?'M18 6L6 18M6 6l12 12':'M4 7h16M4 12h16M4 17h16',langMargin:mobile?'auto':'0',
+      t,pg,navItems,langLabel:L==='te'?'EN':'తెలుగు',toggleLang:()=>this.setState({lang:L==='te'?'en':'te'}),toggleMenu:()=>this.setState(st=>({menuOpen:!st.menuOpen})),
+      goHome:()=>this.go('home'),goHow:()=>this.go('how'),goContact:()=>this.go('contact'),goAdmin:()=>this.go('admin'),playClick:()=>this._openStore(site.play_store_url,t),appClick:()=>this._openStore(site.app_store_url,t),adminOtp:()=>{window.location.href=consoleUrl},contact,consoleUrl,
+      features,steps,audiences,levels,offCards,faqs,miniCards,showFooter:s.page!=='admin',
+      form:f,onField:e=>{const {name,value}=e.target;this.setState(st=>({form:{...st.form,[name]:name==='mobile'?value.replace(/\D/g,'').slice(0,10):value},formError:false}))},
+      submitForm:()=>{if(!f.name.trim()||f.mobile.length<10||!f.message.trim()){this.setState({formError:true});return}this._send(f,L,t)},resetForm:()=>this.setState({sent:false,form:{name:'',mobile:'',village:'',message:''}}),sent:s.sent,notSent:!s.sent,formError:s.formError,
+      toast:{show:!!s.toast,text:s.toast||''}};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+:root{
+--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;
+--radius-sm:8px;--radius-md:14px;--radius-lg:20px;--radius-pill:999px;--radius-full:50%;
+--shadow-card:0 2px 8px rgba(0,64,126,0.08);--shadow-raised:0 6px 20px rgba(0,64,126,0.14);
+--icon-sm:20px;--icon-md:28px;--icon-badge:48px;--icon-badge-lg:72px;
+--ease-standard:cubic-bezier(.2,.8,.2,1);/* @kind other */--duration-fast:120ms;/* @kind other */--duration-base:200ms;/* @kind other */
+--mobile-width:390px;
+}
