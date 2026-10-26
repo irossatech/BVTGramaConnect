@@ -15,13 +15,14 @@ Both are the approved prototypes, ported as is. Since 22 Oct 2026 (owner approve
 src/pages/                index.jsx (website at /), console/index.jsx (console at /console/)
 src/components/           Site.jsx, Console.jsx (logic class + markup), ds.jsx (design-system badges), PageHead.jsx
 src/lib/                  dc.jsx (rendering helpers), config.js, site-api.js, console-api.js (session, CSRF)
+src/proxy.dev.js          `npm run dev` only: forwards /api/ and /media/ to the server in GC_DEV_API
 public/                   _ds/ (design-system CSS), assets/ (logo, village photo, icons)
 next.config.mjs           static export to dist/, build settings
 console/tools/            console visual-check scripts
 console/docs/visual-check/  console screenshots and difference report
 tools/visual-check/       website screenshot and compare scripts
 docs/visual-check/        website screenshots and results
-.env.example              build settings
+.env.example              settings; copy to .env (git-ignored)
 ```
 
 ## Tech stack
@@ -34,9 +35,26 @@ Next.js 16 (Pages Router, static export, webpack) on React 18.3.1, plain JavaScr
 - **Python 3.12 or 3.13** and the **BVTGramaConnect_BackEnd** repo, to run the API and serve the pages.
 - **Git.**
 
-## Run locally (Windows, PowerShell)
+## Run against the live server (everyday work)
 
-Put this repo and the BackEnd repo in the same parent folder, for example:
+```
+cd C:\Mohit\BVT\BVTGramaConnect
+git checkout dev
+git pull
+npm ci
+copy .env.example .env
+npm run dev
+```
+
+Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.js` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `http://147.93.102.247:8509`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
+
+- Log in to the console with your live Super Admin account. **Everything you save changes live data.**
+- The live API docs (Swagger) are at http://147.93.102.247:8509/api/docs/.
+- To use another server (staging, or a local backend on `http://127.0.0.1:8000`), change `GC_DEV_API` in `.env` and restart `npm run dev`.
+
+## Run with a local backend (Windows, PowerShell)
+
+Use this to try changes without touching live data. Put this repo and the BackEnd repo in the same parent folder, for example:
 
 ```
 C:\Mohit\BVT\
@@ -54,7 +72,7 @@ npm ci
 npm run build
 ```
 
-This writes `dist/` (website) and `dist/console/` (console). Run `npm run build` again after every change. For quick markup work without data, `npm run dev` serves both pages with hot reload at http://localhost:3000/.
+This writes `dist/` (website) and `dist/console/` (console). Run `npm run build` again after every change. (Or set `GC_DEV_API=http://127.0.0.1:8000` in `.env` and use `npm run dev` for hot reload against the local backend.)
 
 ### 2. Start the backend (first time)
 
@@ -112,17 +130,18 @@ Open http://localhost:8080/ (website) or http://localhost:8080/console/ (console
 | Console says "Your session has ended" | Normal after 30 idle minutes or a password change; log in again |
 | Console says "This console is for Super Admins only" | Log in as `super.admin`; other roles use the mobile app |
 | Lost the `super.admin` password | Ask the backend team to reset it |
+| `npm run dev`: every API call says "Set GC_DEV_API in .env" | Copy `.env.example` to `.env`, then restart `npm run dev` |
+| `npm run dev`: login works but a save says "CSRF Failed" | Restart `npm run dev` so it reloads `src/proxy.dev.js` |
 
-## Build settings
+## Settings
 
-`npm run build` exports both pages to `dist/` and `dist/console/`, with these settings built into the scripts:
+Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env` are git-ignored, so never commit them. No secrets are needed: the console logs in with a session cookie, and the apps hold no API keys.
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `GC_API_BASE` | `/api/v1` | Base URL of the API both apps call |
-| `GC_CONSOLE_URL` | `/console/` | Where the website's "Admin Login" leads |
-
-Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env` are git-ignored, so never commit them.
+| Variable | Default | Used by | Meaning |
+|---|---|---|---|
+| `GC_API_BASE` | `/api/v1` | both apps (built in) | Base URL of the API both apps call |
+| `GC_CONSOLE_URL` | `/console/` | website (built in) | Where the website's "Admin Login" leads |
+| `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
 
 ## What changed from the prototypes
 
@@ -138,6 +157,14 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 
 **Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen (forced at first login, and from the profile menu), server-side paging, loading and empty rows, Add User with username, optional email and mobile and a temporary password (typed or generated), Reset password and Unlock in the user panel, a dialog that shows a temporary password once with Copy, menus and buttons that follow the signed-in user's permissions, CSV import for villages, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
 
+Added on 26 Oct 2026:
+- **Important numbers** page (contacts API): "For you" and helpline numbers with add/edit drawer, verify, remove and CSV import; a Types tab to add and switch off contact types.
+- **Reports:** summary cards (posts, published, pending, rejected, last 30 days); admin "Avg time" from the server.
+- **Users:** "Edit details" in the user panel (name, Telugu name, email, mobile). **My profile** changes your own name.
+- **Geography:** LGD code; the same checks and help text as the mobile app (required name, no duplicate under one parent, 6-digit PIN, valid coordinates); a "Visible to citizens" switch in the edit form. A village's location is set by pasting a Google Maps link or `lat, lng` numbers, with "Find on Google Maps" and "View on map"; the number boxes open on request.
+- **Login:** an eye button shows or hides each password; on reload a short loading screen replaces the login form until the session is checked.
+- **Layout:** the sidebar and top bar stay fixed; only the page area scrolls.
+
 ## When the designer changes a prototype
 
 The components are now the source; a new prototype export is not copied in. Apply the designer's changes to the markup in `src/components/Site.jsx` or `src/components/Console.jsx` by hand, then rerun the visual check against the new prototype (`.claude/operations.md`).
@@ -145,7 +172,7 @@ The components are now the source; a new prototype export is not copied in. Appl
 ## Console sign-in and session
 
 - Username and password. The console uses a Django session: `POST /api/v1/auth/session/login/` sets the HttpOnly `sessionid` cookie, so page scripts never see a token. Only users with the `web_admin.access_web_console` permission get in (today the Super Admin).
-- CSRF: `gc-api.js` gets the `csrftoken` cookie from `GET /api/v1/auth/csrf/` and sends it as `X-CSRFToken` on every write.
+- CSRF: `src/lib/console-api.js` gets the `csrftoken` cookie from `GET /api/v1/auth/csrf/` and sends it as `X-CSRFToken` on every write.
 - The session ends after 30 idle minutes, at logout, when the user is blocked, or when their password is changed or reset. The next call answers 401 and the console shows the login screen.
 - No email is sent. Add User and Reset password take a temporary password, or generate one, and show it once for the admin to hand over in person. The person must choose their own password at first login.
 - The mobile app keeps its JWT login; nothing here changes it.
