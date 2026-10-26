@@ -7,7 +7,7 @@ import * as ds from "./ds";
 import GC_API from "../lib/console-api";
 
 export default class Component extends React.Component {
-  static ICON={contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  static ICON={contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   static STATUS={Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
   static ROLE={super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
   static CATL={announce:'Announcements',schemes:'Govt Schemes',news:'News & Notices',updates:'Public Updates'};
@@ -18,41 +18,44 @@ export default class Component extends React.Component {
   static SAPI={Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
   static LEVEL_OF_ROLE={district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
   static HIST={SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
-  static ACT={'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
+  static ACT={'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   static EVENT={deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   static PAGE=20;
-  static PAGES=['dashboard','geography','users','posts','reports','audit','contact','settings'];
+  static PAGES=['dashboard','geography','users','posts','reports','audit','contact','numbers','settings'];
+  static LVROLE={DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  static NAV_PERM={dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  static NAV_PERM={dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   static MANAGE={district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   static CONSOLE_PERM='web_admin.access_web_console';
   static LOGIN_ERR={invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
-  state={screen:'login',page:'dashboard',username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,menuOpen:false,gsearch:'',me:null,
+  state={screen:'checking',page:'dashboard',username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},menuOpen:false,gsearch:'',me:null,
     geo:[],stateRow:null,expanded:{},geoForm:null,
     users:[],userCount:0,userPage:1,userPages:1,usersLoading:false,uf:{role:'',district:'',status:'',q:''},
     posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:''},statusTab:'Pending',
-    panel:null,panelPost:null,panelHistory:[],panelUser:null,panelUserPosts:[],drawerOpen:false,nu:{name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:''},
+    panel:null,panelPost:null,panelHistory:[],panelUser:null,panelUserPosts:[],drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''},
     audit:[],auditCount:0,auditPage:1,auditPages:1,auditQ:'',auditLoading:false,
     contacts:[],contactCount:0,contactPage:1,contactPages:1,contactQ:'',contactFilter:'new',contactLoading:false,
-    dash:null,reports:{byArea:[],reviewTime:[],activity:[]},categories:[],
+    nums:[],numCount:0,numPage:1,numPages:1,numLoading:false,numTab:'AREA',numQ:'',numType:'',ctypes:[],ctypesAdmin:[],nf:null,
+    dash:null,reports:{summary:null,byArea:[],reviewTime:[],activity:[]},categories:[],
     settings:{escalation:24,cats:[],langs:{te:true,en:true},templates:[]},
     newCat:{te:'',en:''},modal:null,modalText:'',modalSel:'',modalGen:'',toasts:[]};
 
   get api(){return GC_API}
   componentDidMount(){
-    // A console reload keeps the Django session (HttpOnly sessionid cookie).
-    this.api.start().then(me=>this.afterLogin(me,true)).catch(()=>{});
+    // A console reload keeps the Django session (HttpOnly sessionid cookie). Until GET /me/ answers
+    // the page shows a loading screen ('checking'), so a signed-in reload never flashes the login form.
+    this.api.start().then(me=>this.afterLogin(me,true)).catch(()=>this.setState({screen:'login'}));
   }
-  componentWillUnmount(){(this._tt||[]).forEach(clearTimeout);clearTimeout(this._ct);clearTimeout(this._qt);clearTimeout(this._at);clearTimeout(this._gt)}
+  componentWillUnmount(){(this._tt||[]).forEach(clearTimeout);clearTimeout(this._ct);clearTimeout(this._nt);clearTimeout(this._qt);clearTimeout(this._at);clearTimeout(this._gt)}
   toast(text,dot){const id=Date.now()+Math.random();this.setState(s=>({toasts:[...s.toasts,{id,text,dot:dot||'#6cc04a'}]}));this._tt=this._tt||[];this._tt.push(setTimeout(()=>this.setState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})),2600))}
   fail(e){
     if(e&&e.code==='password_change_required'){this.setState({screen:'change_password',cpVoluntary:false,cpCurrent:'',cpNext:'',menuOpen:false,panel:null,drawerOpen:false});this.toast('Choose a new password first.','#E9791E');return}
-    if(e&&e.status===401&&this.state.screen!=='login'){this.setState({screen:'login',me:null,menuOpen:false,panel:null,drawerOpen:false,cpVoluntary:false,cpCurrent:'',cpNext:''});this.toast('Your session has ended. Log in again.','#E9791E');return}
+    if(e&&e.status===401&&this.state.screen!=='login'){this.setState({screen:'login',me:null,menuOpen:false,panel:null,drawerOpen:false,nf:null,cpVoluntary:false,cpCurrent:'',cpNext:''});this.toast('Your session has ended. Log in again.','#E9791E');return}
     let text=(e&&e.message)||'Something went wrong. Try again.';
     const f=e&&e.body&&e.body.fields;if(f){const k=Object.keys(f)[0];const v=Array.isArray(f[k])?f[k][0]:f[k];if(v&&typeof v==='string'&&!text.includes(v))text=text+' '+v}
     this.toast(text,'#b3261e')}
-  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false});this.loadPage(p)}
+  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false,nf:null});if(this._scroll)this._scroll.scrollTop=0;this.loadPage(p)}
   ask(m){this.setState({modal:m,modalText:m.preset||'',modalSel:m.options&&m.options.length?m.options[0].id:'',modalGen:''})}
   closeModal(){this.setState({modal:null,modalText:'',modalSel:'',modalGen:''})}
 
@@ -77,21 +80,21 @@ export default class Component extends React.Component {
   pathParts(area){const parts=(area&&area.path?area.path.split(' · '):[]);const lv=area&&area.level;const r={district:null,mandal:null,village:null};if(lv==='VILLAGE'){r.village=parts[0];r.mandal=parts[1];r.district=parts[2]}else if(lv==='MANDAL'){r.mandal=parts[0];r.district=parts[1]}else if(lv==='DISTRICT'){r.district=parts[0]}return r}
 
   // ---- auth (username + password, Django session for the console) ----
-  enter(me){const page=Component.PAGES.find(k=>this.navOk(k,me))||'dashboard';this.setState({me,screen:'app',page,password:'',cpCurrent:'',cpNext:'',cpVoluntary:false});this.loadGeo();this.loadCategories();this.loadPage(page)}
+  enter(me){const page=Component.PAGES.find(k=>this.navOk(k,me))||'dashboard';this.setState({me,screen:'app',page,password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{}});this.loadGeo();this.loadCategories();this.loadPage(page)}
   afterLogin(me,quiet){if(!this.can(Component.CONSOLE_PERM,me)){this.api.logout();this.setState({screen:'login',me:null,password:''});if(!quiet)this.toast(Component.LOGIN_ERR.not_console_user,'#b3261e');return false}
     if(me.must_change_password){this.setState({me,screen:'change_password',cpVoluntary:false,password:'',cpCurrent:'',cpNext:''});return false}this.enter(me);return true}
   signIn(){const s=this.state;if(!s.username.trim()||!s.password)return;this.api.login(s.username.trim(),s.password).then(d=>{const me=(d&&d.user)||d;if(this.afterLogin(me))this.toast('Welcome, '+me.name)}).catch(e=>{this.setState({password:''});this.loginFail(e)})}
   loginFail(e){const c=e&&e.code,L=Component.LOGIN_ERR;if(c==='locked_out'){const sec=Number((e.body||{}).retry_after_s)||900;const min=Math.max(1,Math.ceil(sec/60));this.toast('Too many failed attempts. Try again in '+min+' minute'+(min===1?'':'s')+'.','#b3261e');return}if(L[c]){this.toast(L[c],'#b3261e');return}this.fail(e)}
   openChangePassword(){this.setState({screen:'change_password',cpVoluntary:true,menuOpen:false,cpCurrent:'',cpNext:''})}
   changePassword(){const s=this.state;if(!s.cpCurrent||!s.cpNext)return;const vol=s.cpVoluntary;this.api.post('/auth/password/change/',{current_password:s.cpCurrent,new_password:s.cpNext}).then(()=>this.api.get('/me/')).then(me=>{if(vol)this.setState({me,screen:'app',cpCurrent:'',cpNext:'',cpVoluntary:false});else this.enter(me);this.toast(vol?'Password changed · your other sessions are signed out':'Password changed')}).catch(e=>{this.setState({cpCurrent:'',cpNext:''});this.fail(e)})}
-  logout(){this.api.logout().finally(()=>{this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,me:null});this.toast('Signed out')})}
+  logout(){this.api.logout().finally(()=>{this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},me:null});this.toast('Signed out')})}
 
   // ---- loading ----
-  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
-  loadGeo(){return this.api.get('/geo/tree/',{villages:1}).then(tree=>{const st=tree[0]||null;const teMap={};const geo=(st?st.districts:[]).map(d=>{teMap['DISTRICT:'+d.id]=d.name_te;return {id:d.id,name:d.name_en,te:d.name_te,active:d.is_active,mandals:d.mandals.map(m=>{teMap['MANDAL:'+m.id]=m.name_te;return {id:m.id,name:m.name_en,te:m.name_te,active:m.is_active,villages:(m.villages||[]).map(v=>{teMap['VILLAGE:'+v.id]=v.name_te;return {id:v.id,name:v.name_en,te:v.name_te,lat:v.latitude||'',lng:v.longitude||'',pin:v.pin_code||'',active:v.is_active}})}})}});if(st)teMap['STATE:'+st.id]=st.name_te;this._te=teMap;const expanded={...this.state.expanded};if(geo[0]&&!Object.keys(expanded).length){expanded[geo[0].id]=true;if(geo[0].mandals[0])expanded['m'+geo[0].mandals[0].id]=true}this.setState({geo,stateRow:st,expanded})}).catch(e=>this.fail(e))}
+  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
+  loadGeo(){return this.api.get('/geo/tree/',{villages:1}).then(tree=>{const st=tree[0]||null;const teMap={};const geo=(st?st.districts:[]).map(d=>{teMap['DISTRICT:'+d.id]=d.name_te;return {id:d.id,name:d.name_en,te:d.name_te,lgd:d.lgd_code||'',active:d.is_active,mandals:d.mandals.map(m=>{teMap['MANDAL:'+m.id]=m.name_te;return {id:m.id,name:m.name_en,te:m.name_te,lgd:m.lgd_code||'',active:m.is_active,villages:(m.villages||[]).map(v=>{teMap['VILLAGE:'+v.id]=v.name_te;return {id:v.id,name:v.name_en,te:v.name_te,lgd:v.lgd_code||'',lat:v.latitude||'',lng:v.longitude||'',pin:v.pin_code||'',active:v.is_active}})}})}});if(st)teMap['STATE:'+st.id]=st.name_te;this._te=teMap;const expanded={...this.state.expanded};if(geo[0]&&!Object.keys(expanded).length){expanded[geo[0].id]=true;if(geo[0].mandals[0])expanded['m'+geo[0].mandals[0].id]=true}this.setState({geo,stateRow:st,expanded})}).catch(e=>this.fail(e))}
   loadCategories(){return this.api.get('/admin/categories/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState({categories:list})}).catch(()=>{})}
   loadDash(){this.api.get('/admin/dashboard/').then(dash=>this.setState({dash,pendingCount:dash.kpis.pending})).catch(e=>this.fail(e))}
-  adaptUser(u){const ras=(u.role_assignments||[]).filter(r=>r.is_active!==false);const ra=ras[0]||null;const role=ra?(Component.RK[ra.role]||'panchayat'):'panchayat';const parts=this.pathParts(ra&&ra.area);return {id:u.id,name:u.name,te:u.name_te||u.name,mobile:u.mobile||'',email:u.email||'',username:u.username||'',role,district:parts.district,mandal:parts.mandal,village:parts.village,area:ra?ra.area:null,raId:ra?ra.id:null,ras,active:u.is_active!==undefined?!!u.is_active:u.status==='ACTIVE',locked:!!u.locked_out,allowed:Array.isArray(u.allowed_actions)?u.allowed_actions:null,last:this.fmtLast(u.last_login_at)}}
+  adaptUser(u){const ras=(u.role_assignments||[]).filter(r=>r.is_active!==false);const ra=ras[0]||null;const role=ra?(Component.RK[ra.role]||'panchayat'):'panchayat';const parts=this.pathParts(ra&&ra.area);return {id:u.id,name:u.name,te:u.name_te||u.name,nameTe:u.name_te||'',mobile:u.mobile||'',email:u.email||'',username:u.username||'',role,district:parts.district,mandal:parts.mandal,village:parts.village,area:ra?ra.area:null,raId:ra?ra.id:null,ras,active:u.is_active!==undefined?!!u.is_active:u.status==='ACTIVE',locked:!!u.locked_out,allowed:Array.isArray(u.allowed_actions)?u.allowed_actions:null,last:this.fmtLast(u.last_login_at)}}
   loadUsers(page){const uf=this.state.uf;this.setState({usersLoading:true});this.api.get('/users/',{role:uf.role?Component.RAPI[uf.role]:'',district:uf.district,status:uf.status?uf.status.toUpperCase():'',is_active:uf.status?String(uf.status==='active'):'',q:uf.q,page,page_size:Component.PAGE}).then(d=>this.setState({users:d.results.map(u=>this.adaptUser(u)),userCount:d.count,userPage:page,userPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),usersLoading:false})).catch(e=>{this.setState({usersLoading:false});this.fail(e)})}
   adaptPost(p){const a=p.author||{};const role=Component.RK[a.role]||'panchayat';return {id:p.id,raw:p,cat:p.category?p.category.key:'updates',catLabel:p.category?p.category.name:'',titleTe:p.title,titleEn:p.translation?p.translation.title:'',bodyTe:p.body,bodyEn:p.translation?p.translation.body:'',area:this.an(p.target_area),areaName:p.target_area?p.target_area.name:'',date:this.fmt(p.submitted_at||p.published_at||p.created_at),author:a.name||'—',authorId:a.id,role,status:Component.SK[p.status]||'Pending',media:(p.media||[]).filter(m=>m.kind!=='video'),videos:(p.media||[]).filter(m=>m.kind==='video'),urgent:!!p.is_urgent,event:p.event||null,allowed:p.allowed_actions||[],escalated:p.escalated}}
   postQuery(page){const s=this.state;return {status:s.statusTab==='All'?'':Component.SAPI[s.statusTab],district:s.pf.district,category:s.pf.cat,q:s.gsearch,page,page_size:Component.PAGE}}
@@ -100,8 +103,24 @@ export default class Component extends React.Component {
   loadContacts(page){const s=this.state;this.setState({contactLoading:true});this.api.get('/admin/contact-messages/',{status:s.contactFilter==='all'?'':s.contactFilter,q:s.contactQ,page,page_size:Component.PAGE}).then(d=>this.setState({contacts:d.results||[],contactCount:d.count||0,contactPage:page,contactPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),contactLoading:false})).catch(e=>{this.setState({contactLoading:false,contacts:[],contactCount:0});this.fail(e)})}
   isHandled(c){return c.status?String(c.status).toUpperCase()==='HANDLED':!!c.handled}
   toggleContact(c){const done=!this.isHandled(c);this.api.patch('/admin/contact-messages/'+c.id+'/',{handled:done}).then(()=>{this.toast(done?'Marked handled':'Marked new',done?'#6cc04a':'#E9791E');this.loadContacts(this.state.contactPage)}).catch(e=>this.fail(e))}
+  // ---- important numbers (contract section 14) ----
+  loadNumbers(page){const s=this.state;this.setState({numLoading:true});this.api.get('/admin/contacts/',{section:s.numTab,type:s.numType,q:s.numQ,page,page_size:Component.PAGE}).then(d=>this.setState({nums:d.results||[],numCount:d.count||0,numPage:page,numPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),numLoading:false})).catch(e=>{this.setState({numLoading:false,nums:[],numCount:0});this.fail(e)})}
+  loadTypes(){this.api.get('/contact-types/').then(d=>this.setState({ctypes:Array.isArray(d)?d:(d.results||[])})).catch(()=>{});if(this.can('contacts.manage_contact_types'))this.api.get('/admin/contact-types/').then(d=>this.setState({ctypesAdmin:Array.isArray(d)?d:(d.results||[])})).catch(e=>this.fail(e))}
+  // The server's phone grammar: drop spaces, dashes, brackets and a leading +91 (or 91 before 10 digits).
+  phoneDigits(p){const d=String(p||'').replace(/[\s\-()]/g,'');return d.startsWith('+91')?d.slice(3):/^91\d{10}$/.test(d)?d.slice(2):d}
+  openNumber(c){const a=c&&c.area&&c.area.level!=='STATE'?c.area:null;this.setState({nf:c?{id:c.id,section:c.type.section,type:c.type.key,typeObj:{...c.type,is_other:!!c.custom_type},custom:c.custom_type||'',name:c.name,te:c.name_te||'',phone:c.phone,email:c.email||'',level:a?a.level:'VILLAGE',area:a?String(a.id):'',sort:String(c.sort_order==null?100:c.sort_order),consent:!!c.consent_recorded}:{id:null,section:this.state.numTab==='HELPLINE'?'HELPLINE':'AREA',type:'',custom:'',name:'',te:'',phone:'',email:'',level:'VILLAGE',area:'',sort:'100',consent:false}})}
+  nfView(){const f=this.state.nf;if(!f)return null;const types=this.state.ctypes.filter(x=>x.section===f.section);if(f.typeObj&&!types.some(x=>x.key===f.typeObj.key))types.unshift(f.typeObj);const type=types.find(x=>x.key===f.type)||types[0]||null;const areas=f.section==='AREA'?this.areaOptions(Component.LVROLE[f.level]):[];const area=areas.find(x=>x.id===f.area)||areas[0]||null;const mobile=/^[6-9]\d{9}$/.test(this.phoneDigits(f.phone));
+    const ok=!!(f.name.trim()&&this.phoneDigits(f.phone)&&type&&(!type.is_other||f.custom.trim())&&(f.section!=='AREA'||area)&&(!mobile||f.consent)&&(!f.email.trim()||/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())));return {f,types,type,areas,area,mobile,ok}}
+  saveNumber(){const n=this.nfView();if(!n||!n.ok)return;const f=n.f;const body={type:n.type.key,name:f.name.trim(),name_te:f.te.trim(),phone:f.phone.trim(),email:f.email.trim(),sort_order:f.sort===''?100:Number(f.sort),consent_recorded:n.mobile&&f.consent,area:f.section==='AREA'?{level:n.area.level,id:Number(n.area.id)}:{level:'STATE',id:this.state.stateRow&&this.state.stateRow.id}};if(n.type.is_other)body.custom_type=f.custom.trim();
+    (f.id?this.api.patch('/admin/contacts/'+f.id+'/',body):this.api.post('/admin/contacts/',body)).then(()=>{this.setState({nf:null});this.toast((f.id?'Number updated · ':'Number added · ')+body.name);this.loadNumbers(f.id?this.state.numPage:1)}).catch(e=>this.fail(e))}
+  verifyNumber(c){this.api.patch('/admin/contacts/'+c.id+'/',{verified:true}).then(()=>{this.toast('Marked verified · '+c.name);this.loadNumbers(this.state.numPage)}).catch(e=>this.fail(e))}
+  removeNumber(c){this.ask({title:'Remove number',body:'Remove '+c.name+' ('+c.phone+')? Citizens stop seeing it at once. The audit log keeps a record.',confirmLabel:'Remove',bg:'#b3261e',onConfirm:()=>this.api.del('/admin/contacts/'+c.id+'/').then(()=>{this.toast('Number removed','#E9791E');this.loadNumbers(this.state.numPage)}).catch(e=>this.fail(e))})}
+  importNumbers(){const input=document.createElement('input');input.type='file';input.accept='.csv,text/csv';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const form=()=>{const fd=new FormData();fd.append('file',file);return fd};
+    this.api.upload('/admin/contacts/import/',form(),{dry_run:1}).then(r=>this.ask({title:'Import important numbers',body:'File checked: '+r.created+' new, '+r.updated+' updated, '+r.skipped+' unchanged.',confirmLabel:'Import',bg:'#0D3B7A',onConfirm:()=>this.api.upload('/admin/contacts/import/',form()).then(d=>{this.toast('Imported · '+d.created+' new, '+d.updated+' updated');this.loadNumbers(1)}).catch(e=>this.fail(e))})).catch(e=>{const rep=e&&e.body&&e.body.report;if(rep&&rep.errors&&rep.errors.length){this.ask({title:'File has errors',body:rep.errors.slice(0,5).map(x=>'Row '+x.row+(x.field?' · '+x.field:'')+': '+x.message).join(' · ')+(rep.errors.length>5?' · and '+(rep.errors.length-5)+' more.':''),confirmLabel:'Close',bg:'#3b4a5c',onConfirm:()=>{}})}else this.fail(e)})};input.click()}
+  addType(){this.ask({title:'Add contact type',body:'"For you" types are numbers for a district, mandal or village. Helpline types are statewide.',hasSelect:true,selectLabel:'Section',options:[{id:'AREA',label:'For you (area numbers)'},{id:'HELPLINE',label:'Government helplines'}],needsText:true,textLabel:'English name',confirmLabel:'Next',bg:'#0D3B7A',onConfirm:(en,section)=>setTimeout(()=>this.ask({title:'Add contact type · '+en.trim(),body:'The Telugu name citizens see.',needsText:true,textLabel:'తెలుగు పేరు',confirmLabel:'Add type',bg:'#0D3B7A',onConfirm:te=>{const key=(en.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'type').slice(0,40);this.api.post('/admin/contact-types/',{key,section,name_en:en.trim(),name_te:te.trim()}).then(()=>{this.toast('Type added · '+en.trim());this.loadTypes()}).catch(e=>this.fail(e))}}),0)})}
+  toggleType(t){this.api.patch('/admin/contact-types/'+t.id+'/',{is_active:!t.is_active}).then(()=>{this.toast(t.name_en+(t.is_active?' switched off':' switched on'),t.is_active?'#E9791E':'#6cc04a');this.loadTypes()}).catch(e=>this.fail(e))}
   humanAction(k){const p=String(k||'').split('.');return (p[1]||p[0]).replace(/_/g,' ')}
-  loadReports(){Promise.all([this.api.get('/admin/reports/posts-by-area/'),this.api.get('/admin/reports/review-time/'),this.api.get('/admin/reports/admin-activity/',{page_size:8})]).then(([byArea,reviewTime,activity])=>this.setState({reports:{byArea,reviewTime,activity:activity.results}})).catch(e=>this.fail(e))}
+  loadReports(){Promise.all([this.api.get('/admin/reports/summary/'),this.api.get('/admin/reports/posts-by-area/'),this.api.get('/admin/reports/review-time/'),this.api.get('/admin/reports/admin-activity/',{page_size:8})]).then(([summary,byArea,reviewTime,activity])=>this.setState({reports:{summary,byArea,reviewTime,activity:activity.results}})).catch(e=>this.fail(e))}
   loadSettings(){this.loadCategories();this.api.get('/admin/settings/').then(st=>this.setState(s=>({settings:{...s.settings,escalation:st.review_escalation_hours,langs:{te:true,en:!!(st.languages||{}).en}}}))).catch(e=>this.fail(e));this.api.get('/admin/notification-templates/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState(s=>({settings:{...s.settings,templates:list}}))}).catch(()=>{})}
   openPost(p){this.setState({panel:{type:'post',id:p.id},panelPost:p,panelHistory:[]});this.api.get('/posts/'+p.id+'/history/').then(h=>{if(this.state.panel&&this.state.panel.id===p.id)this.setState({panelHistory:h})}).catch(()=>{})}
   refreshPost(id){return this.api.get('/posts/'+id+'/').then(p=>{const ap=this.adaptPost(p);this.setState(s=>({panelPost:s.panel&&s.panel.id===id?ap:s.panelPost,posts:s.posts.map(x=>x.id===id?ap:x)}));return this.api.get('/posts/'+id+'/history/').then(h=>{if(this.state.panel&&this.state.panel.id===id)this.setState({panelHistory:h})})}).catch(()=>{})}
@@ -121,6 +140,19 @@ export default class Component extends React.Component {
   urgentPost(p){const on=!p.urgent;this.api.post('/posts/'+p.id+'/urgent/',{is_urgent:on}).then(()=>{this.toast(on?'Marked urgent':'Urgent mark removed',on?'#E9791E':'#6cc04a');this.loadPosts(this.state.postPage);this.refreshPost(p.id)}).catch(e=>this.fail(e))}
 
   // ---- users actions ----
+  // Add User area picker, same as the mobile app: district -> mandal -> village, each list only inside the step above.
+  areaSteps(f){const g=this.state.geo.filter(d=>d.active);const lv=Component.LEVEL_OF_ROLE[f.role];const d=g.find(x=>String(x.id)===String(f.nuD));const m=d&&d.mandals.find(x=>String(x.id)===String(f.nuM));
+    const steps=[{key:'nuD',label:'District',ph:'Choose a district',value:f.nuD||'',options:g.map(x=>({id:String(x.id),label:x.name+' · '+x.te}))}];
+    if(lv!=='DISTRICT'&&d)steps.push({key:'nuM',label:'Mandal',ph:'Choose a mandal',value:f.nuM||'',options:d.mandals.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name+' · '+x.te}))});
+    if(lv==='VILLAGE'&&m)steps.push({key:'area',label:'Village',ph:'Choose a village',value:f.area||'',options:m.villages.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name+' · '+x.te}))});
+    return steps}
+  areaPick(n,name,value){n={...n,[name]:value};const lv=Component.LEVEL_OF_ROLE[n.role];
+    if(name==='role'){n.nuD='';n.nuM='';n.area=''}
+    if(name==='nuD'){n.nuM='';n.area=lv==='DISTRICT'?value:''}
+    if(name==='nuM'){n.area=lv==='MANDAL'?value:''}
+    return n}
+  areaSummary(f){if(!f.area)return '';const lv=Component.LEVEL_OF_ROLE[f.role];const d=this.state.geo.find(x=>String(x.id)===String(f.nuD));const m=d&&d.mandals.find(x=>String(x.id)===String(f.nuM));const v=m&&m.villages.find(x=>String(x.id)===String(f.area));
+    return [lv==='VILLAGE'&&v?v.name:null,lv!=='DISTRICT'&&m?m.name:null,d?d.name:null].filter(Boolean).join(' · ')}
   areaOptions(role){const lv=Component.LEVEL_OF_ROLE[role];const g=this.state.geo;if(lv==='DISTRICT')return g.filter(d=>d.active).map(d=>({id:String(d.id),label:d.name+' · '+d.te,level:lv}));if(lv==='MANDAL')return g.flatMap(d=>d.mandals.filter(m=>m.active&&d.active).map(m=>({id:String(m.id),label:m.name+' · '+m.te,level:lv})));return g.flatMap(d=>d.mandals.flatMap(m=>m.villages.filter(v=>v.active&&m.active&&d.active).map(v=>({id:String(v.id),label:v.name+' · '+v.te,level:'VILLAGE'}))))}
   toggleUser(u){const R=Component.ROLE;this.ask({title:u.active?'Block user':'Unblock user',body:(u.active?'Block ':'Unblock ')+u.name+' ('+R[u.role].label+', '+(u.area?u.area.name:'—')+')? '+(u.active?'They will be signed out and cannot post or review.':'They regain access immediately.'),confirmLabel:u.active?'Block':'Unblock',bg:u.active?'#b3261e':'#1F8A3B',onConfirm:()=>this.api.post('/users/'+u.id+'/'+(u.active?'block':'unblock')+'/',{}).then(d=>{const nu=this.adaptUser(d&&d.user?d.user:d);this.setState(s=>({users:s.users.map(x=>x.id===u.id?nu:x),panelUser:s.panelUser&&s.panelUser.id===u.id?nu:s.panelUser}));this.toast(u.name+(u.active?' blocked':' unblocked'),u.active?'#E9791E':'#6cc04a')}).catch(e=>this.fail(e))})}
   reassignUser(u){const R=Component.ROLE;const opts=this.areaOptions(u.role);if(!u.raId){this.toast('This user has no role to move.','#E9791E');return}this.ask({title:'Reassign area',body:'Move '+u.name+' ('+R[u.role].label+') to a different '+(u.role==='district'?'district':u.role==='mandal'?'mandal':'village')+'. Their pending reviews stay with the old area.',hasSelect:true,selectLabel:'New area',options:opts,confirmLabel:'Reassign',bg:'#0D3B7A',onConfirm:(t,sel)=>{const o=opts.find(x=>x.id===sel)||opts[0];if(!o)return;this.api.patch('/users/'+u.id+'/role-assignments/'+u.raId+'/',{area:{level:o.level,id:Number(o.id)}}).then(()=>{this.toast(u.name+' reassigned to '+o.label.split(' · ')[0]);this.loadUsers(this.state.userPage);if(this.state.panel&&this.state.panel.type==='user')this.setState({panel:null})}).catch(e=>this.fail(e))}})}
@@ -130,15 +162,29 @@ export default class Component extends React.Component {
   resetPassword(u){this.ask({title:'Reset password',body:'Give '+u.name+' a new temporary password. They are signed out everywhere and must choose their own password at their next login.',hasInput:true,inputLabel:'Temporary password',inputPh:'Leave empty to generate one',confirmLabel:'Reset password',bg:'#0D3B7A',onConfirm:(t,sel,gen)=>{const pw=(t||'').trim();this.api.post('/users/'+u.id+'/reset-password/',pw?{password:pw}:{}).then(d=>{const temp=(d&&d.temporary_password)||(pw&&pw===gen?pw:'');if(temp)this.showSecret(u.name,temp);else this.toast('Password reset · '+u.name);this.refreshUser(u.id)}).catch(e=>this.fail(e))}})}
   unlockUser(u){this.ask({title:'Unlock login',body:u.name+' is locked out after too many wrong passwords. Unlock now so they can try again?',confirmLabel:'Unlock',bg:'#1F8A3B',onConfirm:()=>this.api.post('/users/'+u.id+'/unlock/',{}).then(()=>{this.toast(u.name+' unlocked');this.refreshUser(u.id)}).catch(e=>this.fail(e))})}
   nuValid(f){return !!(f.name.trim()&&f.username.trim()&&(!f.email.trim()||/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim()))&&(!f.mobile||f.mobile.length===10))}
-  saveNU(){const f=this.state.nu;if(!this.nuValid(f))return;const opts=this.areaOptions(f.role);const o=opts.find(x=>x.id===f.area)||opts[0];if(!o){this.toast('Add areas in Geography first.','#E9791E');return}
+  editUser(u){this.setState({drawerOpen:true,nu:{id:u.id,name:u.name,te:u.nameTe,email:u.email,username:u.username,mobile:u.mobile,password:'',role:u.role,area:''}})}
+  saveUserEdit(f){this.api.patch('/users/'+f.id+'/',{name:f.name.trim(),name_te:f.te.trim(),email:f.email.trim()||null,mobile:f.mobile||null}).then(()=>{this.setState({drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''}});this.toast('Details saved · '+f.name.trim());this.refreshUser(f.id)}).catch(e=>this.fail(e))}
+  editProfile(){const me=this.state.me||{};const g=(me.groups||[]).map(x=>x.name||x.label||x.key||x).join(', ')||'Super Admin';this.setState({menuOpen:false});this.ask({title:'My profile',body:'Signed in as '+(me.username||'')+' · '+g+'. You can change the name shown in the console and in the audit log.',hasInput:true,noGen:true,inputLabel:'Name',inputPh:'Your full name',preset:me.name||'',confirmLabel:'Save',bg:'#0D3B7A',onConfirm:t=>{const name=(t||'').trim();if(!name||name===me.name)return;this.api.patch('/me/',{name}).then(d=>{this.setState(s=>({me:{...s.me,...(d||{}),name}}));this.toast('Profile saved')}).catch(e=>this.fail(e))}})}
+  saveNU(){const f=this.state.nu;if(!this.nuValid(f))return;if(f.id)return this.saveUserEdit(f);const opts=this.areaOptions(f.role);const o=opts.find(x=>x.id===String(f.area));if(!o){this.toast(opts.length?'Choose the area.':'Add areas in Geography first.','#E9791E');return}
     const body={username:f.username.trim(),name:f.name.trim(),name_te:f.te.trim(),role:Component.RAPI[f.role],area:{level:o.level,id:Number(o.id)}};if(f.email.trim())body.email=f.email.trim();if(f.mobile)body.mobile=f.mobile;const pw=f.password.trim();if(pw)body.password=pw;const gen=this._nuGen;
-    this.api.post('/users/',body).then(d=>{this._nuGen='';this.setState({drawerOpen:false,nu:{name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:''}});const temp=(d&&d.temporary_password)||(pw&&pw===gen?pw:'');if(temp)this.showSecret(body.name,temp);else this.toast('User created · '+body.username);this.loadUsers(1)}).catch(e=>this.fail(e))}
+    this.api.post('/users/',body).then(d=>{this._nuGen='';this.setState({drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''}});const temp=(d&&d.temporary_password)||(pw&&pw===gen?pw:'');if(temp)this.showSecret(body.name,temp);else this.toast('User created · '+body.username);this.loadUsers(1)}).catch(e=>this.fail(e))}
 
   // ---- geography ----
-  geoSave(){const f=this.state.geoForm;if(!f||!f.name.trim())return;const name=f.name.trim(),te=(f.te||'').trim();const base={name_en:name,name_te:te};let req;
+  // "16.2345, 80.4567" or a Google Maps / OpenStreetMap link -> [lat, lng] (at most 6 decimals, as the server stores), else null.
+  static parseCoords(text){let t=String(text||'');try{t=decodeURIComponent(t)}catch(e){}const n=/(-?\d{1,3}(?:\.\d+)?)/.source;
+    const pats=['!3d'+n+'!4d'+n,'@'+n+','+n,/[?&](?:q|query|ll|destination|center)=/.source+n+/\s*,\s*/.source+n,'mlat='+n+'&mlon='+n,/#map=\d+\//.source+n+'/'+n,/^\s*/.source+n+/°?\s*[ ,;]\s*/.source+n+/°?\s*$/.source];
+    for(const p of pats){const m=t.match(new RegExp(p));if(m){const a=+m[1],b=+m[2];if(Math.abs(a)<=90&&Math.abs(b)<=180)return [String(+a.toFixed(6)),String(+b.toFixed(6))]}}return null}
+  onGeoWhere(text){const c=Component.parseCoords(text);this.setState(st=>({geoForm:{...st.geoForm,where:text,...(c?{lat:c[0],lng:c[1]}:{})}}))}
+  // Search text for Google Maps: village, mandal, district, state.
+  geoPlace(f){const g=this.state.geo;let parts=[f.name.trim()];if(f.kind==='village'){const d=g.find(x=>x.mandals.some(m=>m.id===f.parentId));parts.push(f.parentName||f.parent,d&&d.name)}else if(f.kind==='mandal')parts.push(f.parentName||f.parent);parts.push(this.state.stateRow?this.state.stateRow.name_en:'Andhra Pradesh');return parts.filter(Boolean).join(', ')}
+  // Same checks as the app's area sheet; the server checks again.
+  geoSiblings(f){const g=this.state.geo;if(f.kind==='district')return g;if(f.kind==='mandal'){const d=g.find(x=>x.id===f.parentId);return d?d.mandals:[]}for(const d of g){const m=d.mandals.find(x=>x.id===f.parentId);if(m)return m.villages}return []}
+  geoErrs(f){const nm=f.name.trim();const dupe=!!nm&&this.geoSiblings(f).some(x=>x.id!==f.id&&x.name.toLowerCase()===nm.toLowerCase());const e={name:!nm?'Please enter a name':dupe?'That name already exists here':'',pin:'',coords:''};
+    if(f.isVillage){const pin=String(f.pin||'').trim();if(pin&&!/^\d{6}$/.test(pin))e.pin='PIN code must be 6 digits';const la=String(f.lat||'').trim(),lo=String(f.lng||'').trim(),ok=/^-?\d{1,3}(\.\d{1,6})?$/;if(!la&&!lo){if(!f.id)e.coords='Add the village location: paste a Google Maps link or its numbers.'}else if(!(ok.test(la)&&ok.test(lo)&&Math.abs(+la)<=90&&Math.abs(+lo)<=180))e.coords='Enter a valid latitude (−90 to 90) and longitude (−180 to 180)'}return e}
+  geoSave(){const f=this.state.geoForm;if(!f)return;const er=this.geoErrs(f);if(er.name||er.pin||er.coords){this.setState({geoForm:{...f,tried:true}});return}const name=f.name.trim(),te=(f.te||'').trim();const base={name_en:name,name_te:te,lgd_code:(f.lgd||'').trim()||null};if(f.id&&f.active!==f.wasActive)base.is_active=f.active;let req;
     if(f.kind==='district')req=f.id?this.api.patch('/geo/districts/'+f.id+'/',base):this.api.post('/geo/districts/',{...base,state_id:this.state.stateRow&&this.state.stateRow.id});
     else if(f.kind==='mandal')req=f.id?this.api.patch('/geo/mandals/'+f.id+'/',base):this.api.post('/geo/mandals/',{...base,district_id:f.parentId});
-    else{const v={...base,latitude:f.lat,longitude:f.lng,pin_code:f.pin||''};req=f.id?this.api.patch('/geo/villages/'+f.id+'/',v):this.api.post('/geo/villages/',{...v,mandal_id:f.parentId})}
+    else{const v={...base,pin_code:f.pin||''};if(String(f.lat).trim())v.latitude=String(f.lat).trim();if(String(f.lng).trim())v.longitude=String(f.lng).trim();req=f.id?this.api.patch('/geo/villages/'+f.id+'/',v):this.api.post('/geo/villages/',{...v,mandal_id:f.parentId})}
     req.then(()=>{const ex={...this.state.expanded};if(f.parentKey)ex[f.parentKey]=true;this.setState({geoForm:null,expanded:ex});this.toast((f.id?'Updated ':'Added ')+f.kind+' · '+name);this.loadGeo()}).catch(e=>this.fail(e))}
   geoDeact(node){const next=!node.active;const path={district:'districts',mandal:'mandals',village:'villages'}[node.kind];this.ask({title:(next?'Reactivate ':'Deactivate ')+node.kind,body:(next?'Reactivate ':'Deactivate ')+node.name+'? '+(next?'It becomes selectable again for users and posts.':'Existing posts stay visible; no new users or posts can be assigned here'+(node.kind!=='village'?', including all areas under it.':'.')),confirmLabel:next?'Reactivate':'Deactivate',bg:next?'#1F8A3B':'#b3261e',onConfirm:()=>this.api.patch('/geo/'+path+'/'+node.id+'/',{is_active:next}).then(()=>{this.toast(node.name+(next?' reactivated':' deactivated'),next?'#6cc04a':'#E9791E');this.loadGeo()}).catch(e=>this.fail(e))})}
   importCsv(){const input=document.createElement('input');input.type='file';input.accept='.csv,text/csv';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const form=()=>{const fd=new FormData();fd.append('file',file);return fd};
@@ -151,9 +197,9 @@ export default class Component extends React.Component {
 
   renderVals(){
     const s=this.state,C=Component,ST=C.STATUS,R=C.ROLE;
-    const is={auth:s.screen!=='app',login:s.screen==='login',changePassword:s.screen==='change_password',app:s.screen==='app'};
+    const is={checking:s.screen==='checking',auth:s.screen==='login'||s.screen==='change_password',login:s.screen==='login',changePassword:s.screen==='change_password',app:s.screen==='app'};
     const pg={};pg[s.page]=true;
-    const titles={dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',settings:'Settings'};
+    const titles={dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
     const pendingN=s.pendingCount;
     const navItems=C.PAGES.filter(k=>this.navOk(k)).map(k=>{const on=s.page===k;return {label:titles[k].split(' ·')[0],d:C.ICON[k],color:on?'#fff':'rgba(255,255,255,.78)',bg:on?'#0D3B7A':'transparent',hasCount:k==='posts'&&pendingN>0,count:pendingN,go:()=>this.goPage(k)}});
     const hist=h=>{const rk=C.RK[h.actor&&h.actor.role]||'system';const label=h.action==='REVERSE'?'Override: '+(ST[C.SK[h.from_status]]||{label:h.from_status}).label+' → '+(ST[C.SK[h.to_status]]||{label:h.to_status}).label:(C.HIST[h.action]||h.action);return {who:(h.actor&&h.actor.name)||'System',role:R[rk].label,action:label,note:h.comment||'',hasNote:!!h.comment,time:this.fmt(h.at),dot:/PUBLISH/.test(h.action)?'#1F8A3B':h.action==='RECHECK'?'#8f4bb4':/DISCARD|UNPUBLISH/.test(h.action)?'#b3261e':h.action==='REVERSE'?'#0D3B7A':'#E9791E'}};
@@ -178,12 +224,13 @@ export default class Component extends React.Component {
     const tree=[];const tag={district:['#e3f0fb','#0D3B7A'],mandal:['#dff3f5','#07818e'],village:['#e4f4df','#1d7a33']};
     const row=(node,kind,depth,parentId,parentName,parentKey,meta)=>{const key=(kind==='district'?'':kind==='mandal'?'m':'v')+node.id;const hasKids=kind!=='village';const open=!!s.expanded[key];const sel=s.geoForm&&s.geoForm.id===node.id&&s.geoForm.kind===kind;tree.push({id:key,kind,name:node.name,te:node.te&&node.te!==node.name?node.te:'',indent:(8+depth*28)+'px',rowBg:sel?'#f0f6fd':'transparent',opacity:node.active?1:.55,toggleVis:hasKids?'visible':'hidden',chev:open?'M6 9l6 6 6-6':'M9 6l6 6-6 6',tagBg:tag[kind][0],tagColor:tag[kind][1],inactive:!node.active,meta,canAdd:hasKids,childKind:kind==='district'?'Mandal':'Village',
       toggle:()=>this.setState(st=>({expanded:{...st.expanded,[key]:!st.expanded[key]}})),
-      select:()=>this.setState({geoForm:{kind,id:node.id,parentId,parentName,parentKey,parent:parentName||(s.stateRow?s.stateRow.name_en:'Andhra Pradesh'),name:node.name,te:node.te||'',lat:node.lat||'',lng:node.lng||'',pin:node.pin||'',isVillage:kind==='village'}}),
-      add:()=>this.setState({geoForm:{kind:kind==='district'?'mandal':'village',id:null,parentId:node.id,parentName:node.name,parentKey:key,parent:node.name,name:'',te:'',lat:'',lng:'',pin:'',isVillage:kind==='mandal'}}),
+      select:()=>this.setState({geoForm:{kind,id:node.id,parentId,parentName,parentKey,parent:parentName||(s.stateRow?s.stateRow.name_en:'Andhra Pradesh'),name:node.name,te:node.te||'',lgd:node.lgd||'',lat:node.lat||'',lng:node.lng||'',pin:node.pin||'',active:node.active,wasActive:node.active,isVillage:kind==='village'}}),
+      add:()=>this.setState({geoForm:{kind:kind==='district'?'mandal':'village',id:null,parentId:node.id,parentName:node.name,parentKey:key,parent:node.name,name:'',te:'',lgd:'',lat:'',lng:'',pin:'',active:true,isVillage:kind==='mandal'}}),
       deact:()=>this.geoDeact({...node,kind}),deactLabel:node.active?'Deactivate':'Reactivate',deactColor:node.active?'#b3261e':'#1d7a33'});
       if(hasKids&&open)(node.mandals||node.villages).forEach(k=>row(k,kind==='district'?'mandal':'village',depth+1,node.id,node.name,key,kind==='district'?k.villages.length+' villages':(k.lat?Number(k.lat).toFixed(4)+', '+Number(k.lng).toFixed(4):'')))};
     s.geo.forEach(d=>row(d,'district',0,null,null,null,d.mandals.length+' mandals'));
-    const gf=s.geoForm;
+    const gf=s.geoForm;const geoErr=gf&&gf.tried?this.geoErrs(gf):{};
+    const geoActive=gf&&gf.id?{on:gf.active,swBg:gf.active?'#1F8A3B':'#cfd8e3',swLeft:gf.active?'21px':'3px',bg:gf.active?'#e4f4df':'#f3f5f8',sub:gf.isVillage?(gf.active?'Citizens can choose this village and see its posts.':'Hidden from citizens. Its users and posts are kept.'):(gf.active?'New users and posts can be added here.':'Hidden with every area below it. Existing posts stay visible.')}:null;
     // users
     const uf=s.uf;const userRows=s.users.map(u=>({id:u.id,name:u.name,te:u.te,mobile:u.mobile?'+91 '+u.mobile:(u.email||'—'),roleLabel:R[u.role].label,rbg:R[u.role].tbg,rcolor:R[u.role].tc,bg:R[u.role].bg,initial:u.name[0],area:this.an(u.area),statusLabel:u.active?'Active':'Blocked',scolor:u.active?'#1d7a33':'#b3261e',lastLogin:u.last,toggleLabel:u.active?'Block':'Unblock',tcolor:u.active?'#b3261e':'#1d7a33',canReassign:!!u.raId&&this.userCan(u,'reassign'),canToggle:this.userCan(u,u.active?'block':'unblock'),view:()=>this.openUser(u),reassign:()=>this.reassignUser(u),toggle:()=>this.toggleUser(u)}));
     const districtOpts=s.geo.map(d=>({id:String(d.id),label:d.name}));
@@ -194,11 +241,18 @@ export default class Component extends React.Component {
     const catOpts=s.categories.map(c=>({id:c.key,label:c.name_en||c.name||c.key}));
     // reports
     const RP=s.reports;const byArea=[];RP.byArea.forEach(d=>{byArea.push({name:d.district.name,indent:'0px',weight:700,total:d.total,pub:d.published,pend:d.pending,rej:d.rejected});d.mandals.forEach(m=>byArea.push({name:m.mandal.name,indent:'20px',weight:500,total:m.total,pub:m.published,pend:m.pending,rej:m.rejected}))});
+    const SM=RP.summary;const repSummary=[['Posts','total','#0A2550'],['Published','published','#1F8A3B'],['Pending','pending','#b35a0e'],['Rejected','rejected','#6b7a8c']].map(([label,k,color])=>({label,value:SM?SM[k]:'…',color,sub:'Last '+(SM?SM.days:30)+' days'+(k==='rejected'?' · discarded or taken down':'')}));
     const LV={VILLAGE:['Village Admin','#1F8A3B'],MANDAL:['Mandal Admin','#07818e'],DISTRICT:['District Admin','#E9791E']};
     const reviewTime=RP.reviewTime.filter(r=>LV[r.level]).map(r=>{const hours=r.avg_hours||0;return {level:LV[r.level][0],hours,n:r.reviews,sla:r.escalation_hours,color:LV[r.level][1],w:Math.min(100,Math.round(hours/(r.escalation_hours||24)*100))+'%'}});
-    const adminActivity=RP.activity.map(a=>({name:a.user.name,role:(R[C.RK[a.user.role]]||R.village).label,area:a.area?a.area.name:'—',reviewed:a.reviewed,pub:a.published,re:a.recheck,dis:a.discarded,avg:'—',last:this.fmtLast(a.last_active_at)}));
+    const adminActivity=RP.activity.map(a=>({name:a.user.name,role:(R[C.RK[a.user.role]]||R.village).label,area:a.area?a.area.name:'—',reviewed:a.reviewed,pub:a.published,re:a.recheck,dis:a.discarded,avg:a.avg_review_hours==null?'—':a.avg_review_hours,last:this.fmtLast(a.last_active_at)}));
     // audit
     const auditRows=s.audit.map(auditRow);
+    // important numbers
+    const sw=on=>({swBg:on?'#1F8A3B':'#cfd8e3',swLeft:on?'21px':'3px'});
+    const numTabs=[{id:'AREA',label:'For you'},{id:'HELPLINE',label:'Government helplines'},...(this.can('contacts.manage_contact_types')?[{id:'TYPES',label:'Types'}]:[])].map(t=>{const on=s.numTab===t.id;return {label:t.label,line:on?'#0D3B7A':'transparent',color:on?'#0A2550':'#6b7a8c',go:()=>this.setState({numTab:t.id,numType:'',nf:null},()=>{if(t.id==='TYPES')this.loadTypes();else this.loadNumbers(1)})}});
+    const numRows=s.nums.map(c=>{const al=c.allowed_actions||[];const rc=c.needs_recheck;return {type:c.custom_type||c.type.name,name:c.name,te:c.name_te&&c.name_te!==c.name?c.name_te:'',phone:c.phone_kind==='MOBILE'?'+91 '+c.phone.slice(0,5)+' '+c.phone.slice(5):c.phone,email:c.email||'',area:c.area?(c.area.path||c.area.name):'—',status:rc?'Needs check':'Verified '+this.fmt(c.verified_at,true).slice(0,11),sbg:rc?'#fff0dc':'#e4f4df',scolor:rc?'#b35a0e':'#1d7a33',canEdit:al.includes('edit'),canVerify:al.includes('verify'),canRemove:al.includes('remove'),edit:()=>this.openNumber(c),verify:()=>this.verifyNumber(c),remove:()=>this.removeNumber(c)}});
+    const typeRows=s.ctypesAdmin.map(t=>({key:t.key,section:t.section==='HELPLINE'?'Government helplines':'For you',en:t.name_en,te:t.name_te,count:t.contact_count+(t.is_other?' · typed names':''),...sw(t.is_active),toggle:()=>this.toggleType(t)}));
+    const nv=this.nfView();
     // settings
     const catRows=s.categories.map(c=>({te:c.name_te,en:c.name_en,icon:C.CATL[c.key]?c.key:'updates',count:c.post_count||0,swBg:c.is_active?'#1F8A3B':'#cfd8e3',swLeft:c.is_active?'21px':'3px',toggle:()=>this.api.patch('/admin/categories/'+c.id+'/',{is_active:!c.is_active}).then(()=>{this.toast(c.name_en+(c.is_active?' disabled':' enabled'),c.is_active?'#E9791E':'#6cc04a');this.loadCategories()}).catch(e=>this.fail(e))}));
     const langRows=[{id:'te',name:'తెలుగు · Telugu',sub:'Default app language'},{id:'en',name:'English',sub:'Secondary · header toggle'}].map(l=>{const on=s.settings.langs[l.id];return {...l,swBg:on?'#1F8A3B':'#cfd8e3',swLeft:on?'21px':'3px',toggle:()=>{if(l.id==='te'){this.toast('Telugu is the default language and cannot be disabled','#E9791E');return}this.api.patch('/admin/settings/',{languages:{en:!on}}).then(()=>{this.setState(st=>({settings:{...st.settings,langs:{...st.settings.langs,en:!on}}}));this.toast('English '+(on?'disabled':'enabled'))}).catch(e=>this.fail(e))}}});
@@ -208,28 +262,33 @@ export default class Component extends React.Component {
     const panel=s.panel?{show:true,isPost:s.panel.type==='post',isUser:s.panel.type==='user',title:s.panel.type==='post'?'Post review':'User details'}:{show:false};
     const empty={id:'',cat:'updates',catLabel:'',titleTe:'',titleEn:'',bodyTe:'',bodyEn:'',area:'',areaName:'',date:'',author:'',role:'panchayat',status:'Pending',media:[],allowed:[]};
     const sp=dp(s.panelPost||empty,true);
-    const pu=s.panelUser;const su=pu?{name:pu.name,te:pu.te,initial:pu.name[0],bg:R[pu.role].bg,fields:[{k:'Role',v:R[pu.role].label},{k:'Mobile',v:pu.mobile?'+91 '+pu.mobile:(pu.email||'—')},{k:'District',v:pu.district||'—'},{k:'Mandal',v:pu.mandal||'—'},{k:'Village',v:pu.village||'—'},{k:'Status',v:(pu.active?'Active · last login '+pu.last:'Blocked')+(pu.locked?' · locked after failed logins':'')}],posts:s.panelUserPosts.map(p=>dp(p)),roles:(pu.ras||[]).map(ra=>{const k=C.RK[ra.role]||'panchayat';return {label:R[k].label,rbg:R[k].tbg,rcolor:R[k].tc,area:ra.area?(ra.area.path||ra.area.name):'—',canRemove:this.userCan(pu,'remove_assignment'),remove:()=>this.removeRole(pu,ra)}}),canAddRole:this.userCan(pu,'add_assignment')&&this.roleChoices().length>0,canReassign:!!pu.raId&&this.userCan(pu,'reassign'),canReset:this.userCan(pu,'reset_password'),canUnlock:pu.locked&&this.userCan(pu,'unlock'),canToggle:this.userCan(pu,pu.active?'block':'unblock'),addRole:()=>this.addRole(pu),reassign:()=>this.reassignUser(pu),reset:()=>this.resetPassword(pu),unlock:()=>this.unlockUser(pu),toggle:()=>this.toggleUser(pu),toggleLabel:pu.active?'Block user':'Unblock user',tbg:pu.active?'#b3261e':'#1F8A3B'}:{fields:[],posts:[],roles:[]};
+    const pu=s.panelUser;const su=pu?{name:pu.name,te:pu.te,initial:pu.name[0],bg:R[pu.role].bg,fields:[{k:'Role',v:R[pu.role].label},{k:'Mobile',v:pu.mobile?'+91 '+pu.mobile:(pu.email||'—')},{k:'District',v:pu.district||'—'},{k:'Mandal',v:pu.mandal||'—'},{k:'Village',v:pu.village||'—'},{k:'Status',v:(pu.active?'Active · last login '+pu.last:'Blocked')+(pu.locked?' · locked after failed logins':'')}],posts:s.panelUserPosts.map(p=>dp(p)),roles:(pu.ras||[]).map(ra=>{const k=C.RK[ra.role]||'panchayat';return {label:R[k].label,rbg:R[k].tbg,rcolor:R[k].tc,area:ra.area?(ra.area.path||ra.area.name):'—',canRemove:this.userCan(pu,'remove_assignment'),remove:()=>this.removeRole(pu,ra)}}),canEdit:this.userCan(pu,'edit'),edit:()=>this.editUser(pu),canAddRole:this.userCan(pu,'add_assignment')&&this.roleChoices().length>0,canReassign:!!pu.raId&&this.userCan(pu,'reassign'),canReset:this.userCan(pu,'reset_password'),canUnlock:pu.locked&&this.userCan(pu,'unlock'),canToggle:this.userCan(pu,pu.active?'block':'unblock'),addRole:()=>this.addRole(pu),reassign:()=>this.reassignUser(pu),reset:()=>this.resetPassword(pu),unlock:()=>this.unlockUser(pu),toggle:()=>this.toggleUser(pu),toggleLabel:pu.active?'Block user':'Unblock user',tbg:pu.active?'#b3261e':'#1F8A3B'}:{fields:[],posts:[],roles:[]};
     // modal
     const m=s.modal;const cannot=!!(m&&m.needsText&&!s.modalText.trim());
-    const modal=m?{show:true,title:m.title,body:m.body,hasInput:!!m.hasInput,inputLabel:m.inputLabel||'',inputPh:m.inputPh||'',hasSecret:!!m.secret,secret:m.secret||'',hasCancel:!m.noCancel,needsText:!!m.needsText,textLabel:m.textLabel||'',hasSelect:!!m.hasSelect,selectLabel:m.selectLabel||'',options:m.options||[],confirmLabel:m.confirmLabel,bg:m.bg||'#0D3B7A',cannot,opacity:cannot?.5:1}:{show:false,options:[],hasCancel:true};
+    const modal=m?{show:true,title:m.title,body:m.body,hasInput:!!m.hasInput,hasGen:!!m.hasInput&&!m.noGen,inputLabel:m.inputLabel||'',inputPh:m.inputPh||'',hasSecret:!!m.secret,secret:m.secret||'',hasCancel:!m.noCancel,needsText:!!m.needsText,textLabel:m.textLabel||'',hasSelect:!!m.hasSelect,selectLabel:m.selectLabel||'',options:m.options||[],confirmLabel:m.confirmLabel,bg:m.bg||'#0D3B7A',cannot,opacity:cannot?.5:1}:{show:false,options:[],hasCancel:true};
     const nu=s.nu;const nuAreas=this.areaOptions(nu.role);const canNU=this.nuValid(nu);const nuRoles=this.roleChoices();
-    const nuShown={...nu,area:nu.area||(nuAreas[0]?nuAreas[0].id:'')};
+    const nuShown=nu;const nuSteps=this.areaSteps(nu);const nuPlace=this.areaSummary(nu);
     const me=s.me||{name:'',username:'',email:''};
-    return {screen:s.screen,is,pg,pageTitle:titles[s.page],navItems,menuOpen:s.menuOpen,toggleMenu:()=>this.setState(st=>({menuOpen:!st.menuOpen})),menuProfile:()=>{this.setState({menuOpen:false});const g=(me.groups||[]).map(x=>x.name||x.label||x.key||x).join(', ')||'Super Admin';this.toast('Profile: '+me.name+' · '+g+' · '+(me.username||''))},goSettingsM:()=>this.goPage('settings'),canSettings:this.navOk('settings'),menuChangePassword:()=>this.openChangePassword(),goAudit:()=>this.goPage('audit'),
+    return {screen:s.screen,is,pg,pageTitle:titles[s.page],navItems,menuOpen:s.menuOpen,toggleMenu:()=>this.setState(st=>({menuOpen:!st.menuOpen})),menuProfile:()=>this.editProfile(),goSettingsM:()=>this.goPage('settings'),canSettings:this.navOk('settings'),menuChangePassword:()=>this.openChangePassword(),goAudit:()=>this.goPage('audit'),
       meName:me.name,meInitial:(me.name||'?')[0],stateName:s.stateRow?s.stateRow.name_en:'',stateTe:s.stateRow?s.stateRow.name_te:'',
       logout:()=>this.logout(),
-      frameW:'100%',frameH:'100vh',
+      frameW:'100%',frameH:'100vh',scrollRef:el=>{this._scroll=el},
       username:s.username,password:s.password,onLogin:e=>{const {name,value}=e.target;this.setState({[name]:value})},onLoginKey:e=>{if(e.key==='Enter')this.signIn()},cannotSignIn:!(s.username.trim()&&s.password),signInOpacity:s.username.trim()&&s.password?1:.5,signIn:()=>this.signIn(),
+      pw:Object.fromEntries(['login','current','next'].map(k=>{const on=!!s.showPw[k];return [k,{shown:on,type:on?'text':'password',icon:on?'M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2':'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',label:on?'Hide password':'Show password',toggle:()=>this.setState(st=>({showPw:{...st.showPw,[k]:!st.showPw[k]}}))}]})),
       cpCurrent:s.cpCurrent,cpNext:s.cpNext,onCp:e=>{const {name,value}=e.target;this.setState(name==='current'?{cpCurrent:value}:{cpNext:value})},onCpKey:e=>{if(e.key==='Enter')this.changePassword()},cannotChange:!(s.cpCurrent&&s.cpNext),changeOpacity:s.cpCurrent&&s.cpNext?1:.5,changePassword:()=>this.changePassword(),cpSub:s.cpVoluntary?'Your other sessions are signed out when you save.':'Choose your own password before you continue.',cpBackLabel:s.cpVoluntary?'‹ Back':'‹ Sign out',cpBack:()=>{if(s.cpVoluntary)this.setState({screen:'app',cpVoluntary:false,cpCurrent:'',cpNext:''});else this.logout()},
       gsearch:s.gsearch,onGSearch:e=>{const v=e.target.value;this.setState({gsearch:v,page:v?'posts':s.page,statusTab:v?'All':s.statusTab});clearTimeout(this._gt);this._gt=setTimeout(()=>this.loadPosts(1),300)},
-      kpis,chart,pendingByDistrict,recent,
-      tree,addDistrict:()=>this.setState({geoForm:{kind:'district',id:null,parentId:null,parentName:null,parent:s.stateRow?s.stateRow.name_en:'Andhra Pradesh',name:'',te:'',lat:'',lng:'',pin:'',isVillage:false}}),importCsv:()=>this.importCsv(),geoForm:gf||{},geoFormShow:!!gf,geoFormEmpty:!gf,geoFormTitle:gf?((gf.id?'Edit ':'Add ')+gf.kind):'Details',geoSaveLabel:gf&&gf.id?'Save changes':'Add',cannotSaveGeo:!(gf&&gf.name.trim()),saveGeoOpacity:gf&&gf.name.trim()?1:.5,onGeoField:e=>{const {name,value}=e.target;this.setState(st=>({geoForm:{...st.geoForm,[name]:value}}))},saveGeo:()=>this.geoSave(),cancelGeo:()=>this.setState({geoForm:null}),
-      uf,onUF:e=>{const {name,value}=e.target;this.setState(st=>({uf:{...st.uf,[name]:value}}),()=>{clearTimeout(this._qt);this._qt=setTimeout(()=>this.loadUsers(1),name==='q'?300:0)})},userRows,userCount:s.userCount,userEmpty:!userRows.length,userEmptyText:s.usersLoading?'Loading…':'No users match these filters.',usersPager:pager(s.userPage,s.userPages,p=>this.loadUsers(p)),districtOpts,openAddUser:()=>this.setState(st=>({drawerOpen:true,nu:{...st.nu,role:nuRoles.some(r=>r.id===st.nu.role)?st.nu.role:(nuRoles[0]?nuRoles[0].id:st.nu.role)}})),canAddUser:nuRoles.length>0,nuRoles,genNU:e=>{if(e&&e.preventDefault)e.preventDefault();const p=this.newPassword();this._nuGen=p;this.setState(st=>({nu:{...st.nu,password:p}}))},closeDrawer:()=>this.setState({drawerOpen:false}),drawerOpen:s.drawerOpen,nu:nuShown,nuAreas,onNU:e=>{const {name,value}=e.target;this.setState(st=>{const n={...st.nu,[name]:name==='mobile'?value.replace(/\D/g,'').slice(0,10):value};if(name==='role')n.area='';return {nu:n}})},cannotSaveNU:!canNU,saveNUOpacity:canNU?1:.5,saveNU:()=>this.saveNU(),
+      kpis,chart,chartEmpty:!ppd.some(c=>c.submitted||c.published),pendingByDistrict,recent,noDistricts:!s.geo.length,
+      tree,addDistrict:()=>this.setState({geoForm:{kind:'district',id:null,parentId:null,parentName:null,parent:s.stateRow?s.stateRow.name_en:'Andhra Pradesh',name:'',te:'',lgd:'',lat:'',lng:'',pin:'',isVillage:false}}),importCsv:()=>this.importCsv(),geoForm:gf||{},geoFormShow:!!gf,geoFormEmpty:!gf,geoFormTitle:gf?((gf.id?'Edit ':'Add ')+gf.kind):'Details',geoSaveLabel:gf&&gf.id?'Save changes':'Add',geoNamePh:gf?{district:'e.g. Bapatla',mandal:'e.g. Ponnur',village:'e.g. Kothapalem'}[gf.kind]:'',cannotSaveGeo:false,saveGeoOpacity:1,geoErr,geoCoordsRequired:!!(gf&&gf.isVillage&&!gf.id),onGeoWhere:e=>this.onGeoWhere(e.target.value),geoWhereNote:gf&&gf.where?(Component.parseCoords(gf.where)?'Latitude and longitude filled from what you pasted.':/goo\.gl|maps\.app/.test(gf.where)?'Short links cannot be read here. Open the link, then copy the numbers shown (e.g. 16.2345, 80.4567).':'Paste numbers like 16.2345, 80.4567 or a full map link.'):'',geoWhereOk:!!(gf&&gf.where&&Component.parseCoords(gf.where)),geoManual:!!(gf&&gf.manual),toggleGeoManual:()=>this.setState(st=>({geoForm:{...st.geoForm,manual:!st.geoForm.manual}})),geoFindUrl:gf&&gf.name.trim()?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(this.geoPlace(gf)):'',geoHasCoords:!!(gf&&gf.isVillage&&!this.geoErrs({...gf,id:gf.id||1}).coords&&String(gf.lat||'').trim()),geoCoordsText:gf?String(gf.lat||'').trim()+', '+String(gf.lng||'').trim():'',geoViewUrl:gf&&gf.isVillage&&!this.geoErrs({...gf,id:gf.id||1}).coords&&String(gf.lat||'').trim()?'https://www.google.com/maps/search/?api=1&query='+String(gf.lat).trim()+','+String(gf.lng).trim():'',geoActive,toggleGeoActive:()=>this.setState(st=>({geoForm:{...st.geoForm,active:!st.geoForm.active}})),onGeoField:e=>{const {name,value}=e.target;this.setState(st=>({geoForm:{...st.geoForm,[name]:value}}))},saveGeo:()=>this.geoSave(),cancelGeo:()=>this.setState({geoForm:null}),
+      uf,onUF:e=>{const {name,value}=e.target;this.setState(st=>({uf:{...st.uf,[name]:value}}),()=>{clearTimeout(this._qt);this._qt=setTimeout(()=>this.loadUsers(1),name==='q'?300:0)})},userRows,userCount:s.userCount,userEmpty:!userRows.length,userEmptyText:s.usersLoading?'Loading…':'No users match these filters.',usersPager:pager(s.userPage,s.userPages,p=>this.loadUsers(p)),districtOpts,nuEdit:!!nu.id,nuTitle:nu.id?'Edit user':'Add User',nuSaveLabel:nu.id?'Save changes':'Create user',openAddUser:()=>this.setState(st=>({drawerOpen:true,nu:{...(st.nu.id?{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',area:'',nuD:'',nuM:''}:st.nu),role:nuRoles.some(r=>r.id===st.nu.role)?st.nu.role:(nuRoles[0]?nuRoles[0].id:st.nu.role)}})),canAddUser:nuRoles.length>0,nuRoles,genNU:e=>{if(e&&e.preventDefault)e.preventDefault();const p=this.newPassword();this._nuGen=p;this.setState(st=>({nu:{...st.nu,password:p}}))},closeDrawer:()=>this.setState({drawerOpen:false}),drawerOpen:s.drawerOpen,nu:nuShown,nuAreas,onNU:e=>{const {name,value}=e.target;this.setState(st=>{const n={...st.nu,[name]:name==='mobile'?value.replace(/\D/g,'').slice(0,10):value};if(['role','nuD','nuM'].includes(name))return {nu:this.areaPick(st.nu,name,value)};return {nu:n}})},cannotSaveNU:!(canNU&&(nu.id||nu.area)),saveNUOpacity:canNU&&(nu.id||nu.area)?1:.5,nuSteps,nuPlace,nuRoleLabel:(Component.ROLE[nu.role]||{label:''}).label,saveNU:()=>this.saveNU(),
       statusTabs,pf,onPF:e=>{const {name,value}=e.target;this.setState(st=>({pf:{...st.pf,[name]:value}}),()=>this.loadPosts(1))},postRows,postCount:s.postCount,postEmpty:!postRows.length,postEmptyText:s.postsLoading?'Loading…':'No posts match these filters.',postsPager:pager(s.postPage,s.postPages,p=>this.loadPosts(p)),catOpts,
-      byArea,reviewTime,adminActivity,exportCsv:()=>this.exportCsv(),exportByArea:()=>this.exportReport('posts-by-area'),exportReviewTime:()=>this.exportReport('review-time'),exportActivity:()=>this.exportReport('admin-activity'),
+      repSummary,byArea,reviewTime,adminActivity,exportCsv:()=>this.exportCsv(),exportByArea:()=>this.exportReport('posts-by-area'),exportReviewTime:()=>this.exportReport('review-time'),exportActivity:()=>this.exportReport('admin-activity'),
       auditQ:s.auditQ,onAuditQ:e=>{this.setState({auditQ:e.target.value});clearTimeout(this._at);this._at=setTimeout(()=>this.loadAudit(1),300)},auditRows,auditCount:s.auditCount,auditEmpty:!auditRows.length,auditEmptyText:s.auditLoading?'Loading…':'No entries match.',auditPager:pager(s.auditPage,s.auditPages,p=>this.loadAudit(p)),canExportAudit:this.can('audit.export_audit_log'),
       contactQ:s.contactQ,onContactQ:e=>{this.setState({contactQ:e.target.value});clearTimeout(this._ct);this._ct=setTimeout(()=>this.loadContacts(1),300)},contactFilter:s.contactFilter,contactFilters:[{id:'new',label:'New'},{id:'handled',label:'Handled'},{id:'all',label:'All'}],onContactFilter:e=>this.setState({contactFilter:e.target.value},()=>this.loadContacts(1)),
       contactRows:s.contacts.map(c=>{const done=this.isHandled(c);return {time:this.fmt(c.created_at,false),name:c.name,mobile:c.mobile?'+91 '+c.mobile:'—',village:c.village_text||'—',message:c.message,status:done?'Handled':'New',sbg:done?'#e4f4df':'#fff0dc',scolor:done?'#1d7a33':'#b35a0e',toggleLabel:done?'Mark new':'Mark handled',toggle:()=>this.toggleContact(c)}}),contactCount:s.contactCount+(s.contactCount===1?' message':' messages'),contactEmpty:!s.contacts.length,contactEmptyText:s.contactLoading?'Loading…':'No messages match.',contactPager:pager(s.contactPage,s.contactPages,p=>this.loadContacts(p)),
+      numTabs,numRows,isTypesTab:s.numTab==='TYPES',typeRows,numQ:s.numQ,onNumQ:e=>{this.setState({numQ:e.target.value});clearTimeout(this._nt);this._nt=setTimeout(()=>this.loadNumbers(1),300)},numType:s.numType,numTypeOpts:[{id:'',label:'All types'},...s.ctypes.filter(x=>x.section===s.numTab).map(x=>({id:x.key,label:x.name}))],onNumType:e=>this.setState({numType:e.target.value},()=>this.loadNumbers(1)),
+      numCount:s.numCount+(s.numCount===1?' number':' numbers'),numEmpty:!numRows.length,numEmptyText:s.numLoading?'Loading…':(s.numQ||s.numType?'No numbers match.':'No numbers yet. Add one, or import a CSV file.'),numPager:pager(s.numPage,s.numPages,p=>this.loadNumbers(p)),addNumber:()=>this.openNumber(null),importNumbers:()=>this.importNumbers(),addType:()=>this.addType(),
+      nfShow:!!nv,nf:nv?{...nv.f,type:nv.type?nv.type.key:'',area:nv.area?nv.area.id:''}:{},nfTitle:nv?(nv.f.id?'Edit number':nv.f.section==='HELPLINE'?'Add helpline':'Add number'):'',nfSaveLabel:nv&&nv.f.id?'Save changes':'Add number',nfTypes:nv?nv.types.map(x=>({id:x.key,label:x.name})):[],nfIsOther:!!(nv&&nv.type&&nv.type.is_other),nfIsArea:!!(nv&&nv.f.section==='AREA'),nfLevels:[{id:'VILLAGE',label:'Village'},{id:'MANDAL',label:'Mandal'},{id:'DISTRICT',label:'District'}],nfAreas:nv?nv.areas:[],nfMobile:!!(nv&&nv.mobile),
+      onNF:e=>{const {name,type,checked,value}=e.target;this.setState(st=>{const n={...st.nf,[name]:type==='checkbox'?checked:value};if(name==='level')n.area='';if(name==='type')n.custom='';return {nf:n}})},cannotSaveNF:!(nv&&nv.ok),saveNFOpacity:nv&&nv.ok?1:.5,saveNF:()=>this.saveNumber(),closeNF:()=>this.setState({nf:null}),
       settings:s.settings,catRows,langRows,templates,badge36:{size:36},newCat:s.newCat,onNewCat:e=>{const {name,value}=e.target;this.setState(st=>({newCat:{...st.newCat,[name]:value}}))},addCat:()=>{const c=s.newCat;if(!c.te.trim()&&!c.en.trim()){this.toast('Enter a category name','#E9791E');return}const en=(c.en||c.te).trim(),te=(c.te||c.en).trim();const key=(en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'category').slice(0,20);this.api.post('/admin/categories/',{key,name_te:te,name_en:en}).then(()=>{this.setState({newCat:{te:'',en:''}});this.toast('Category added · '+en);this.loadCategories()}).catch(e=>this.fail(e))},
       onEscalation:e=>this.setState(st=>({settings:{...st.settings,escalation:Number(e.target.value)||0}})),saveSettings:()=>this.api.patch('/admin/settings/',{review_escalation_hours:s.settings.escalation}).then(()=>this.toast('Settings saved · escalation '+s.settings.escalation+' h')).catch(e=>this.fail(e)),
       panel,sp,su,closePanel:()=>this.setState({panel:null}),
@@ -242,6 +301,11 @@ export default class Component extends React.Component {
     return (
       <div data-screen-label={v.screen} style={css(`width: ${v.frameW ?? ""};min-height: ${v.frameH ?? ""};background:#F6F8F3;position:relative;font-family:'Nunito Sans','Noto Sans Telugu',sans-serif;color:#17212e;font-size:14px;overflow:hidden`)}>
         {" "}
+        {/* CHECKING THE SESSION (page load) */}
+        {v.is?.checking ? <div role="status" aria-live="polite" style={{height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", background: "#0A2550", color: "rgba(255,255,255,.8)"}}>
+            <img src="/assets/logo-mark.png" alt="" style={{width: "64px", height: "64px", borderRadius: "18.5%", animation: "sa-fade .3s ease-out"}} />
+            <span style={{fontSize: "14px", fontWeight: "600"}}>Loading…</span>
+          </div> : null}
         {/* LOGIN / CHANGE PASSWORD */}
         {" "}
         {v.is?.auth ? <>
@@ -278,7 +342,12 @@ export default class Component extends React.Component {
                   </label>
                   <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                     <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Password</span>
-                    <input name="password" type="password" value={val(v.password, "")} onChange={v.onLogin} onKeyDown={v.onLoginKey} autoComplete="current-password" style={{height: "48px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                    <span style={{position: "relative", display: "block"}}>
+                      <input name="password" type={v.pw?.login?.type} value={val(v.password, "")} onChange={v.onLogin} onKeyDown={v.onLoginKey} autoComplete="current-password" style={{width: "100%", boxSizing: "border-box", height: "48px", padding: "0 48px 0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                      <button type="button" onClick={v.pw?.login?.toggle} aria-label={v.pw?.login?.label} aria-pressed={v.pw?.login?.shown} title={v.pw?.login?.label} style={{position: "absolute", top: "50%", right: "6px", transform: "translateY(-50%)", width: "36px", height: "36px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={v.pw?.login?.icon} /></svg>
+                      </button>
+                    </span>
                   </label>
                   <button onClick={v.signIn} disabled={v.cannotSignIn} style={css(`height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: ${v.signInOpacity ?? ""}`)}>Sign in ›</button>
                 </div> : null}
@@ -289,11 +358,21 @@ export default class Component extends React.Component {
                   </div>
                   <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                     <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Current password</span>
-                    <input name="current" type="password" value={val(v.cpCurrent, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="current-password" style={{height: "48px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                    <span style={{position: "relative", display: "block"}}>
+                      <input name="current" type={v.pw?.current?.type} value={val(v.cpCurrent, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="current-password" style={{width: "100%", boxSizing: "border-box", height: "48px", padding: "0 48px 0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                      <button type="button" onClick={v.pw?.current?.toggle} aria-label={v.pw?.current?.label} aria-pressed={v.pw?.current?.shown} title={v.pw?.current?.label} style={{position: "absolute", top: "50%", right: "6px", transform: "translateY(-50%)", width: "36px", height: "36px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={v.pw?.current?.icon} /></svg>
+                      </button>
+                    </span>
                   </label>
                   <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                     <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>New password</span>
-                    <input name="next" type="password" value={val(v.cpNext, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="new-password" style={{height: "48px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                    <span style={{position: "relative", display: "block"}}>
+                      <input name="next" type={v.pw?.next?.type} value={val(v.cpNext, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="new-password" style={{width: "100%", boxSizing: "border-box", height: "48px", padding: "0 48px 0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+                      <button type="button" onClick={v.pw?.next?.toggle} aria-label={v.pw?.next?.label} aria-pressed={v.pw?.next?.shown} title={v.pw?.next?.label} style={{position: "absolute", top: "50%", right: "6px", transform: "translateY(-50%)", width: "36px", height: "36px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={v.pw?.next?.icon} /></svg>
+                      </button>
+                    </span>
                   </label>
                   <button onClick={v.changePassword} disabled={v.cannotChange} style={css(`height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: ${v.changeOpacity ?? ""}`)}>{"Save & continue ›"}</button>
                   <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -309,8 +388,8 @@ export default class Component extends React.Component {
         {" "}
         {v.is?.app ? <>
           {" "}
-          <div style={{display: "grid", gridTemplateColumns: "248px minmax(0, 1fr)", minHeight: "100vh"}}>
-            <aside style={{background: "#0A2550", color: "#fff", display: "flex", flexDirection: "column", padding: "20px 14px", gap: "6px"}}>
+          <div style={{display: "grid", gridTemplateColumns: "248px minmax(0, 1fr)", height: "100vh", overflow: "hidden"}}>
+            <aside style={{background: "#0A2550", color: "#fff", display: "flex", flexDirection: "column", padding: "20px 14px", gap: "6px", minHeight: "0", overflowY: "auto"}}>
               <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "4px 10px 20px"}}>
                 <img src="/assets/logo-mark.png" alt="" style={{width: "40px", height: "40px", borderRadius: "18.5%"}} />
                 <div>
@@ -329,8 +408,8 @@ export default class Component extends React.Component {
               ))}
               <div style={{marginTop: "auto", padding: "14px 12px", borderRadius: "12px", background: "rgba(255,255,255,.06)", fontSize: "12px", lineHeight: "1.5", opacity: ".85"}}>మన గ్రామం – మన సేవలు – మన అభివృద్ధి<br />v2.4 · Andhra Pradesh</div>
             </aside>
-            <main style={{display: "flex", flexDirection: "column", minWidth: "0"}}>
-              <header style={{height: "64px", background: "#fff", borderBottom: "1px solid #eef2f6", display: "flex", alignItems: "center", gap: "16px", padding: "0 28px", position: "relative"}}>
+            <main style={{display: "flex", flexDirection: "column", minWidth: "0", minHeight: "0"}}>
+              <header style={{height: "64px", flexShrink: "0", background: "#fff", borderBottom: "1px solid #eef2f6", display: "flex", alignItems: "center", gap: "16px", padding: "0 28px", position: "relative", zIndex: "30"}}>
                 <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", flex: "1"}}>{I(v.pageTitle)}</div>
                 <div style={{display: "flex", alignItems: "center", gap: "8px", height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#f7f9fb", width: "280px", color: "#6b7a8c"}}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -362,6 +441,7 @@ export default class Component extends React.Component {
                     {" "}
                   </div> : null}
               </header>
+              <div ref={v.scrollRef} style={{flex: "1", minHeight: "0", overflowY: "auto"}}>
               <div style={{padding: "24px 28px 40px", display: "flex", flexDirection: "column", gap: "20px", animation: "sa-fade .2s ease-out"}}>
                 {/* DASHBOARD */}
                 {v.pg?.dashboard ? <>
@@ -382,7 +462,8 @@ export default class Component extends React.Component {
                         <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Posts per day</span>
                         <span style={{fontSize: "12px", color: "#6b7a8c"}}>Last 14 days · published vs submitted</span>
                       </div>
-                      <div style={{display: "flex", alignItems: "flex-end", gap: "10px", height: "190px", paddingTop: "10px", borderBottom: "1px solid #eef2f6"}}>
+                      <div style={{position: "relative", display: "flex", alignItems: "flex-end", gap: "10px", height: "190px", paddingTop: "10px", borderBottom: "1px solid #eef2f6"}}>
+                        {v.chartEmpty ? <div style={{position: "absolute", inset: "0", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7a8c", fontSize: "13px"}}>No posts in the last 14 days.</div> : null}
                         {list(v.chart).map((_c, _i1) => (
                           <React.Fragment key={_i1}>
                             <div title={_c?.tip} style={{flex: "1", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", gap: "0", height: "100%"}}>
@@ -417,6 +498,7 @@ export default class Component extends React.Component {
                           </tr>
                         </thead>
                         <tbody>
+                          {!list(v.pendingByDistrict).length ? <tr><td colSpan="3" style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>Nothing waiting for review.</td></tr> : null}
                           {list(v.pendingByDistrict).map((_r, _i1) => (
                             <React.Fragment key={_i1}>
                               <tr>
@@ -458,10 +540,10 @@ export default class Component extends React.Component {
                   </div>
                 </> : null}
                 {/* GEOGRAPHY */}
-                {v.pg?.geography ? <div style={{display: "grid", gridTemplateColumns: "1fr 420px", gap: "20px", alignItems: "start"}}>
-                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "16px 20px"}}>
+                {v.pg?.geography ? <div style={{display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 360px)", gap: "20px", alignItems: "start"}}>
+                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "16px 20px", minWidth: "0"}}>
                       {" "}
-                      <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "12px", borderBottom: "1px solid #eef2f6"}}>
+                      <div style={{display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", alignItems: "center", paddingBottom: "12px", borderBottom: "1px solid #eef2f6"}}>
                         <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>State → District → Mandal → Village</span>
                         <span style={{display: "flex", gap: "8px"}}>
                           <button onClick={v.importCsv} style={{height: "36px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
@@ -475,6 +557,7 @@ export default class Component extends React.Component {
                         <span style={{fontWeight: "500", color: "#6b7a8c"}}>{I(v.stateTe)}</span>
                       </div>
                       {" "}
+                      {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>+ Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
                       {list(v.tree).map((_n, _i1) => (
                         <React.Fragment key={_i1}>
                           {" "}
@@ -482,51 +565,83 @@ export default class Component extends React.Component {
                             <button onClick={_n?.toggle} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#6b7a8c;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={_n?.chev} /></svg>
                             </button>
-                            <button onClick={_n?.select} style={{flex: "1", display: "flex", alignItems: "center", gap: "10px", background: "none", border: "0", padding: "6px 0", cursor: "pointer", textAlign: "left"}}>
+                            <button onClick={_n?.select} style={{flex: "1", minWidth: "0", overflow: "hidden", display: "flex", alignItems: "center", gap: "10px", background: "none", border: "0", padding: "6px 0", cursor: "pointer", textAlign: "left"}}>
                               <span style={css(`padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background: ${_n?.tagBg ?? ""};color: ${_n?.tagColor ?? ""}`)}>{I(_n?.kind)}</span>
-                              <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14px"}}>{I(_n?.name)}</span>
-                              <span style={{color: "#6b7a8c", fontSize: "13px"}}>{I(_n?.te)}</span>
+                              <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14px", flexShrink: "1", minWidth: "48px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(_n?.name)}</span>
+                              <span style={{color: "#6b7a8c", fontSize: "13px", flexShrink: "100", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(_n?.te)}</span>
                               {_n?.inactive ? <span style={{padding: "2px 8px", borderRadius: "999px", background: "#eef2f6", color: "#3b4a5c", fontSize: "11px", fontWeight: "700"}}>Inactive</span> : null}
-                              <span style={{marginLeft: "auto", fontSize: "12px", color: "#6b7a8c"}}>{I(_n?.meta)}</span>
+                              <span style={{marginLeft: "auto", fontSize: "12px", color: "#6b7a8c", whiteSpace: "nowrap", flexShrink: "0"}}>{I(_n?.meta)}</span>
                             </button>
-                            {_n?.canAdd ? <button onClick={_n?.add} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{"+ "}{I(_n?.childKind)}</button> : null}
-                            <button onClick={_n?.select} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button>
-                            <button onClick={_n?.deact} style={css(`height:30px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;font-weight:700;cursor:pointer;font-size:12px;color: ${_n?.deactColor ?? ""}`)}>{I(_n?.deactLabel)}</button>
+                            {_n?.canAdd ? <button onClick={_n?.add} style={{flexShrink: "0", whiteSpace: "nowrap", height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{"+ "}{I(_n?.childKind)}</button> : null}
+                            <button onClick={_n?.select} style={{flexShrink: "0", height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button>
+                            <button onClick={_n?.deact} style={css(`flex-shrink:0;white-space:nowrap;height:30px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;font-weight:700;cursor:pointer;font-size:12px;color: ${_n?.deactColor ?? ""}`)}>{I(_n?.deactLabel)}</button>
                           </div>
                           {" "}
                         </React.Fragment>
                       ))}
                       {" "}
                     </div>
-                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "14px", position: "sticky", top: "20px"}}>
+                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "14px", position: "sticky", top: "20px", minWidth: "0"}}>
                       <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>{I(v.geoFormTitle)}</div>
                       {v.geoFormEmpty ? <div style={{color: "#6b7a8c", fontSize: "13px", lineHeight: "1.6"}}>Select a district, mandal or village on the left to edit it, or use the + buttons to add a new entry under its parent.</div> : null}
                       {v.geoFormShow ? <>
                         <div style={{fontSize: "12px", color: "#6b7a8c"}}>{"Parent: "}<b style={{color: "#3b4a5c"}}>{I(v.geoForm?.parent)}</b></div>
                         <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                          <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English)</span>
-                          <input name="name" value={val(v.geoForm?.name, "")} onChange={v.onGeoField} style={{height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                          <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English)<span style={{color: "#b3261e"}}> *</span></span>
+                          <input name="name" value={val(v.geoForm?.name, "")} onChange={v.onGeoField} placeholder={v.geoNamePh} style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.name ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
+                          {v.geoErr?.name ? <span role="alert" style={{fontSize: "12px", fontWeight: "700", color: "#b3261e"}}>{I(v.geoErr?.name)}</span> : null}
                         </label>
                         <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                           <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>పేరు (తెలుగు)</span>
-                          <input name="te" value={val(v.geoForm?.te, "")} onChange={v.onGeoField} style={{height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                          <input name="te" value={val(v.geoForm?.te, "")} onChange={v.onGeoField} placeholder="తెలుగులో పేరు" style={{minWidth: "0", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                        </label>
+                        <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                          <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>LGD code (optional)</span>
+                          <input name="lgd" value={val(v.geoForm?.lgd, "")} onChange={v.onGeoField} maxLength="20" placeholder="Local Government Directory code" style={{minWidth: "0", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
                         </label>
                         {v.geoForm?.isVillage ? <>
-                          <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px"}}>
-                            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Latitude</span>
-                              <input name="lat" value={val(v.geoForm?.lat, "")} onChange={v.onGeoField} placeholder="16.2345" style={{height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-                            </label>
-                            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Longitude</span>
-                              <input name="lng" value={val(v.geoForm?.lng, "")} onChange={v.onGeoField} placeholder="80.6123" style={{height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-                            </label>
-                          </div>
                           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Pincode</span>
-                            <input name="pin" value={val(v.geoForm?.pin, "")} onChange={v.onGeoField} placeholder="522xxx" style={{height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>PIN code</span>
+                            <input name="pin" inputMode="numeric" maxLength="6" value={val(v.geoForm?.pin, "")} onChange={v.onGeoField} placeholder="522xxx" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.pin ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
+                            <span style={css(`font-size:12px;line-height:1.5;font-weight:${v.geoErr?.pin ? "700" : "400"};color:${v.geoErr?.pin ? "#b3261e" : "#6b7a8c"}`)}>{v.geoErr?.pin ? v.geoErr.pin : "6-digit postal code (optional)"}</span>
                           </label>
+                          <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Location{v.geoCoordsRequired ? <span style={{color: "#b3261e"}}> *</span> : null}</span>
+                              <input name="where" value={val(v.geoForm?.where, "")} onChange={v.onGeoWhere} placeholder="Paste a Google Maps link or 16.2345, 80.4567" autoComplete="off" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.coords ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
+                              <span style={css(`font-size:12px;line-height:1.5;color:${v.geoWhereOk ? "#1d7a33" : "#6b7a8c"};font-weight:${v.geoWhereOk ? "700" : "400"}`)}>{v.geoWhereNote ? v.geoWhereNote : "Find the village on Google Maps, copy its link (or right-click it and copy the numbers), and paste here."}</span>
+                            </label>
+                            <div style={css(`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;background:${v.geoHasCoords ? "#e4f4df" : "#f3f5f8"};color:${v.geoHasCoords ? "#1d7a33" : "#6b7a8c"}`)}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{flexShrink: "0"}}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                              <span style={{flex: "1", minWidth: "0", fontWeight: "700", fontVariantNumeric: "tabular-nums"}}>{v.geoHasCoords ? v.geoCoordsText : "No location yet"}</span>
+                              {v.geoViewUrl ? <a href={v.geoViewUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A", fontWeight: "700", whiteSpace: "nowrap"}}>View on map ↗</a> : null}
+                            </div>
+                            {v.geoErr?.coords ? <span role="alert" style={{fontSize: "12px", fontWeight: "700", color: "#b3261e", lineHeight: "1.5"}}>{I(v.geoErr?.coords)}</span> : null}
+                            <span style={{display: "flex", flexWrap: "wrap", gap: "14px", fontSize: "13px", fontWeight: "700"}}>
+                              {v.geoFindUrl ? <a href={v.geoFindUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A"}}>Find on Google Maps ↗</a> : <span style={{color: "#6b7a8c", fontWeight: "400"}}>Enter the name to search for it on Google Maps.</span>}
+                              <button type="button" onClick={v.toggleGeoManual} aria-expanded={v.geoManual} style={{border: "0", background: "none", padding: "0", color: "#0D3B7A", fontWeight: "700", fontSize: "13px", cursor: "pointer"}}>{v.geoManual ? "Hide number boxes" : "Enter numbers manually"}</button>
+                            </span>
+                            {v.geoManual ? <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px"}}>
+                                <label style={{display: "flex", flexDirection: "column", gap: "6px", minWidth: "0"}}>
+                                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Latitude</span>
+                                  <input name="lat" inputMode="decimal" maxLength="11" value={val(v.geoForm?.lat, "")} onChange={v.onGeoField} placeholder="16.2345" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.coords ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
+                                </label>
+                                <label style={{display: "flex", flexDirection: "column", gap: "6px", minWidth: "0"}}>
+                                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Longitude</span>
+                                  <input name="lng" inputMode="decimal" maxLength="11" value={val(v.geoForm?.lng, "")} onChange={v.onGeoField} placeholder="80.4567" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.coords ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
+                                </label>
+                              </div> : null}
+                          </div>
                         </> : null}
+                        {v.geoActive ? <div style={css(`display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:${v.geoActive.bg}`)}>
+                            <span style={{flex: "1", minWidth: "0"}}>
+                              <span style={{display: "block", fontWeight: "700", color: "#0A2550", fontSize: "14px"}}>Visible to citizens</span>
+                              <span style={{display: "block", fontSize: "12px", color: "#3b4a5c", lineHeight: "1.4", marginTop: "2px"}}>{I(v.geoActive.sub)}</span>
+                            </span>
+                            <button onClick={v.toggleGeoActive} role="switch" aria-checked={v.geoActive.on} aria-label="Visible to citizens" style={css(`flex-shrink:0;width:44px;height:26px;border-radius:13px;border:0;cursor:pointer;position:relative;background: ${v.geoActive.swBg}`)}>
+                              <span style={css(`position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);left: ${v.geoActive.swLeft};transition:left .15s`)} />
+                            </button>
+                          </div> : null}
                         <div style={{display: "flex", gap: "10px", marginTop: "4px"}}>
                           <button onClick={v.saveGeo} disabled={v.cannotSaveGeo} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.saveGeoOpacity ?? ""}`)}>{I(v.geoSaveLabel)}</button>
                           <button onClick={v.cancelGeo} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
@@ -692,6 +807,17 @@ export default class Component extends React.Component {
                 </> : null}
                 {/* REPORTS */}
                 {v.pg?.reports ? <>
+                  <div style={{display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "16px"}}>
+                    {list(v.repSummary).map((_k, _i1) => (
+                      <React.Fragment key={_i1}>
+                        <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "18px 20px", boxShadow: "0 2px 8px rgba(0,64,126,.06)", display: "flex", flexDirection: "column", gap: "8px"}}>
+                          <span style={{fontSize: "13px", color: "#6b7a8c", fontWeight: "600"}}>{I(_k?.label)}</span>
+                          <span style={css(`font-family:'Rubik',sans-serif;font-size:32px;font-weight:700;line-height:1;color: ${_k?.color ?? ""}`)}>{I(_k?.value)}</span>
+                          <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(_k?.sub)}</span>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
                   <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px"}}>
                     <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
                       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
@@ -709,6 +835,7 @@ export default class Component extends React.Component {
                           </tr>
                         </thead>
                         <tbody>
+                          {!list(v.byArea).length ? <tr><td colSpan="5" style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No posts in the last 30 days.</td></tr> : null}
                           {list(v.byArea).map((_r, _i1) => (
                             <React.Fragment key={_i1}>
                               <tr>
@@ -766,6 +893,7 @@ export default class Component extends React.Component {
                         </tr>
                       </thead>
                       <tbody>
+                        {!list(v.adminActivity).length ? <tr><td colSpan="8" style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No admin reviews in the last 30 days.</td></tr> : null}
                         {list(v.adminActivity).map((_r, _i1) => (
                           <React.Fragment key={_i1}>
                             <tr style={{borderTop: "1px solid #f3f5f8"}}>
@@ -892,6 +1020,120 @@ export default class Component extends React.Component {
                     {" "}
                   </div>
                 </> : null}
+                {/* IMPORTANT NUMBERS */}
+                {v.pg?.numbers ? <>
+                  <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3"}}>
+                    {list(v.numTabs).map((_s, _i1) => (
+                      <React.Fragment key={_i1}>
+                        <button onClick={_s?.go} style={css(`height:44px;padding:0 16px;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:3px solid ${_s?.line ?? ""};color: ${_s?.color ?? ""};margin-bottom:-1px`)}>{I(_s?.label)}</button>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  {v.isTypesTab ? <>
+                    <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+                      <span style={{fontSize: "13px", color: "#6b7a8c"}}>Types group the numbers citizens see. Switched-off types are hidden in the app; their numbers stay.</span>
+                      <button onClick={v.addType} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add type</button>
+                    </div>
+                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+                      <table style={{width: "100%", fontSize: "13px"}}>
+                        <thead>
+                          <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Type</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Section</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Key</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Numbers</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600", textAlign: "right"}}>Active</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {list(v.typeRows).map((_t, _i1) => (
+                            <React.Fragment key={_i1}>
+                              <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                                <td style={{padding: "10px 16px"}}>
+                                  <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_t?.en)}</span>
+                                  <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_t?.te)}</span>
+                                </td>
+                                <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_t?.section)}</td>
+                                <td style={{padding: "10px 16px", color: "#6b7a8c", fontFamily: "monospace"}}>{I(_t?.key)}</td>
+                                <td style={{padding: "10px 16px", color: "#3b4a5c", fontVariantNumeric: "tabular-nums"}}>{I(_t?.count)}</td>
+                                <td style={{padding: "10px 16px", textAlign: "right"}}>
+                                  <button onClick={_t?.toggle} aria-label={"Switch " + (_t?.en ?? "")} style={css(`width:44px;height:26px;border-radius:13px;border:0;cursor:pointer;position:relative;background: ${_t?.swBg ?? ""}`)}>
+                                    <span style={css(`position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);left: ${_t?.swLeft ?? ""};transition:left .15s`)} />
+                                  </button>
+                                </td>
+                              </tr>
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </> : <>
+                    <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+                      <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "360px", color: "#6b7a8c"}}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                        <input value={val(v.numQ, "")} onChange={v.onNumQ} placeholder="Search name or phone…" style={{flex: "1", border: "0", outline: "none", fontSize: "13px", background: "transparent"}} />
+                      </div>
+                      <select value={val(v.numType, "")} onChange={v.onNumType} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
+                        {list(v.numTypeOpts).map((_o, _i1) => (
+                          <React.Fragment key={_i1}>
+                            <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                          </React.Fragment>
+                        ))}
+                      </select>
+                      <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.numCount)}</span>
+                      <button onClick={v.importNumbers} style={{marginLeft: "auto", height: "40px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
+                      <button onClick={v.addNumber} style={{height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add number</button>
+                    </div>
+                    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+                      <table style={{width: "100%", fontSize: "13px"}}>
+                        <thead>
+                          <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Type</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Name</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Phone</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Area</th>
+                            <th style={{padding: "12px 16px", fontWeight: "600"}}>Checked</th>
+                            <th style={{padding: "12px 16px"}} />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {list(v.numRows).map((_c, _i1) => (
+                            <React.Fragment key={_i1}>
+                              <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                                <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.type)}</td>
+                                <td style={{padding: "10px 16px"}}>
+                                  <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</span>
+                                  {_c?.te ? <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_c?.te)}</span> : null}
+                                </td>
+                                <td style={{padding: "10px 16px", color: "#3b4a5c", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>
+                                  <span style={{display: "block"}}>{I(_c?.phone)}</span>
+                                  {_c?.email ? <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_c?.email)}</span> : null}
+                                </td>
+                                <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.area)}</td>
+                                <td style={{padding: "10px 16px"}}>
+                                  <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.sbg ?? ""};color: ${_c?.scolor ?? ""}`)}>{I(_c?.status)}</span>
+                                </td>
+                                <td style={{padding: "10px 16px", textAlign: "right", whiteSpace: "nowrap"}}>
+                                  <span style={{display: "inline-flex", gap: "6px"}}>
+                                    {_c?.canVerify ? <button onClick={_c?.verify} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#1d7a33", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Verify</button> : null}
+                                    {_c?.canEdit ? <button onClick={_c?.edit} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button> : null}
+                                    {_c?.canRemove ? <button onClick={_c?.remove} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#b3261e", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Remove</button> : null}
+                                  </span>
+                                </td>
+                              </tr>
+                            </React.Fragment>
+                          ))}
+                          {v.numEmpty ? <tr><td colSpan="6" style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.numEmptyText)}</td></tr> : null}
+                        </tbody>
+                      </table>
+                      {v.numPager?.show ? <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#6b7a8c"}}>
+                          <button onClick={v.numPager?.prev} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${v.numPager?.prevOpacity ?? ""}`)}>‹ Prev</button>
+                          <span>{"Page "}{I(v.numPager?.page)}{" of "}{I(v.numPager?.pages)}</span>
+                          <button onClick={v.numPager?.next} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${v.numPager?.nextOpacity ?? ""}`)}>Next ›</button>
+                        </div> : null}
+                    </div>
+                  </>}
+                </> : null}
                 {/* SETTINGS */}
                 {v.pg?.settings ? <>
                   <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "start"}}>
@@ -962,6 +1204,7 @@ export default class Component extends React.Component {
                     ))}
                   </div>
                 </> : null}
+              </div>
               </div>
             </main>
           </div>
@@ -1084,7 +1327,8 @@ export default class Component extends React.Component {
                     </React.Fragment>
                   ))}
                 </div> : null}
-              {v.panel?.isUser ? <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>
+              {v.panel?.isUser ? <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", flexWrap: "wrap", gap: "10px"}}>
+                  {v.su?.canEdit ? <button onClick={v.su?.edit} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Edit details</button> : null}
                   {v.su?.canReassign ? <button onClick={v.su?.reassign} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Reassign area</button> : null}
                   {v.su?.canReset ? <button onClick={v.su?.reset} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Reset password</button> : null}
                   {v.su?.canUnlock ? <button onClick={v.su?.unlock} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Unlock</button> : null}
@@ -1102,7 +1346,7 @@ export default class Component extends React.Component {
             {" "}
             <div style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(460px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
               <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
-                <span style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>Add User</span>
+                <span style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.nuTitle)}</span>
                 <button onClick={v.closeDrawer} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
@@ -1118,7 +1362,7 @@ export default class Component extends React.Component {
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Username</span>
-                  <input name="username" type="text" value={val(v.nu?.username, "")} onChange={v.onNU} placeholder="e.g. ravi.kumar" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                  <input name="username" type="text" value={val(v.nu?.username, "")} onChange={v.onNU} readOnly={v.nuEdit} placeholder="e.g. ravi.kumar" style={css(`height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A;background: ${v.nuEdit ? "#f7f9fb" : "#fff"}`)} />
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Email (optional)</span>
@@ -1128,6 +1372,9 @@ export default class Component extends React.Component {
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Mobile (optional)</span>
                   <input name="mobile" value={val(v.nu?.mobile, "")} onChange={v.onNU} maxLength="10" placeholder="10 digits" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
                 </label>
+                {v.nuEdit ? <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
+                    The username cannot change. Use Reassign area, Add role or Reset password in the user panel for the rest.
+                  </div> : <>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Temporary password (optional)</span>
                   <span style={{display: "flex", gap: "10px"}}>
@@ -1145,26 +1392,114 @@ export default class Component extends React.Component {
                     ))}
                   </select>
                 </label>
+                {list(v.nuSteps).map((_st) => (
+                  <label key={_st.key} style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(_st.label)}</span>
+                    <select name={_st.key} value={val(_st.value, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                      <option value="" disabled>{I(_st.ph)}</option>
+                      {list(_st.options).map((_o) => (
+                        <option key={_o.id} value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+                {v.noDistricts ? <div role="alert" style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: "#fff0dc", color: "#b35a0e", lineHeight: "1.5"}}>
+                  No districts yet. Add districts, mandals and villages in Geography first, then add officials.
+                </div> : <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nuPlace ? "#e4f4df" : "#f6f8f3", color: v.nuPlace ? "#1d7a33" : "#6b7a8c"}}>
+                  {v.nuPlace ? "✓ " + v.nuRoleLabel + " · " + v.nuPlace : "Choose the role and the place"}
+                </div>}
+                <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
+                  Leave the password empty to generate one. It is shown once after you save: give it to the person yourself. They choose their own password at first login. Panchayat members' posts go through the Village Admin review queue.
+                </div>
+                </>}
+              </div>
+              <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>
+                <button onClick={v.saveNU} disabled={v.cannotSaveNU} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.saveNUOpacity ?? ""}`)}>{I(v.nuSaveLabel)}</button>
+                <button onClick={v.closeDrawer} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
+              </div>
+            </div>
+            {" "}
+          </> : null}
+          {/* IMPORTANT NUMBER DRAWER */}
+          {v.nfShow ? <>
+            <div onClick={v.closeNF} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
+            <div style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(460px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
+                <span style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.nfTitle)}</span>
+                <button onClick={v.closeNF} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "14px"}}>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Area</span>
-                  <select name="area" value={val(v.nu?.area, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
-                    {list(v.nuAreas).map((_o, _i1) => (
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Type</span>
+                  <select name="type" value={val(v.nf?.type, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                    {list(v.nfTypes).map((_o, _i1) => (
                       <React.Fragment key={_i1}>
                         <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
                       </React.Fragment>
                     ))}
                   </select>
                 </label>
+                {v.nfIsOther ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Type name</span>
+                    <input name="custom" value={val(v.nf?.custom, "")} onChange={v.onNF} maxLength="40" placeholder="e.g. Anganwadi" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                  </label> : null}
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name</span>
+                  <input name="name" value={val(v.nf?.name, "")} onChange={v.onNF} maxLength="150" placeholder="e.g. Tahsildar Office, Tenali" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                </label>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>పేరు (తెలుగు, optional)</span>
+                  <input name="te" value={val(v.nf?.te, "")} onChange={v.onNF} maxLength="150" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                </label>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Phone</span>
+                  <input name="phone" type="tel" value={val(v.nf?.phone, "")} onChange={v.onNF} maxLength="20" placeholder="Mobile, landline, toll-free or short code" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                </label>
+                {v.nfMobile ? <label style={{display: "flex", gap: "10px", alignItems: "flex-start", fontSize: "13px", color: "#3b4a5c", lineHeight: "1.5", cursor: "pointer"}}>
+                    <input name="consent" type="checkbox" checked={val(v.nf?.consent, false)} onChange={v.onNF} style={{marginTop: "3px", width: "16px", height: "16px"}} />
+                    <span>This person agreed to have this number shown to the public.</span>
+                  </label> : null}
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Email (optional)</span>
+                  <input name="email" type="email" value={val(v.nf?.email, "")} onChange={v.onNF} placeholder="office@example.gov.in" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                </label>
+                {v.nfIsArea ? <>
+                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Who sees it</span>
+                    <select name="level" value={val(v.nf?.level, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                      {list(v.nfLevels).map((_o, _i1) => (
+                        <React.Fragment key={_i1}>
+                          <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                        </React.Fragment>
+                      ))}
+                    </select>
+                  </label>
+                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Area</span>
+                    <select name="area" value={val(v.nf?.area, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                      {list(v.nfAreas).map((_o, _i1) => (
+                        <React.Fragment key={_i1}>
+                          <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                        </React.Fragment>
+                      ))}
+                    </select>
+                  </label>
+                </> : null}
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Order (0–1000, lower shows first)</span>
+                  <input name="sort" type="number" min="0" max="1000" value={val(v.nf?.sort, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                </label>
                 <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
-                  Leave the password empty to generate one. It is shown once after you save: give it to the person yourself. They choose their own password at first login. Panchayat members' posts go through the Village Admin review queue.
+                  {v.nfIsArea ? "Citizens of the area and every village below it see this number in the app's Contacts tab." : "Helplines are statewide: every citizen sees them under Government helplines."}
                 </div>
               </div>
               <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>
-                <button onClick={v.saveNU} disabled={v.cannotSaveNU} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.saveNUOpacity ?? ""}`)}>Create user</button>
-                <button onClick={v.closeDrawer} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
+                <button onClick={v.saveNF} disabled={v.cannotSaveNF} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.saveNFOpacity ?? ""}`)}>{I(v.nfSaveLabel)}</button>
+                <button onClick={v.closeNF} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
               </div>
             </div>
-            {" "}
           </> : null}
           {" "}
           {/* MODAL */}
@@ -1193,7 +1528,7 @@ export default class Component extends React.Component {
                     <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.inputLabel)}</span>
                     <span style={{display: "flex", gap: "10px"}}>
                       <input type="text" value={val(v.modalText, "")} onChange={v.onModalText} placeholder={v.modal?.inputPh} autoComplete="off" style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-                      <button onClick={v.genModal} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Generate</button>
+                      {v.modal?.hasGen ? <button onClick={v.genModal} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Generate</button> : null}
                     </span>
                   </label> : null}
                 {v.modal?.hasSecret ? <span style={{display: "flex", gap: "10px"}}>

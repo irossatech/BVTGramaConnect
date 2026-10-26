@@ -20,7 +20,6 @@ Open work as of 2026-10-21, most urgent first. Items marked "sign-off" change wh
 ## Console (`src/components/Console.jsx`)
 
 10. **Re-run `console/tools/visual-check.mjs` with the session login.** It now logs in through the form (username and password arguments) and fakes only the forced-change login answer; the screenshots in `console/docs/visual-check/` predate the session login.
-11. **Admin activity "Avg h" shows "—".** The backend's admin-activity report does not return an average review time, and `src/components/Console.jsx` hard-codes "—". Needs a backend field first, then the mapping.
 12. **Video playback.** The post panel's video player was checked with a poster only. Play a real MP4 once uploads work end to end.
 13. **React 19.** Next.js 16 warns that React 18 support will be removed in Next.js 17. The app runs on React 18.3.1, the version the prototypes were approved on. Before moving to Next.js 17, upgrade React to 19 and rerun both visual checks.
 

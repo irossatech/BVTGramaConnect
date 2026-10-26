@@ -22,6 +22,6 @@ Read when needed: `.claude/operations.md` (build, run, visual checks, deploy) an
 ```
 npm ci
 npm run build          # dist/ (website) and dist/console/ (console)
-npm run dev            # hot reload at http://localhost:3000/ (no API)
-# view with data: run the BackEnd repo's runserver, open http://127.0.0.1:8000/ and /console/
+npm run dev            # hot reload at http://localhost:3000/ and /console/, on the live server's API and data
+                       # (src/proxy.dev.js forwards /api/ and /media/; GC_DEV_API points it elsewhere)
 ```
