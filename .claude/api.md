@@ -1,10 +1,10 @@
 # API used by the website and the console
 
-The source of truth is the BackEnd repo's `docs/api-contract.md`. If this file and the contract disagree, the contract wins; tell the backend team. Both apps call relative URLs under `GC_CONFIG.apiBase` (default `/api/v1`) on the same domain.
+The source of truth is the BackEnd repo's `docs/api-contract.md`. If this file and the contract disagree, the contract wins; tell the backend team. Both apps call relative URLs under `GC_API_BASE` (default `/api/v1`, set at build time) on the same domain.
 
-## Website (`src/`)
+## Website (`src/components/Site.jsx`)
 
-Contract section 9. All calls go through `window.GCApi` (`src/gc-api.js`) with relative URLs under `GC_CONFIG.apiBase` (default `/api/v1`). No login is involved.
+Contract section 9. All calls go through `GCApi` (`src/lib/site-api.js`) with relative URLs under `GC_API_BASE` (default `/api/v1`). No login is involved.
 
 ### GET /public/site-config/
 
@@ -60,9 +60,9 @@ Called on page load and again the first time the language is switched, with `Acc
 - The backend's `SITE_SHOWCASE_VILLAGE_ID` picks the village; without it the backend chooses.
 - When `featured` is null or the call fails, the prototype's static picture stays.
 
-## Console (`console/`)
+## Console (`src/components/Console.jsx`)
 
-This section lists what the console calls today, read from `console/tools/logic.js` and `console/src/gc-api.js`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the session cookie (same-origin); every POST, PATCH and DELETE also sends `X-CSRFToken` from the `csrftoken` cookie.
+This section lists what the console calls today, read from `src/components/Console.jsx` and `src/lib/console-api.js`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the session cookie (same-origin); every POST, PATCH and DELETE also sends `X-CSRFToken` from the `csrftoken` cookie.
 
 ### By screen
 
@@ -84,7 +84,7 @@ This section lists what the console calls today, read from `console/tools/logic.
 | Contact messages | `GET /admin/contact-messages/?status=new\|handled&q=&page=&page_size=20` (no `status` for All); `PATCH /admin/contact-messages/{id}/` `{handled}` |
 | Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}` |
 
-CSV downloads go through `GC_API.download`, which fetches with the session cookie and saves the file under a dated name.
+CSV downloads go through `GC_API.download` (`src/lib/console-api.js`), which fetches with the session cookie and saves the file under a dated name.
 
 ### Permissions the console reads from `GET /me/`
 

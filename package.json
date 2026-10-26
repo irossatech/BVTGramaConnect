@@ -1,14 +1,18 @@
 {
   "name": "bvt-grama-connect",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "BVT Grama Connect public website (/) and Super Admin console (/console/), ported as is from the approved prototypes.",
-  "type": "module",
+  "description": "BVT Grama Connect public website (/) and Super Admin console (/console/), a Next.js app exported as static files.",
   "scripts": {
-    "build": "node build.mjs",
-    "port:console": "python console/tools/port.py"
+    "dev": "next dev --webpack",
+    "build": "next build --webpack"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9"
   }
 }

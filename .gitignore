@@ -1,4 +1,6 @@
 dist/
 node_modules/
+.next/
+out/
 .env
 __pycache__/

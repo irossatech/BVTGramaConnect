@@ -9,8 +9,8 @@ A village news platform for Andhra Pradesh. Panchayat members and admins post vi
 | Product | Who uses it | Repo |
 |---|---|---|
 | Mobile app, Android and iOS | Every role, including citizens | BVTGramaConnect_Mobile (Flutter) |
-| Public website, no login | Citizens and visitors | BVTGramaConnect, folder `src/` |
-| Super Admin console | Super Admins only | BVTGramaConnect, folder `console/` |
+| Public website, no login | Citizens and visitors | BVTGramaConnect (React, Next.js), page `src/pages/index.jsx` |
+| Super Admin console | Super Admins only | BVTGramaConnect (React, Next.js), page `src/pages/console/index.jsx` |
 | REST API, Django admin, background jobs, deployment | All three clients | BVTGramaConnect_BackEnd (Django) |
 
 Owners: the backend team owns BVTGramaConnect_BackEnd, the mobile team owns BVTGramaConnect_Mobile, and one web developer owns BVTGramaConnect (website and console). On the server everything sits on one domain: the website at `/`, the console at `/console/`, the API at `/api/v1/`, uploaded photos at `/media/`.
@@ -75,8 +75,8 @@ ADMIN_POSTS_AUTO_PUBLISH=True, REVIEW_FIRST_DECISION_WINS=True, REVIEW_ESCALATIO
 - 2026-10-21 · **Lockout:** 5 failed logins for one username from one IP address lock it for 15 minutes (django-axes). An admin ranked above the user can unlock early. Lockouts and unlocks are audited.
 - 2026-10-21 · **Console login** uses a Django session with CSRF and a 30-minute idle timeout. The app keeps JWT. The API stays under `/api/v1/`.
 - 2026-10-21 · **Tests run on SQLite**, Django's default database. The server uses MySQL (utf8mb4) or PostgreSQL through DATABASE_URL.
-- 2026-10-21 · **Web parts keep the prototype's technology.** The website and console are Design Canvas pages (React 18 runtime) served as built files, not rewritten.
-- 2026-10-21 · **One web repo.** The website and the console live together in BVTGramaConnect (the console in `console/`), owned by one web developer. The separate Admin repo was removed. One `npm run build` builds both.
+- 2026-10-21 · ~~**Web parts keep the prototype's technology.**~~ Replaced on 2026-10-22, see below.
+- 2026-10-21 · **One web repo.** The website and the console live together in BVTGramaConnect (the console at `/console/`), owned by one web developer. The separate Admin repo was removed. One `npm run build` builds both.
 - 2026-10-21 · **Server database not chosen yet.** Everyone develops and tests on SQLite until the owner picks MySQL or PostgreSQL.
 - 2026-10-21 · **Escalation:** one time for every level (REVIEW_ESCALATION_HOURS, 24 by default).
 - 2026-10-21 · **Language:** a post is written in one language, Telugu or English.
@@ -91,6 +91,7 @@ ADMIN_POSTS_AUTO_PUBLISH=True, REVIEW_FIRST_DECISION_WINS=True, REVIEW_ESCALATIO
 - 2026-10-21 · **Sharing a post** sends its text plus a link to the website. There is no public post page.
 - 2026-10-21 · **Console:** "Reset password" sits in the user panel, not in the users table.
 - 2026-10-21 · **/django-admin/** is reachable on the server only from office IP addresses.
+- 2026-10-22 · **Web is React and Next.js; mobile is Flutter.** The website and the console are one Next.js app (React, Pages Router) in BVTGramaConnect, exported as static files and served by Nginx; the mobile app stays Flutter. The conversion kept the approved design pixel for pixel.
 
 ## Working across repos
 
