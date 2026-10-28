@@ -7,7 +7,7 @@ import * as ds from "./ds";
 import GC_API from "../lib/console-api";
 
 export default class Component extends React.Component {
-  static ICON={contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  static ICON={requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   static STATUS={Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
   static ROLE={super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
   static CATL={announce:'Announcements',schemes:'Govt Schemes',news:'News & Notices',updates:'Public Updates'};
@@ -21,24 +21,28 @@ export default class Component extends React.Component {
   static ACT={'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   static EVENT={deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   static PAGE=20;
-  static PAGES=['dashboard','geography','users','posts','reports','audit','contact','numbers','settings'];
+  static PAGES=['dashboard','geography','users','posts','requests','reports','audit','contact','numbers','settings'];
+  // Service requests from citizens (backend plan: service-requests). Status keys as the server sends them.
+  static SVC_STATUS={NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'}};
+  static SERVICES={aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
   static LVROLE={DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  static NAV_PERM={dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  static NAV_PERM={dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','posts.view_review_queue'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   static MANAGE={district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   static CONSOLE_PERM='web_admin.access_web_console';
   static LOGIN_ERR={invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
   state={screen:'checking',page:'dashboard',username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},menuOpen:false,gsearch:'',me:null,
     geo:[],stateRow:null,expanded:{},geoForm:null,
-    users:[],userCount:0,userPage:1,userPages:1,usersLoading:false,uf:{role:'',district:'',status:'',q:''},
+    users:[],userCount:0,userPage:1,userPages:1,usersLoading:false,
+    reqs:[],reqCount:0,reqPage:1,reqPages:1,reqLoading:false,reqFilter:'NEW',reqMine:false,reqQ:'',reqCounts:{},reqUnavailable:false,rq:null,rqAssignees:[],uf:{role:'',district:'',status:'',q:''},
     posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:''},statusTab:'Pending',
     panel:null,panelPost:null,panelHistory:[],panelUser:null,panelUserPosts:[],drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''},
     audit:[],auditCount:0,auditPage:1,auditPages:1,auditQ:'',auditLoading:false,
     contacts:[],contactCount:0,contactPage:1,contactPages:1,contactQ:'',contactFilter:'new',contactLoading:false,
     nums:[],numCount:0,numPage:1,numPages:1,numLoading:false,numTab:'AREA',numQ:'',numType:'',ctypes:[],ctypesAdmin:[],nf:null,
     dash:null,reports:{summary:null,byArea:[],reviewTime:[],activity:[]},categories:[],
-    settings:{escalation:24,cats:[],langs:{te:true,en:true},templates:[]},
+    settings:{escalation:24,citizenPerDay:5,cats:[],langs:{te:true,en:true},templates:[]},
     newCat:{te:'',en:''},modal:null,modalText:'',modalSel:'',modalGen:'',toasts:[]};
 
   get api(){return GC_API}
@@ -55,7 +59,7 @@ export default class Component extends React.Component {
     let text=(e&&e.message)||'Something went wrong. Try again.';
     const f=e&&e.body&&e.body.fields;if(f){const k=Object.keys(f)[0];const v=Array.isArray(f[k])?f[k][0]:f[k];if(v&&typeof v==='string'&&!text.includes(v))text=text+' '+v}
     this.toast(text,'#b3261e')}
-  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false,nf:null});if(this._scroll)this._scroll.scrollTop=0;this.loadPage(p)}
+  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false,nf:null,rq:null});if(this._scroll)this._scroll.scrollTop=0;this.loadPage(p)}
   ask(m){this.setState({modal:m,modalText:m.preset||'',modalSel:m.options&&m.options.length?m.options[0].id:'',modalGen:''})}
   closeModal(){this.setState({modal:null,modalText:'',modalSel:'',modalGen:''})}
 
@@ -90,7 +94,7 @@ export default class Component extends React.Component {
   logout(){this.api.logout().finally(()=>{this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},me:null});this.toast('Signed out')})}
 
   // ---- loading ----
-  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
+  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='requests')this.loadRequests(1);if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
   loadGeo(){return this.api.get('/geo/tree/',{villages:1}).then(tree=>{const st=tree[0]||null;const teMap={};const geo=(st?st.districts:[]).map(d=>{teMap['DISTRICT:'+d.id]=d.name_te;return {id:d.id,name:d.name_en,te:d.name_te,lgd:d.lgd_code||'',active:d.is_active,mandals:d.mandals.map(m=>{teMap['MANDAL:'+m.id]=m.name_te;return {id:m.id,name:m.name_en,te:m.name_te,lgd:m.lgd_code||'',active:m.is_active,villages:(m.villages||[]).map(v=>{teMap['VILLAGE:'+v.id]=v.name_te;return {id:v.id,name:v.name_en,te:v.name_te,lgd:v.lgd_code||'',lat:v.latitude||'',lng:v.longitude||'',pin:v.pin_code||'',active:v.is_active}})}})}});if(st)teMap['STATE:'+st.id]=st.name_te;this._te=teMap;const expanded={...this.state.expanded};if(geo[0]&&!Object.keys(expanded).length){expanded[geo[0].id]=true;if(geo[0].mandals[0])expanded['m'+geo[0].mandals[0].id]=true}this.setState({geo,stateRow:st,expanded})}).catch(e=>this.fail(e))}
   loadCategories(){return this.api.get('/admin/categories/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState({categories:list})}).catch(()=>{})}
   loadDash(){this.api.get('/admin/dashboard/').then(dash=>this.setState({dash,pendingCount:dash.kpis.pending})).catch(e=>this.fail(e))}
@@ -100,6 +104,10 @@ export default class Component extends React.Component {
   postQuery(page){const s=this.state;return {status:s.statusTab==='All'?'':Component.SAPI[s.statusTab],district:s.pf.district,category:s.pf.cat,q:s.gsearch,page,page_size:Component.PAGE}}
   loadPosts(page){this.setState({postsLoading:true});this.api.get('/posts/',this.postQuery(page)).then(d=>this.setState({posts:d.results.map(p=>this.adaptPost(p)),postCount:d.count,postPage:page,postPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),statusCounts:d.status_counts||{},pendingCount:(d.status_counts||{}).PENDING||0,postsLoading:false})).catch(e=>{this.setState({postsLoading:false});this.fail(e)})}
   loadAudit(page){this.setState({auditLoading:true});this.api.get('/audit/',{q:this.state.auditQ,page,page_size:Component.PAGE}).then(d=>this.setState({audit:d.results,auditCount:d.count,auditPage:page,auditPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),auditLoading:false})).catch(e=>{this.setState({auditLoading:false});this.fail(e)})}
+  loadRequests(page){const s=this.state;this.setState({reqLoading:true});this.api.get('/service-requests/',{status:s.reqFilter==='ALL'?'':s.reqFilter,assigned:s.reqMine?'me':'',q:s.reqQ,page,page_size:Component.PAGE}).then(d=>this.setState({reqs:d.results||[],reqCount:d.count||0,reqCounts:d.status_counts||{},reqPage:page,reqPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),reqLoading:false,reqUnavailable:false})).catch(e=>{this.setState({reqLoading:false,reqs:[],reqCount:0,reqCounts:{},reqUnavailable:!!(e&&e.status===404)});if(!(e&&e.status===404))this.fail(e)})}
+  // One request in the side panel; the people it can be assigned to are the active officials this admin sees.
+  openRequest(r){this.setState({rq:{r,status:r.status,assigned:r.assigned_to?String(r.assigned_to.id):'',note:''},rqAssignees:[]});if((r.allowed_actions||[]).includes('assign'))this.api.get('/users/',{is_active:'true',page:1,page_size:100}).then(d=>this.setState({rqAssignees:(d.results||[]).map(u=>({id:String(u.id),label:u.name+' · '+((Component.ROLE[Component.RK[((u.role_assignments||[])[0]||{}).role]]||{label:''}).label)}))})).catch(()=>{})}
+  saveRequest(){const q=this.state.rq;if(!q)return;const r=q.r;const body={};if(q.status!==r.status)body.status=q.status;const was=r.assigned_to?String(r.assigned_to.id):'';if(q.assigned!==was)body.assigned_to=q.assigned?Number(q.assigned)||q.assigned:null;if(q.note.trim())body.note=q.note.trim();if(!Object.keys(body).length)return;if(body.status==='REJECTED'&&!body.note){this.toast('Write why it is rejected','#E9791E');return}this.api.patch('/service-requests/'+r.id+'/',body).then(()=>{this.setState({rq:null});this.toast('Request updated');this.loadRequests(this.state.reqPage)}).catch(e=>this.fail(e))}
   loadContacts(page){const s=this.state;this.setState({contactLoading:true});this.api.get('/admin/contact-messages/',{status:s.contactFilter==='all'?'':s.contactFilter,q:s.contactQ,page,page_size:Component.PAGE}).then(d=>this.setState({contacts:d.results||[],contactCount:d.count||0,contactPage:page,contactPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),contactLoading:false})).catch(e=>{this.setState({contactLoading:false,contacts:[],contactCount:0});this.fail(e)})}
   isHandled(c){return c.status?String(c.status).toUpperCase()==='HANDLED':!!c.handled}
   toggleContact(c){const done=!this.isHandled(c);this.api.patch('/admin/contact-messages/'+c.id+'/',{handled:done}).then(()=>{this.toast(done?'Marked handled':'Marked new',done?'#6cc04a':'#E9791E');this.loadContacts(this.state.contactPage)}).catch(e=>this.fail(e))}
@@ -121,7 +129,7 @@ export default class Component extends React.Component {
   toggleType(t){this.api.patch('/admin/contact-types/'+t.id+'/',{is_active:!t.is_active}).then(()=>{this.toast(t.name_en+(t.is_active?' switched off':' switched on'),t.is_active?'#E9791E':'#6cc04a');this.loadTypes()}).catch(e=>this.fail(e))}
   humanAction(k){const p=String(k||'').split('.');return (p[1]||p[0]).replace(/_/g,' ')}
   loadReports(){Promise.all([this.api.get('/admin/reports/summary/'),this.api.get('/admin/reports/posts-by-area/'),this.api.get('/admin/reports/review-time/'),this.api.get('/admin/reports/admin-activity/',{page_size:8})]).then(([summary,byArea,reviewTime,activity])=>this.setState({reports:{summary,byArea,reviewTime,activity:activity.results}})).catch(e=>this.fail(e))}
-  loadSettings(){this.loadCategories();this.api.get('/admin/settings/').then(st=>this.setState(s=>({settings:{...s.settings,escalation:st.review_escalation_hours,langs:{te:true,en:!!(st.languages||{}).en}}}))).catch(e=>this.fail(e));this.api.get('/admin/notification-templates/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState(s=>({settings:{...s.settings,templates:list}}))}).catch(()=>{})}
+  loadSettings(){this.loadCategories();this.api.get('/admin/settings/').then(st=>this.setState(s=>({settings:{...s.settings,escalation:st.review_escalation_hours,citizenPerDay:st.citizen_posts_per_day??0,langs:{te:true,en:!!(st.languages||{}).en}}}))).catch(e=>this.fail(e));this.api.get('/admin/notification-templates/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState(s=>({settings:{...s.settings,templates:list}}))}).catch(()=>{})}
   openPost(p){this.setState({panel:{type:'post',id:p.id},panelPost:p,panelHistory:[]});this.api.get('/posts/'+p.id+'/history/').then(h=>{if(this.state.panel&&this.state.panel.id===p.id)this.setState({panelHistory:h})}).catch(()=>{})}
   refreshPost(id){return this.api.get('/posts/'+id+'/').then(p=>{const ap=this.adaptPost(p);this.setState(s=>({panelPost:s.panel&&s.panel.id===id?ap:s.panelPost,posts:s.posts.map(x=>x.id===id?ap:x)}));return this.api.get('/posts/'+id+'/history/').then(h=>{if(this.state.panel&&this.state.panel.id===id)this.setState({panelHistory:h})})}).catch(()=>{})}
   openUser(u){this.setState({panel:{type:'user',id:u.id},panelUser:u,panelUserPosts:[]});this.api.get('/posts/',{author:u.id,page_size:5}).then(d=>this.setState({panelUserPosts:d.results.map(p=>this.adaptPost(p))})).catch(()=>{})}
@@ -199,7 +207,7 @@ export default class Component extends React.Component {
     const s=this.state,C=Component,ST=C.STATUS,R=C.ROLE;
     const is={checking:s.screen==='checking',auth:s.screen==='login'||s.screen==='change_password',login:s.screen==='login',changePassword:s.screen==='change_password',app:s.screen==='app'};
     const pg={};pg[s.page]=true;
-    const titles={dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
+    const titles={requests:'Service requests',dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
     const pendingN=s.pendingCount;
     const navItems=C.PAGES.filter(k=>this.navOk(k)).map(k=>{const on=s.page===k;return {label:titles[k].split(' ·')[0],d:C.ICON[k],color:on?'#fff':'rgba(255,255,255,.78)',bg:on?'#0D3B7A':'transparent',hasCount:k==='posts'&&pendingN>0,count:pendingN,go:()=>this.goPage(k)}});
     const hist=h=>{const rk=C.RK[h.actor&&h.actor.role]||'system';const label=h.action==='REVERSE'?'Override: '+(ST[C.SK[h.from_status]]||{label:h.from_status}).label+' → '+(ST[C.SK[h.to_status]]||{label:h.to_status}).label:(C.HIST[h.action]||h.action);return {who:(h.actor&&h.actor.name)||'System',role:R[rk].label,action:label,note:h.comment||'',hasNote:!!h.comment,time:this.fmt(h.at),dot:/PUBLISH/.test(h.action)?'#1F8A3B':h.action==='RECHECK'?'#8f4bb4':/DISCARD|UNPUBLISH/.test(h.action)?'#b3261e':h.action==='REVERSE'?'#0D3B7A':'#E9791E'}};
@@ -285,12 +293,22 @@ export default class Component extends React.Component {
       auditQ:s.auditQ,onAuditQ:e=>{this.setState({auditQ:e.target.value});clearTimeout(this._at);this._at=setTimeout(()=>this.loadAudit(1),300)},auditRows,auditCount:s.auditCount,auditEmpty:!auditRows.length,auditEmptyText:s.auditLoading?'Loading…':'No entries match.',auditPager:pager(s.auditPage,s.auditPages,p=>this.loadAudit(p)),canExportAudit:this.can('audit.export_audit_log'),
       contactQ:s.contactQ,onContactQ:e=>{this.setState({contactQ:e.target.value});clearTimeout(this._ct);this._ct=setTimeout(()=>this.loadContacts(1),300)},contactFilter:s.contactFilter,contactFilters:[{id:'new',label:'New'},{id:'handled',label:'Handled'},{id:'all',label:'All'}],onContactFilter:e=>this.setState({contactFilter:e.target.value},()=>this.loadContacts(1)),
       contactRows:s.contacts.map(c=>{const done=this.isHandled(c);return {time:this.fmt(c.created_at,false),name:c.name,mobile:c.mobile?'+91 '+c.mobile:'—',village:c.village_text||'—',message:c.message,status:done?'Handled':'New',sbg:done?'#e4f4df':'#fff0dc',scolor:done?'#1d7a33':'#b35a0e',toggleLabel:done?'Mark new':'Mark handled',toggle:()=>this.toggleContact(c)}}),contactCount:s.contactCount+(s.contactCount===1?' message':' messages'),contactEmpty:!s.contacts.length,contactEmptyText:s.contactLoading?'Loading…':'No messages match.',contactPager:pager(s.contactPage,s.contactPages,p=>this.loadContacts(p)),
+      reqTabs:[...Object.keys(Component.SVC_STATUS),'ALL'].map(k=>{const on=s.reqFilter===k;const c=s.reqCounts||{};const n=k==='ALL'?Object.values(c).reduce((a,b)=>a+(b||0),0):(c[k]||0);return {label:k==='ALL'?'All':Component.SVC_STATUS[k].label,count:n,line:on?'#0D3B7A':'transparent',color:on?'#0A2550':'#6b7a8c',cbg:on?'#0D3B7A':'#eef2f6',ccolor:on?'#fff':'#3b4a5c',go:()=>this.setState({reqFilter:k},()=>this.loadRequests(1))}}),
+      reqQ:s.reqQ,onReqQ:e=>{this.setState({reqQ:e.target.value});clearTimeout(this._rqt);this._rqt=setTimeout(()=>this.loadRequests(1),300)},reqMine:s.reqMine,toggleReqMine:()=>this.setState(st=>({reqMine:!st.reqMine}),()=>this.loadRequests(1)),
+      reqRows:s.reqs.map(r=>{const st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW;return {time:this.fmt(r.created_at,false),service:Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),name:r.name,mobile:'+91 '+r.phone,place:[r.village&&r.village.name,r.mandal&&r.mandal.name].filter(Boolean).join(', ')||'—',status:st.label,sbg:st.bg,scolor:st.color,assignee:r.assigned_to?r.assigned_to.name:'—',open:()=>this.openRequest(r)}}),
+      reqCountLabel:s.reqCount+(s.reqCount===1?' request':' requests'),reqEmpty:!s.reqs.length,reqEmptyText:s.reqLoading?'Loading…':s.reqUnavailable?'Service requests will show here once the server is updated.':'No requests here. Citizens send them from Services in the app.',reqPager:pager(s.reqPage,s.reqPages,p=>this.loadRequests(p)),
+      rqShow:!!s.rq,closeRQ:()=>this.setState({rq:null}),saveRQ:()=>this.saveRequest(),onRQ:e=>{const {name,value}=e.target;this.setState(st=>({rq:{...st.rq,[name]:value}}))},
+      rq:s.rq?(()=>{const q=s.rq,r=q.r,st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW,al=r.allowed_actions||[];const was=r.assigned_to?String(r.assigned_to.id):'';return {service:Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),time:this.fmt(r.created_at,true),statusLabel:st.label,sbg:st.bg,scolor:st.color,name:r.name,mobile:'+91 '+r.phone,tel:'tel:+91'+r.phone,email:r.email||'',mailto:'mailto:'+(r.email||''),place:[r.village&&r.village.name,r.mandal&&r.mandal.name,r.district&&r.district.name].filter(Boolean).join(', '),details:r.details||'',canEdit:al.includes('set_status')||al.includes('assign'),canAssign:al.includes('assign'),status:q.status,assigned:q.assigned,note:q.note,noteLabel:q.status==='REJECTED'&&r.status!=='REJECTED'?'Note (required to reject; the citizen sees it)':'Note (the citizen sees it)',canSave:q.status!==r.status||q.assigned!==was||!!q.note.trim()}})():{},
+      rqStatusOpts:s.rq?Object.keys(Component.SVC_STATUS).filter(k=>(s.rq.r.allowed_actions||[]).includes('assign')||k===s.rq.r.status||k==='IN_PROGRESS'||k==='COMPLETED').map(k=>({id:k,label:Component.SVC_STATUS[k].label})):[],
+      rqAssigneeOpts:s.rq?[{id:'',label:'Not assigned'},...(s.rq.r.assigned_to&&!s.rqAssignees.some(a=>a.id===String(s.rq.r.assigned_to.id))?[{id:String(s.rq.r.assigned_to.id),label:s.rq.r.assigned_to.name}]:[]),...s.rqAssignees]:[],
+      rqHistory:s.rq?[...(s.rq.r.history||[]).slice().reverse().map(h=>({dot:(Component.SVC_STATUS[h.status]||{dot:'#9aa6b4'}).dot,what:[h.status?(Component.SVC_STATUS[h.status]||{label:h.status}).label:'',h.assigned_to!==undefined?('Assigned to '+(h.assigned_to?h.assigned_to.name:'nobody')):''].filter(Boolean).join(' · '),note:h.note||'',meta:this.fmt(h.at,true)+(h.by?' · by '+h.by.name:'')})),{dot:'#9aa6b4',what:'Request received',note:'',meta:this.fmt(s.rq.r.created_at,true)+' · from '+s.rq.r.name}]:[],
       numTabs,numRows,isTypesTab:s.numTab==='TYPES',typeRows,numQ:s.numQ,onNumQ:e=>{this.setState({numQ:e.target.value});clearTimeout(this._nt);this._nt=setTimeout(()=>this.loadNumbers(1),300)},numType:s.numType,numTypeOpts:[{id:'',label:'All types'},...s.ctypes.filter(x=>x.section===s.numTab).map(x=>({id:x.key,label:x.name}))],onNumType:e=>this.setState({numType:e.target.value},()=>this.loadNumbers(1)),
       numCount:s.numCount+(s.numCount===1?' number':' numbers'),numEmpty:!numRows.length,numEmptyText:s.numLoading?'Loading…':(s.numQ||s.numType?'No numbers match.':'No numbers yet. Add one, or import a CSV file.'),numPager:pager(s.numPage,s.numPages,p=>this.loadNumbers(p)),addNumber:()=>this.openNumber(null),importNumbers:()=>this.importNumbers(),addType:()=>this.addType(),
       nfShow:!!nv,nf:nv?{...nv.f,type:nv.type?nv.type.key:'',area:nv.area?nv.area.id:''}:{},nfTitle:nv?(nv.f.id?'Edit number':nv.f.section==='HELPLINE'?'Add helpline':'Add number'):'',nfSaveLabel:nv&&nv.f.id?'Save changes':'Add number',nfTypes:nv?nv.types.map(x=>({id:x.key,label:x.name})):[],nfIsOther:!!(nv&&nv.type&&nv.type.is_other),nfIsArea:!!(nv&&nv.f.section==='AREA'),nfLevels:[{id:'VILLAGE',label:'Village'},{id:'MANDAL',label:'Mandal'},{id:'DISTRICT',label:'District'}],nfAreas:nv?nv.areas:[],nfMobile:!!(nv&&nv.mobile),
       onNF:e=>{const {name,type,checked,value}=e.target;this.setState(st=>{const n={...st.nf,[name]:type==='checkbox'?checked:value};if(name==='level')n.area='';if(name==='type')n.custom='';return {nf:n}})},cannotSaveNF:!(nv&&nv.ok),saveNFOpacity:nv&&nv.ok?1:.5,saveNF:()=>this.saveNumber(),closeNF:()=>this.setState({nf:null}),
       settings:s.settings,catRows,langRows,templates,badge36:{size:36},newCat:s.newCat,onNewCat:e=>{const {name,value}=e.target;this.setState(st=>({newCat:{...st.newCat,[name]:value}}))},addCat:()=>{const c=s.newCat;if(!c.te.trim()&&!c.en.trim()){this.toast('Enter a category name','#E9791E');return}const en=(c.en||c.te).trim(),te=(c.te||c.en).trim();const key=(en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'category').slice(0,20);this.api.post('/admin/categories/',{key,name_te:te,name_en:en}).then(()=>{this.setState({newCat:{te:'',en:''}});this.toast('Category added · '+en);this.loadCategories()}).catch(e=>this.fail(e))},
       onEscalation:e=>this.setState(st=>({settings:{...st.settings,escalation:Number(e.target.value)||0}})),saveSettings:()=>this.api.patch('/admin/settings/',{review_escalation_hours:s.settings.escalation}).then(()=>this.toast('Settings saved · escalation '+s.settings.escalation+' h')).catch(e=>this.fail(e)),
+      onCitizenPerDay:e=>this.setState(st=>({settings:{...st.settings,citizenPerDay:e.target.value===''?'':Math.max(0,Math.min(1000,Math.round(Number(e.target.value)||0)))}})),saveCitizenPerDay:()=>{const n=Number(s.settings.citizenPerDay)||0;this.api.patch('/admin/settings/',{citizen_posts_per_day:n}).then(()=>this.toast(n?'Settings saved · '+n+' citizen posts per phone a day':'Settings saved · no daily limit for citizen posts')).catch(e=>this.fail(e))},
       panel,sp,su,closePanel:()=>this.setState({panel:null}),
       modal,modalText:s.modalText,modalSel:s.modalSel,onModalText:e=>this.setState({modalText:e.target.value}),onModalSel:e=>this.setState({modalSel:e.target.value}),closeModal:()=>this.closeModal(),confirmModal:()=>{if(!m||cannot)return;const t=s.modalText,sel=s.modalSel,gen=s.modalGen;this.closeModal();m.onConfirm(t,sel,gen)},genModal:e=>{if(e&&e.preventDefault)e.preventDefault();const p=this.newPassword();this.setState({modalText:p,modalGen:p})},copySecret:()=>this.copySecret(),noop:()=>{},
       toasts:s.toasts};
@@ -1020,6 +1038,67 @@ export default class Component extends React.Component {
                     {" "}
                   </div>
                 </> : null}
+                {/* SERVICE REQUESTS */}
+                {v.pg?.requests ? <>
+                  <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto"}}>
+                    {list(v.reqTabs).map((_s, _i1) => (
+                      <React.Fragment key={_i1}>
+                        <button onClick={_s?.go} style={css(`height:44px;padding:0 14px;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap;border-bottom:3px solid ${_s?.line ?? ""};color: ${_s?.color ?? ""};margin-bottom:-1px`)}>
+                          {I(_s?.label)}
+                          <span style={css(`min-width:22px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;display:inline-flex;align-items:center;justify-content:center;background: ${_s?.cbg ?? ""};color: ${_s?.ccolor ?? ""}`)}>{I(_s?.count)}</span>
+                        </button>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+                    <input value={val(v.reqQ, "")} onChange={v.onReqQ} placeholder="Search name or phone" aria-label="Search service requests" style={{flex: "1", minWidth: "200px", maxWidth: "340px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px"}} />
+                    <label style={{display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: "600", color: "#3b4a5c", cursor: "pointer"}}>
+                      <input type="checkbox" checked={!!v.reqMine} onChange={v.toggleReqMine} style={{width: "16px", height: "16px"}} />
+                      Assigned to me
+                    </label>
+                    <span style={{fontSize: "13px", color: "#6b7a8c", marginLeft: "auto"}}>{I(v.reqCountLabel)}</span>
+                  </div>
+                  <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
+                    <table style={{width: "100%", fontSize: "13px", minWidth: "760px"}}>
+                      <thead>
+                        <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Received</th>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Service</th>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Citizen</th>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Village / Mandal</th>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Status</th>
+                          <th style={{padding: "12px 16px", fontWeight: "600"}}>Assigned to</th>
+                          <th style={{padding: "12px 16px"}} />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {list(v.reqRows).map((_c, _i1) => (
+                          <React.Fragment key={_i1}>
+                            <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                              <td style={{padding: "10px 16px", color: "#6b7a8c", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>{I(_c?.time)}</td>
+                              <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.service)}<div style={{fontWeight: "400", color: "#6b7a8c", fontSize: "12px"}}>{"No. "}{I(_c?.ref)}</div></td>
+                              <td style={{padding: "10px 16px", color: "#17212e"}}>{I(_c?.name)}<div style={{color: "#6b7a8c", fontSize: "12px", whiteSpace: "nowrap"}}>{I(_c?.mobile)}</div></td>
+                              <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.place)}</td>
+                              <td style={{padding: "10px 16px"}}>
+                                <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.sbg ?? ""};color: ${_c?.scolor ?? ""}`)}>{I(_c?.status)}</span>
+                              </td>
+                              <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.assignee)}</td>
+                              <td style={{padding: "10px 16px", textAlign: "right", whiteSpace: "nowrap"}}>
+                                <button onClick={_c?.open} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Open</button>
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                        {v.reqEmpty ? <tr><td colSpan="7" style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.reqEmptyText)}</td></tr> : null}
+                      </tbody>
+                    </table>
+                  </div>
+                  {v.reqPager?.show ? <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#6b7a8c"}}>
+                      <button onClick={v.reqPager?.prev} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${v.reqPager?.prevOpacity ?? ""}`)}>‹ Prev</button>
+                      <span>{"Page "}{I(v.reqPager?.page)}{" of "}{I(v.reqPager?.pages)}</span>
+                      <button onClick={v.reqPager?.next} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${v.reqPager?.nextOpacity ?? ""}`)}>Next ›</button>
+                    </div> : null}
+                </> : null}
                 {/* IMPORTANT NUMBERS */}
                 {v.pg?.numbers ? <>
                   <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3"}}>
@@ -1183,6 +1262,15 @@ export default class Component extends React.Component {
                           <input type="number" min="1" max="168" value={val(v.settings?.escalation, "")} onChange={v.onEscalation} style={{width: "100px", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "16px", fontWeight: "700", fontFamily: "'Rubik',sans-serif"}} />
                           <span style={{color: "#3b4a5c"}}>hours</span>
                           <button onClick={v.saveSettings} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Save</button>
+                        </div>
+                      </div>
+                      <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
+                        <label htmlFor="citizen-per-day" style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Citizen posts per day</label>
+                        <div id="citizen-per-day-help" style={{fontSize: "13px", color: "#3b4a5c", lineHeight: "1.5"}}>How many posts one phone can send in 24 hours, counted across reinstalls. 0 means no limit.</div>
+                        <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                          <input id="citizen-per-day" aria-describedby="citizen-per-day-help" type="number" min="0" max="1000" value={val(v.settings?.citizenPerDay, "")} onChange={v.onCitizenPerDay} style={{width: "100px", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "16px", fontWeight: "700", fontFamily: "'Rubik',sans-serif"}} />
+                          <span style={{color: "#3b4a5c"}}>{Number(v.settings?.citizenPerDay) === 0 ? "no limit" : "posts a day"}</span>
+                          <button onClick={v.saveCitizenPerDay} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Save</button>
                         </div>
                       </div>
                     </div>
@@ -1421,6 +1509,71 @@ export default class Component extends React.Component {
             {" "}
           </> : null}
           {/* IMPORTANT NUMBER DRAWER */}
+          {v.rqShow ? <>
+            <div onClick={v.closeRQ} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
+            <div role="dialog" aria-label={v.rq?.service} style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(480px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
+                <div style={{flex: "1"}}>
+                  <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.rq?.service)}</div>
+                  <div style={{fontSize: "12px", color: "#6b7a8c"}}>{"No. "}{I(v.rq?.ref)}{" · "}{I(v.rq?.time)}</div>
+                </div>
+                <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${v.rq?.sbg ?? ""};color: ${v.rq?.scolor ?? ""}`)}>{I(v.rq?.statusLabel)}</span>
+                <button onClick={v.closeRQ} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px"}}>
+                <div style={{display: "flex", flexDirection: "column", gap: "6px", fontSize: "14px", color: "#17212e"}}>
+                  <span style={{fontWeight: "700", color: "#0A2550"}}>{I(v.rq?.name)}</span>
+                  <a href={v.rq?.tel} style={{color: "#0D3B7A", fontWeight: "700", textDecoration: "none"}}>{I(v.rq?.mobile)}</a>
+                  {v.rq?.email ? <a href={v.rq?.mailto} style={{color: "#0D3B7A", textDecoration: "none"}}>{I(v.rq?.email)}</a> : null}
+                  <span style={{color: "#3b4a5c"}}>{I(v.rq?.place)}</span>
+                </div>
+                {v.rq?.details ? <div style={{background: "#f7f9fb", borderRadius: "10px", padding: "12px 14px", fontSize: "14px", color: "#3b4a5c", lineHeight: "1.5"}}>{I(v.rq?.details)}</div> : null}
+                {v.rq?.canEdit ? <>
+                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Status</span>
+                    <select name="status" value={val(v.rq?.status, "")} onChange={v.onRQ} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                      {list(v.rqStatusOpts).map((_o, _i1) => (
+                        <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
+                      ))}
+                    </select>
+                  </label>
+                  {v.rq?.canAssign ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                      <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Assign to</span>
+                      <select name="assigned" value={val(v.rq?.assigned, "")} onChange={v.onRQ} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                        {list(v.rqAssigneeOpts).map((_o, _i1) => (
+                          <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
+                        ))}
+                      </select>
+                    </label> : null}
+                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.rq?.noteLabel)}</span>
+                    <textarea name="note" value={val(v.rq?.note, "")} onChange={v.onRQ} rows="3" maxLength="500" placeholder="e.g. Come to the Sachivalayam on Monday with your documents" style={{padding: "10px 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", fontFamily: "inherit", resize: "vertical"}} />
+                  </label>
+                </> : null}
+                <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#6b7a8c", letterSpacing: ".04em", textTransform: "uppercase"}}>History</span>
+                  {list(v.rqHistory).map((_h, _i1) => (
+                    <React.Fragment key={_i1}>
+                      <div style={{display: "flex", gap: "10px", fontSize: "13px"}}>
+                        <span style={css(`margin-top:5px;width:8px;height:8px;border-radius:50%;flex:none;background: ${_h?.dot ?? ""}`)} />
+                        <div>
+                          {_h?.what ? <div style={{fontWeight: "700", color: "#0A2550"}}>{I(_h?.what)}</div> : null}
+                          {_h?.note ? <div style={{color: "#3b4a5c", lineHeight: "1.45"}}>{I(_h?.note)}</div> : null}
+                          <div style={{color: "#6b7a8c", fontSize: "12px"}}>{I(_h?.meta)}</div>
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+              {v.rq?.canEdit ? <div style={{padding: "14px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px", justifyContent: "flex-end"}}>
+                  <button onClick={v.closeRQ} style={{height: "42px", padding: "0 18px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
+                  <button onClick={v.saveRQ} disabled={!v.rq?.canSave} style={css(`height:42px;padding:0 22px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.rq?.canSave ? 1 : .5}`)}>Save</button>
+                </div> : null}
+            </div>
+          </> : null}
           {v.nfShow ? <>
             <div onClick={v.closeNF} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
             <div style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(460px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
