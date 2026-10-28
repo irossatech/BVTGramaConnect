@@ -152,7 +152,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 4. Store buttons open `play_store_url` and `app_store_url`; while a URL is empty they show the prototype's "coming soon" toast.
 5. The contact form posts to `POST /api/v1/public/contact-messages/`, with an invisible honeypot input. Two toast texts were added in Telugu and English.
 6. "Admin Login" sends officials to `/console/`.
-7. Each page has its own URL: `#how`, `#officials`, `#faq`, `#contact` and `#admin`; home has none. Back and Forward move between pages (owner decision Q16).
+7. Each page has its own URL: `#how`, `#officials`, `#faq`, `#contact`, `#admin`, `#privacy` and `#terms`; home has none. The Privacy policy and Terms text lives in `src/components/legal.js` (Telugu and English); update its date when the wording changes. Back and Forward move between pages (owner decision Q16).
 8. The phone in the hero shows the newest posts from `GET /api/v1/public/showcase/` in the chosen language. Without data it keeps the prototype's static picture (owner decision Q16).
 
 **Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen (forced at first login, and from the profile menu), server-side paging, loading and empty rows, Add User with username, optional email and mobile and a temporary password (typed or generated), Reset password and Unlock in the user panel, a dialog that shows a temporary password once with Copy, menus and buttons that follow the signed-in user's permissions, CSV import for villages, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
@@ -164,6 +164,10 @@ Added on 26 Oct 2026:
 - **Geography:** LGD code; the same checks and help text as the mobile app (required name, no duplicate under one parent, 6-digit PIN, valid coordinates); a "Visible to citizens" switch in the edit form. A village's location is set by pasting a Google Maps link or `lat, lng` numbers, with "Find on Google Maps" and "View on map"; the number boxes open on request.
 - **Login:** an eye button shows or hides each password; on reload a short loading screen replaces the login form until the session is checked.
 - **Layout:** the sidebar and top bar stay fixed; only the page area scrolls.
+- **Geography › Import CSV takes files of any size:** the console checks the file in the browser (UTF-8, required columns), splits it into parts of about 4,000 villages without splitting a mandal, checks every part, then imports part by part with a progress bar. Each part stays well under the 60 s request limit even on a server without the faster importer; with it (backend PR #23) a whole state takes about 10 s. Code: `src/lib/csv-parts.js`. Backend follow-up (optional): `../geography-import-backend-plan.md`.
+- **Services** page (same as the app's Super Admin › Services): the services citizens can request from Home. Add or edit a service (English and Telugu name, icon, colour, with a live tile preview), show or hide it, and set the Home order. Uses `/admin/services/` from `services-catalog-backend-plan.md`; until the server has it, the page shows the app's built-in 8 services read-only with a notice.
+
+Added on 28 Oct 2026: the **website** was redesigned in a simpler, cleaner style in the app's own colours and fonts (navy, blue, green, orange; Rubik and Nunito Sans): ruled lists and full-width bands instead of card grids, and smaller text. Telugu uses the app's own "Telugu UI" face (self-hosted in `public/assets/fonts/`, see the README there), and a "New in the app" section lists the newer mobile features (services and requests, help numbers, videos, listen, deadlines, save and share). Content, API calls, the contact form, page URLs and the language toggle are unchanged; `docs/visual-check/` still shows the old prototype look.
 
 ## When the designer changes a prototype
 
@@ -175,6 +179,7 @@ The components are now the source; a new prototype export is not copied in. Appl
 - CSRF: `src/lib/console-api.js` gets the `csrftoken` cookie from `GET /api/v1/auth/csrf/` and sends it as `X-CSRFToken` on every write.
 - The session ends after 30 idle minutes, at logout, when the user is blocked, or when their password is changed or reset. The next call answers 401 and the console shows the login screen.
 - No email is sent. Add User and Reset password take a temporary password, or generate one, and show it once for the admin to hand over in person. The person must choose their own password at first login.
+- Each console page has its own address (`/console/#users`, `#reports`…), so Back and the swipe-back gesture move between console pages and a reload stays on the page. Going back past the first page while signed in keeps the console open and asks "Leave the console?" (Cancel, or Log out and leave), so no one leaves signed in by accident.
 - The mobile app keeps its JWT login; nothing here changes it.
 
 ## Visual checks

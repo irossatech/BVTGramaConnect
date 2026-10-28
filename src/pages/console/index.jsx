@@ -13,6 +13,15 @@ input,textarea,select,button{font-family:inherit}
 table{border-collapse:collapse}
 *{scrollbar-width:none}*::-webkit-scrollbar{display:none}
 @keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Micro-interactions: quick press feedback on buttons, a soft hover on table rows, smooth field focus. Inline styles still win. */
+:root{--ease-out:cubic-bezier(.16,1,.3,1)}
+button{transition:transform .12s var(--ease-out),background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .2s ease,opacity .15s ease}
+button:not(:disabled):active{transform:scale(.97)}
+input,select,textarea{transition:border-color .15s ease,box-shadow .15s ease}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(13,59,122,.12)}
+tbody tr{transition:background-color .12s ease}
+@media (hover:hover){tbody tr:hover{background-color:#f5f8fc}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @keyframes sa-slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 `;
 

@@ -104,7 +104,7 @@ const GC_API = {
   post: function (p, b, q) { return request("POST", p, { body: b || {}, query: q }); },
   patch: function (p, b) { return request("PATCH", p, { body: b || {} }); },
   del: function (p) { return request("DELETE", p); },
-  upload: function (p, form, q) { return request("POST", p, { form: form, query: q }); },
+  upload: function (p, form, q, method) { return request(method || "POST", p, { form: form, query: q }); },
   download: download,
   // Page load: get the CSRF cookie, then ask who is signed in (401 when nobody is).
   start: function () { return csrf(true).then(function () { return request("GET", "/me/"); }); },

@@ -5,9 +5,10 @@ import React from "react";
 import { I, css, list, val } from "../lib/dc";
 import * as ds from "./ds";
 import GC_API from "../lib/console-api";
+import { decodeUtf8, planParts, fileLine } from "../lib/csv-parts";
 
 export default class Component extends React.Component {
-  static ICON={requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  static ICON={services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   static STATUS={Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
   static ROLE={super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
   static CATL={announce:'Announcements',schemes:'Govt Schemes',news:'News & Notices',updates:'Public Updates'};
@@ -21,13 +22,17 @@ export default class Component extends React.Component {
   static ACT={'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   static EVENT={deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   static PAGE=20;
-  static PAGES=['dashboard','geography','users','posts','requests','reports','audit','contact','numbers','settings'];
+  // Home banner ads (docs/api-contract.md section 17): status worked out from the dates and the switch.
+  static AD_STATUS={live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#6b7a8c'}};
+  // Service request: what the citizen is told when it moves to each status.
+  static SVC_MOVE={NEW:'The request goes back to New.',APPROVED:'The citizen sees that it is approved.',IN_PROGRESS:'The citizen sees that work has started.',COMPLETED:'The citizen sees that it is done. Write what they should do next.',REJECTED:'Write why. The citizen sees your reason.'};
+  static PAGES=['dashboard','geography','users','posts','requests','ads','reports','audit','contact','numbers','settings'];
   // Service requests from citizens (backend plan: service-requests). Status keys as the server sends them.
   static SVC_STATUS={NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'}};
   static SERVICES={aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
   static LVROLE={DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  static NAV_PERM={dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','posts.view_review_queue'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  static NAV_PERM={services:['service_requests.manage_services','web_admin.access_web_console'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services','posts.view_review_queue'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   static MANAGE={district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   static CONSOLE_PERM='web_admin.access_web_console';
   static LOGIN_ERR={invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
@@ -35,23 +40,40 @@ export default class Component extends React.Component {
   state={screen:'checking',page:'dashboard',username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},menuOpen:false,gsearch:'',me:null,
     geo:[],stateRow:null,expanded:{},geoForm:null,
     users:[],userCount:0,userPage:1,userPages:1,usersLoading:false,
-    reqs:[],reqCount:0,reqPage:1,reqPages:1,reqLoading:false,reqFilter:'NEW',reqMine:false,reqQ:'',reqCounts:{},reqUnavailable:false,rq:null,rqAssignees:[],uf:{role:'',district:'',status:'',q:''},
-    posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:''},statusTab:'Pending',
+    reqs:[],reqCount:0,reqPage:1,reqPages:1,reqLoading:false,reqFilter:'NEW',svcView:'requests',ads:[],adsLoading:false,adsUnavailable:false,af:null,svcs:[],svcsLoading:false,svcsUnavailable:false,sf:null,reqQ:'',reqCounts:{},reqUnavailable:false,rq:null,rqAssignees:[],uf:{role:'',district:'',status:'',q:''},
+    posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:'',source:''},statusTab:'Pending',
     panel:null,panelPost:null,panelHistory:[],panelUser:null,panelUserPosts:[],drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''},
     audit:[],auditCount:0,auditPage:1,auditPages:1,auditQ:'',auditLoading:false,
     contacts:[],contactCount:0,contactPage:1,contactPages:1,contactQ:'',contactFilter:'new',contactLoading:false,
     nums:[],numCount:0,numPage:1,numPages:1,numLoading:false,numTab:'AREA',numQ:'',numType:'',ctypes:[],ctypesAdmin:[],nf:null,
     dash:null,reports:{summary:null,byArea:[],reviewTime:[],activity:[]},categories:[],
     settings:{escalation:24,citizenPerDay:5,cats:[],langs:{te:true,en:true},templates:[]},
-    newCat:{te:'',en:''},modal:null,modalText:'',modalSel:'',modalGen:'',toasts:[]};
+    newCat:{te:'',en:''},modal:null,modalText:'',modalSel:'',modalGen:'',toasts:[],imp:null};
 
   get api(){return GC_API}
   componentDidMount(){
     // A console reload keeps the Django session (HttpOnly sessionid cookie). Until GET /me/ answers
     // the page shows a loading screen ('checking'), so a signed-in reload never flashes the login form.
     this.api.start().then(me=>this.afterLogin(me,true)).catch(()=>this.setState({screen:'login'}));
+    window.addEventListener('popstate',this._onPop=e=>this.onBack(e));
   }
-  componentWillUnmount(){(this._tt||[]).forEach(clearTimeout);clearTimeout(this._ct);clearTimeout(this._nt);clearTimeout(this._qt);clearTimeout(this._at);clearTimeout(this._gt)}
+  // Browser history: each console page is its own entry (#users, #reports…), so Back and the swipe gesture move
+  // between pages. Behind the first page sits a guard entry: going back onto it while signed in keeps the console
+  // open and asks before leaving, so no one leaves the console signed in by accident.
+  componentDidUpdate(_,prev){const s=this.state;
+    if(s.screen==='app'&&(prev.screen!=='app'||prev.page!==s.page)){const h='#'+s.page;
+      try{if(prev.screen!=='app'){window.history.replaceState({gc:'guard'},'',window.location.pathname);window.history.pushState({gc:s.page},'',h)}
+        else if(!this._fromPop)window.history.pushState({gc:s.page},'',h)}catch(e){}
+      this._fromPop=false}
+    if(prev.screen!=='login'&&s.screen==='login'){try{window.history.replaceState(null,'',window.location.pathname)}catch(e){}}}
+  onBack(e){const s=this.state;if(s.screen!=='app')return;const to=e.state&&e.state.gc;
+    if(to!=='guard'){// a console page: from history, or a hash typed in the address bar (no state yet)
+      const pg=to||(window.location.hash||'').slice(1);if(!Component.PAGES.includes(pg)||!this.navOk(pg)){try{window.history.replaceState({gc:s.page},'','#'+s.page)}catch(err){}return}
+      if(!to){try{window.history.replaceState({gc:pg},'','#'+pg)}catch(err){}}
+      if(pg!==s.page){this._fromPop=true;this.goPage(pg)}return}
+    try{window.history.pushState({gc:s.page},'','#'+s.page)}catch(err){}
+    this.ask({title:'Leave the console?',body:'You are still signed in. Log out first, or stay on this page.',confirmLabel:'Log out and leave',bg:'#b3261e',onConfirm:()=>this.logout(true)})}
+  componentWillUnmount(){window.removeEventListener('popstate',this._onPop);(this._tt||[]).forEach(clearTimeout);clearTimeout(this._ct);clearTimeout(this._nt);clearTimeout(this._qt);clearTimeout(this._at);clearTimeout(this._gt)}
   toast(text,dot){const id=Date.now()+Math.random();this.setState(s=>({toasts:[...s.toasts,{id,text,dot:dot||'#6cc04a'}]}));this._tt=this._tt||[];this._tt.push(setTimeout(()=>this.setState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})),2600))}
   fail(e){
     if(e&&e.code==='password_change_required'){this.setState({screen:'change_password',cpVoluntary:false,cpCurrent:'',cpNext:'',menuOpen:false,panel:null,drawerOpen:false});this.toast('Choose a new password first.','#E9791E');return}
@@ -59,8 +81,8 @@ export default class Component extends React.Component {
     let text=(e&&e.message)||'Something went wrong. Try again.';
     const f=e&&e.body&&e.body.fields;if(f){const k=Object.keys(f)[0];const v=Array.isArray(f[k])?f[k][0]:f[k];if(v&&typeof v==='string'&&!text.includes(v))text=text+' '+v}
     this.toast(text,'#b3261e')}
-  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false,nf:null,rq:null});if(this._scroll)this._scroll.scrollTop=0;this.loadPage(p)}
-  ask(m){this.setState({modal:m,modalText:m.preset||'',modalSel:m.options&&m.options.length?m.options[0].id:'',modalGen:''})}
+  goPage(p){this.setState({page:p,menuOpen:false,panel:null,drawerOpen:false,nf:null,rq:null,af:null});if(this._scroll)this._scroll.scrollTop=0;this.loadPage(p)}
+  ask(m){this.setState({modal:m,modalText:m.preset||'',modalSel:m.sel||(m.options&&m.options.length?m.options[0].id:''),modalGen:''})}
   closeModal(){this.setState({modal:null,modalText:'',modalSel:'',modalGen:''})}
 
   // ---- permissions (from GET /me/; the server enforces every one) ----
@@ -84,29 +106,83 @@ export default class Component extends React.Component {
   pathParts(area){const parts=(area&&area.path?area.path.split(' · '):[]);const lv=area&&area.level;const r={district:null,mandal:null,village:null};if(lv==='VILLAGE'){r.village=parts[0];r.mandal=parts[1];r.district=parts[2]}else if(lv==='MANDAL'){r.mandal=parts[0];r.district=parts[1]}else if(lv==='DISTRICT'){r.district=parts[0]}return r}
 
   // ---- auth (username + password, Django session for the console) ----
-  enter(me){const page=Component.PAGES.find(k=>this.navOk(k,me))||'dashboard';this.setState({me,screen:'app',page,password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{}});this.loadGeo();this.loadCategories();this.loadPage(page)}
+  enter(me){let want=(window.location.hash||'').slice(1);const cat=want==='services';if(cat)want='requests';const page=(Component.PAGES.includes(want)&&this.navOk(want,me))?want:(Component.PAGES.find(k=>this.navOk(k,me))||'dashboard');this.setState({me,screen:'app',page,svcView:cat?'catalog':'requests',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{}});this.loadGeo();this.loadCategories();this.loadPage(page)}
   afterLogin(me,quiet){if(!this.can(Component.CONSOLE_PERM,me)){this.api.logout();this.setState({screen:'login',me:null,password:''});if(!quiet)this.toast(Component.LOGIN_ERR.not_console_user,'#b3261e');return false}
     if(me.must_change_password){this.setState({me,screen:'change_password',cpVoluntary:false,password:'',cpCurrent:'',cpNext:''});return false}this.enter(me);return true}
   signIn(){const s=this.state;if(!s.username.trim()||!s.password)return;this.api.login(s.username.trim(),s.password).then(d=>{const me=(d&&d.user)||d;if(this.afterLogin(me))this.toast('Welcome, '+me.name)}).catch(e=>{this.setState({password:''});this.loginFail(e)})}
   loginFail(e){const c=e&&e.code,L=Component.LOGIN_ERR;if(c==='locked_out'){const sec=Number((e.body||{}).retry_after_s)||900;const min=Math.max(1,Math.ceil(sec/60));this.toast('Too many failed attempts. Try again in '+min+' minute'+(min===1?'':'s')+'.','#b3261e');return}if(L[c]){this.toast(L[c],'#b3261e');return}this.fail(e)}
   openChangePassword(){this.setState({screen:'change_password',cpVoluntary:true,menuOpen:false,cpCurrent:'',cpNext:''})}
   changePassword(){const s=this.state;if(!s.cpCurrent||!s.cpNext)return;const vol=s.cpVoluntary;this.api.post('/auth/password/change/',{current_password:s.cpCurrent,new_password:s.cpNext}).then(()=>this.api.get('/me/')).then(me=>{if(vol)this.setState({me,screen:'app',cpCurrent:'',cpNext:'',cpVoluntary:false});else this.enter(me);this.toast(vol?'Password changed · your other sessions are signed out':'Password changed')}).catch(e=>{this.setState({cpCurrent:'',cpNext:''});this.fail(e)})}
-  logout(){this.api.logout().finally(()=>{this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},me:null});this.toast('Signed out')})}
+  logout(leave){this.api.logout().finally(()=>{if(leave){window.location.replace('/');return}this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},me:null});this.toast('Signed out')})}
 
   // ---- loading ----
-  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='requests')this.loadRequests(1);if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
+  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='ads')this.loadAds();if(p==='requests'){this.loadRequests(1);if(this.navOk('services'))this.loadServices()}if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
   loadGeo(){return this.api.get('/geo/tree/',{villages:1}).then(tree=>{const st=tree[0]||null;const teMap={};const geo=(st?st.districts:[]).map(d=>{teMap['DISTRICT:'+d.id]=d.name_te;return {id:d.id,name:d.name_en,te:d.name_te,lgd:d.lgd_code||'',active:d.is_active,mandals:d.mandals.map(m=>{teMap['MANDAL:'+m.id]=m.name_te;return {id:m.id,name:m.name_en,te:m.name_te,lgd:m.lgd_code||'',active:m.is_active,villages:(m.villages||[]).map(v=>{teMap['VILLAGE:'+v.id]=v.name_te;return {id:v.id,name:v.name_en,te:v.name_te,lgd:v.lgd_code||'',lat:v.latitude||'',lng:v.longitude||'',pin:v.pin_code||'',active:v.is_active}})}})}});if(st)teMap['STATE:'+st.id]=st.name_te;this._te=teMap;const expanded={...this.state.expanded};if(geo[0]&&!Object.keys(expanded).length){expanded[geo[0].id]=true;if(geo[0].mandals[0])expanded['m'+geo[0].mandals[0].id]=true}this.setState({geo,stateRow:st,expanded})}).catch(e=>this.fail(e))}
   loadCategories(){return this.api.get('/admin/categories/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState({categories:list})}).catch(()=>{})}
   loadDash(){this.api.get('/admin/dashboard/').then(dash=>this.setState({dash,pendingCount:dash.kpis.pending})).catch(e=>this.fail(e))}
   adaptUser(u){const ras=(u.role_assignments||[]).filter(r=>r.is_active!==false);const ra=ras[0]||null;const role=ra?(Component.RK[ra.role]||'panchayat'):'panchayat';const parts=this.pathParts(ra&&ra.area);return {id:u.id,name:u.name,te:u.name_te||u.name,nameTe:u.name_te||'',mobile:u.mobile||'',email:u.email||'',username:u.username||'',role,district:parts.district,mandal:parts.mandal,village:parts.village,area:ra?ra.area:null,raId:ra?ra.id:null,ras,active:u.is_active!==undefined?!!u.is_active:u.status==='ACTIVE',locked:!!u.locked_out,allowed:Array.isArray(u.allowed_actions)?u.allowed_actions:null,last:this.fmtLast(u.last_login_at)}}
   loadUsers(page){const uf=this.state.uf;this.setState({usersLoading:true});this.api.get('/users/',{role:uf.role?Component.RAPI[uf.role]:'',district:uf.district,status:uf.status?uf.status.toUpperCase():'',is_active:uf.status?String(uf.status==='active'):'',q:uf.q,page,page_size:Component.PAGE}).then(d=>this.setState({users:d.results.map(u=>this.adaptUser(u)),userCount:d.count,userPage:page,userPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),usersLoading:false})).catch(e=>{this.setState({usersLoading:false});this.fail(e)})}
-  adaptPost(p){const a=p.author||{};const role=Component.RK[a.role]||'panchayat';return {id:p.id,raw:p,cat:p.category?p.category.key:'updates',catLabel:p.category?p.category.name:'',titleTe:p.title,titleEn:p.translation?p.translation.title:'',bodyTe:p.body,bodyEn:p.translation?p.translation.body:'',area:this.an(p.target_area),areaName:p.target_area?p.target_area.name:'',date:this.fmt(p.submitted_at||p.published_at||p.created_at),author:a.name||'—',authorId:a.id,role,status:Component.SK[p.status]||'Pending',media:(p.media||[]).filter(m=>m.kind!=='video'),videos:(p.media||[]).filter(m=>m.kind==='video'),urgent:!!p.is_urgent,event:p.event||null,allowed:p.allowed_actions||[],escalated:p.escalated}}
-  postQuery(page){const s=this.state;return {status:s.statusTab==='All'?'':Component.SAPI[s.statusTab],district:s.pf.district,category:s.pf.cat,q:s.gsearch,page,page_size:Component.PAGE}}
+  adaptPost(p){const a=p.author||{};const role=Component.RK[a.role]||'panchayat';return {id:p.id,raw:p,cat:p.category?p.category.key:'updates',catLabel:p.category?p.category.name:'',titleTe:p.title,titleEn:p.translation?p.translation.title:'',bodyTe:p.body,bodyEn:p.translation?p.translation.body:'',area:this.an(p.target_area),areaName:p.target_area?p.target_area.name:'',date:this.fmt(p.submitted_at||p.published_at||p.created_at),author:a.name||(p.citizen?'Citizen':'—'),authorId:a.id,role,status:Component.SK[p.status]||'Pending',media:(p.media||[]).filter(m=>m.kind!=='video'),videos:(p.media||[]).filter(m=>m.kind==='video'),urgent:!!p.is_urgent,event:p.event||null,allowed:p.allowed_actions||[],escalated:p.escalated,citizen:p.citizen||null}}
+  postQuery(page){const s=this.state;return {status:s.statusTab==='All'?'':Component.SAPI[s.statusTab],source:s.pf.source,district:s.pf.district,category:s.pf.cat,q:s.gsearch,page,page_size:Component.PAGE}}
   loadPosts(page){this.setState({postsLoading:true});this.api.get('/posts/',this.postQuery(page)).then(d=>this.setState({posts:d.results.map(p=>this.adaptPost(p)),postCount:d.count,postPage:page,postPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),statusCounts:d.status_counts||{},pendingCount:(d.status_counts||{}).PENDING||0,postsLoading:false})).catch(e=>{this.setState({postsLoading:false});this.fail(e)})}
   loadAudit(page){this.setState({auditLoading:true});this.api.get('/audit/',{q:this.state.auditQ,page,page_size:Component.PAGE}).then(d=>this.setState({audit:d.results,auditCount:d.count,auditPage:page,auditPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),auditLoading:false})).catch(e=>{this.setState({auditLoading:false});this.fail(e)})}
-  loadRequests(page){const s=this.state;this.setState({reqLoading:true});this.api.get('/service-requests/',{status:s.reqFilter==='ALL'?'':s.reqFilter,assigned:s.reqMine?'me':'',q:s.reqQ,page,page_size:Component.PAGE}).then(d=>this.setState({reqs:d.results||[],reqCount:d.count||0,reqCounts:d.status_counts||{},reqPage:page,reqPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),reqLoading:false,reqUnavailable:false})).catch(e=>{this.setState({reqLoading:false,reqs:[],reqCount:0,reqCounts:{},reqUnavailable:!!(e&&e.status===404)});if(!(e&&e.status===404))this.fail(e)})}
+  loadRequests(page){const s=this.state;this.setState({reqLoading:true});this.api.get('/service-requests/',{status:s.reqFilter==='ALL'?'':s.reqFilter,q:s.reqQ,page,page_size:Component.PAGE}).then(d=>this.setState({reqs:d.results||[],reqCount:d.count||0,reqCounts:d.status_counts||{},reqPage:page,reqPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),reqLoading:false,reqUnavailable:false})).catch(e=>{this.setState({reqLoading:false,reqs:[],reqCount:0,reqCounts:{},reqUnavailable:!!(e&&e.status===404)});if(!(e&&e.status===404))this.fail(e)})}
+  // --- Ads: the Super Admin's banners on citizens' Home.
+  // ---- services citizens can request (mobile: Super Admin › Services; API: services-catalog-backend-plan.md) ----
+  // Until the server has GET /admin/services/, the page shows the app's built-in list read-only and says so.
+  static SVC_SEED=[['aadhaar','Aadhaar Services','ఆధార్ సేవలు','aadhaar','orange'],['pan','PAN Services','పాన్ సేవలు','id_badge','blue'],['voter_id','Voter ID','ఓటర్ ఐడి','eci','green'],['certificates','Certificates','ధ్రువపత్రాలు','certificate','purple'],['loans_insurance','Loans & Insurance','రుణాలు & బీమా','loan','teal'],['govt_schemes','Govt Schemes','ప్రభుత్వ పథకాలు','scheme','orange'],['land_records','Land Records','భూ రికార్డులు','land','purple'],['farmer','Farmer Services','రైతు సేవలు','farmer','green']].map(([key,name_en,name_te,icon,color])=>({key,name_en,name_te,icon,color,is_active:true}));
+  static SVC_COLORS={orange:['#B35A0E','#FFF0DC','Orange'],blue:['#1A75C4','#E3F0FB','Blue'],green:['#1D7A33','#E4F4DF','Green'],purple:['#8F4BB4','#F1E6F7','Purple'],teal:['#07818E','#DFF3F5','Teal']};
+  static SVC_ICONS={aadhaar:'img:/assets/logo-aadhaar.svg',eci:'img:/assets/logo-eci.svg',id_badge:'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM9 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16.5c.6-1.8 2-2.7 3.5-2.7s2.9.9 3.5 2.7M14.5 9.5h4M14.5 13h3',
+    card:'M3 6h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM2 10h20M6 15h4',certificate:'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.5 13 7 21l5-3 5 3-1.5-8',document:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4',
+    scheme:'M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6z',loan:'M11 14h2a2 2 0 0 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16M7 20l1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.8-2.8L14.6 13M2 15l6 6',land:'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14',
+    farmer:'M7 20h10M10 20c5.5-2.5.8-6.4 3-10M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8zM14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z',house:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',ration:'M5 11l3-6M19 11l-3-6M2 11h20l-2 9H4zM9 15v2M15 15v2',
+    health:'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',education:'M2 9l10-5 10 5-10 5zM6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5M22 9v6',pension:'M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 22l1-7 3 3v4M11 15l-1-4 4-1 2 3M17 13v9',women:'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 15v7M9 19h6',
+    job:'M4 7h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18',water:'M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',power:'M13 2 4 14h7l-1 8 9-12h-7z',police:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9.5 11.5l1.8 1.8 3.4-3.6',
+    help:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z',services:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  loadServices(){this.setState({svcsLoading:true});this.api.get('/admin/services/').then(d=>this.setState({svcs:Array.isArray(d)?d:(d.results||[]),svcsLoading:false,svcsUnavailable:false}))
+    .catch(e=>{const nf=!!(e&&e.status===404);this.setState({svcsLoading:false,svcsUnavailable:nf,svcs:nf?Component.SVC_SEED:[]});if(!nf)this.fail(e)})}
+  openService(g){if(this.state.svcsUnavailable)return;this.setState({sf:g?{key:g.key,en:g.name_en,te:g.name_te||'',icon:g.icon||'services',color:g.color||'blue',image:g.logo||'',had:!!g.logo,file:null,active:g.is_active!==false,tried:false,saving:false}:{key:null,en:'',te:'',icon:'services',color:'blue',image:'',had:false,file:null,active:true,tried:false,saving:false}})}
+  // The Super Admin's own logo (contract section 16: `logo`): PNG, JPG or WebP up to 2 MB.
+  pickServiceIcon(){const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;if(file.size>2*1024*1024){this.toast('The logo is larger than 2 MB','#E9791E');return}this.setState(st=>({sf:st.sf&&{...st.sf,file,image:URL.createObjectURL(file)}}))};input.click()}
+  svcErr(f){const en=f.en.trim();if(en.length<2)return 'Enter an English name of at least 2 letters';if(this.state.svcs.some(g=>g.key!==f.key&&g.name_en.toLowerCase()===en.toLowerCase()))return 'A service with this name already exists';return ''}
+  saveService(){const f=this.state.sf;if(!f||f.saving)return;if(this.svcErr(f)){this.setState({sf:{...f,tried:true}});return}
+    const body={name_en:f.en.trim(),name_te:f.te.trim(),icon:f.icon,color:f.color,is_active:f.active};this.setState({sf:{...f,saving:true}});
+    const path=f.key?'/admin/services/'+f.key+'/':'/admin/services/';let req;
+    if(f.file){const fd=new FormData();Object.keys(body).forEach(k=>fd.append(k,String(body[k])));fd.append('logo',f.file);req=this.api.upload(path,fd,null,f.key?'PATCH':'POST')}
+    else req=f.key?this.api.patch(path,{...body,...(f.had&&!f.image?{logo:null}:{})}):this.api.post(path,body);
+    req.then(()=>{this.setState({sf:null});this.toast(f.key?'Changes saved':'Service added · '+body.name_en);this.loadServices()})
+      .catch(e=>{this.setState(x=>({sf:x.sf&&{...x.sf,saving:false}}));if(e&&e.status===404){this.setState({svcsUnavailable:true});this.toast('The services list is not on the server yet.','#E9791E');return}this.fail(e)})}
+  toggleService(g){if(this.state.svcsUnavailable)return;this.api.patch('/admin/services/'+g.key+'/',{is_active:g.is_active===false}).then(()=>{this.toast(g.is_active===false?'Service is on Home':'Service hidden');this.loadServices()}).catch(e=>this.fail(e))}
+  moveService(g,by){const list=this.state.svcs,i=list.findIndex(x=>x.key===g.key),j=i+by;if(this.state.svcsUnavailable||i<0||j<0||j>=list.length)return;
+    const next=[...list];next[i]=list[j];next[j]=g;this.setState({svcs:next});
+    this.api.post('/admin/services/order/',{keys:next.map(x=>x.key)}).catch(e=>{this.setState({svcs:list});this.fail(e)})}
+  loadAds(){this.setState({adsLoading:true});if(!this.state.geo.length)this.loadGeo();this.api.get('/admin/ads/',{page_size:100}).then(d=>this.setState({ads:Array.isArray(d)?d:(d.results||[]),adsLoading:false,adsUnavailable:false})).catch(e=>{this.setState({adsLoading:false,ads:[],adsUnavailable:!!(e&&e.status===404)});if(!(e&&e.status===404))this.fail(e)})}
+  today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  adStatus(a){const t=this.today();if(a.ends_on&&a.ends_on<t)return 'ended';if(!a.is_active)return 'paused';if(a.starts_on&&a.starts_on>t)return 'scheduled';return 'live'}
+  dayLabel(x){return x?new Date(x+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}
+  // An ad's area as the form's three picks (ids as strings; '' = all); STATE = every village.
+  adArea(a){const none={d:'',m:'',v:''};if(!a||a.level==='STATE')return none;for(const d of this.state.geo){if(a.level==='DISTRICT'&&d.id===a.id)return {d:String(d.id),m:'',v:''};for(const m of d.mandals){if(a.level==='MANDAL'&&m.id===a.id)return {d:String(d.id),m:String(m.id),v:''};for(const v of m.villages)if(a.level==='VILLAGE'&&v.id===a.id)return {d:String(d.id),m:String(m.id),v:String(v.id)}}}return none}
+  openAd(a){this.setState({af:a?{id:a.id,title:a.title,link:a.link||'',file:null,preview:a.image,...this.adArea(a.area),start:a.starts_on||'',end:a.ends_on||'',active:!!a.is_active,tried:false,saving:false}:{id:null,title:'',link:'',file:null,preview:'',d:'',m:'',v:'',start:this.today(),end:'',active:true,tried:false,saving:false}})}
+  adErrors(f){const e={};if(!f.title.trim())e.title='Enter a name for the ad.';if(!f.preview)e.image='Choose a banner image.';const l=f.link.trim();if(l&&!/^https?:\/\/[^\s/]+\.[^\s]+$/.test(l))e.link='Enter a full link starting with https://';if(f.start&&f.end&&f.end<f.start)e.end='The end date must be on or after the start date.';return e}
+  pickAdImage(){const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;if(file.size>5*1024*1024){this.toast('The image is larger than 5 MB');return}const url=URL.createObjectURL(file);this.setState(st=>({af:st.af&&{...st.af,file,preview:url}}))};input.click()}
+  saveAd(){const f=this.state.af;if(!f||f.saving)return;if(Object.keys(this.adErrors(f)).length){this.setState({af:{...f,tried:true}});return}
+    const st=this.state.stateRow;const area=f.v?['VILLAGE',f.v]:f.m?['MANDAL',f.m]:f.d?['DISTRICT',f.d]:['STATE',st&&st.id];
+    const fields={title:f.title.trim(),link:f.link.trim(),area_level:area[0],area_id:String(area[1]),starts_on:f.start||'',ends_on:f.end||'',is_active:String(f.active)};
+    let req;if(f.file){const fd=new FormData();Object.keys(fields).forEach(k=>fd.append(k,fields[k]));fd.append('image',f.file);req=f.id?this.api.upload('/admin/ads/'+f.id+'/',fd,null,'PATCH'):this.api.upload('/admin/ads/',fd)}
+    else req=this.api.patch('/admin/ads/'+f.id+'/',{...fields,area_id:Number(area[1]),starts_on:f.start||null,ends_on:f.end||null,is_active:f.active});
+    this.setState({af:{...f,saving:true}});
+    req.then(()=>{this.setState({af:null});this.toast((f.id?'Ad saved · ':'Ad published · ')+fields.title);this.loadAds()}).catch(e=>{this.setState(x=>({af:x.af&&{...x.af,saving:false}}));this.fail(e)})}
+  toggleAd(a){this.api.patch('/admin/ads/'+a.id+'/',{is_active:!a.is_active}).then(()=>{this.toast((a.is_active?'Paused · ':'Showing again · ')+a.title);this.loadAds()}).catch(e=>this.fail(e))}
+  deleteAd(a){this.ask({title:'Delete this ad?',body:'"'+a.title+'" will be removed from every Home page. This cannot be undone.',confirmLabel:'Delete',bg:'#b3261e',onConfirm:()=>this.api.del('/admin/ads/'+a.id+'/').then(()=>{this.setState({af:null});this.toast('Ad deleted · '+a.title);this.loadAds()}).catch(e=>this.fail(e))})}
   // One request in the side panel; the people it can be assigned to are the active officials this admin sees.
-  openRequest(r){this.setState({rq:{r,status:r.status,assigned:r.assigned_to?String(r.assigned_to.id):'',note:''},rqAssignees:[]});if((r.allowed_actions||[]).includes('assign'))this.api.get('/users/',{is_active:'true',page:1,page_size:100}).then(d=>this.setState({rqAssignees:(d.results||[]).map(u=>({id:String(u.id),label:u.name+' · '+((Component.ROLE[Component.RK[((u.role_assignments||[])[0]||{}).role]]||{label:''}).label)}))})).catch(()=>{})}
+  openRequest(r){this.setState({rq:{r,status:r.status,assigned:r.assigned_to?String(r.assigned_to.id):'',note:''},rqAssignees:[]});if((r.allowed_actions||[]).includes('assign'))this.api.get('/users/',{is_active:'true',page:1,page_size:100}).then(d=>this.setState({rqAssignees:(d.results||[]).map(u=>{const role=(Component.ROLE[Component.RK[((u.role_assignments||[])[0]||{}).role]]||{label:''}).label;return {id:String(u.id),label:!role||u.name.toLowerCase()===role.toLowerCase()?u.name:u.name+' · '+role}})})).catch(()=>{})}
+  // Only the person a request is assigned to changes it (the server sends that as allowed_actions); everyone else reads.
+  svcAllowed(r){return (r.allowed_actions||[]).includes('set_status')?Object.keys(Component.SVC_STATUS):[]}
+  patchRequest(r,body,msg){return this.api.patch('/service-requests/'+r.id+'/',body).then(n=>{this.setState(x=>({rq:x.rq&&{...x.rq,r:n||x.rq.r}}));this.toast(msg);this.loadRequests(this.state.reqPage)}).catch(e=>this.fail(e))}
+  // A note only when the request is closed: why it was rejected, or what to do now it is done.
+  moveRequest(r,to){const label=Component.SVC_STATUS[to].label;const reject=to==='REJECTED',closing=reject||to==='COMPLETED';
+    this.ask({title:'Change status to '+label+'?',body:Component.SVC_MOVE[to],needsText:closing,textLabel:reject?'Reason (required; the citizen sees it)':'Note for the citizen (required)',confirmLabel:reject?'Reject':'Change status',bg:reject?'#b3261e':'#0D3B7A',onConfirm:t=>this.patchRequest(r,{status:to,...(t.trim()?{note:t.trim()}:{})},'Status: '+label)})}
+  assignRequest(r,id){const was=r.assigned_to?String(r.assigned_to.id):'';if(id===was)return;const who=this.state.rqAssignees.find(a=>a.id===id);this.patchRequest(r,{assigned_to:id||null},id?'Assigned to '+(who?who.label.split(' · ')[0]:'them'):'Not assigned now')}
   saveRequest(){const q=this.state.rq;if(!q)return;const r=q.r;const body={};if(q.status!==r.status)body.status=q.status;const was=r.assigned_to?String(r.assigned_to.id):'';if(q.assigned!==was)body.assigned_to=q.assigned?Number(q.assigned)||q.assigned:null;if(q.note.trim())body.note=q.note.trim();if(!Object.keys(body).length)return;if(body.status==='REJECTED'&&!body.note){this.toast('Write why it is rejected','#E9791E');return}this.api.patch('/service-requests/'+r.id+'/',body).then(()=>{this.setState({rq:null});this.toast('Request updated');this.loadRequests(this.state.reqPage)}).catch(e=>this.fail(e))}
   loadContacts(page){const s=this.state;this.setState({contactLoading:true});this.api.get('/admin/contact-messages/',{status:s.contactFilter==='all'?'':s.contactFilter,q:s.contactQ,page,page_size:Component.PAGE}).then(d=>this.setState({contacts:d.results||[],contactCount:d.count||0,contactPage:page,contactPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),contactLoading:false})).catch(e=>{this.setState({contactLoading:false,contacts:[],contactCount:0});this.fail(e)})}
   isHandled(c){return c.status?String(c.status).toUpperCase()==='HANDLED':!!c.handled}
@@ -139,6 +215,11 @@ export default class Component extends React.Component {
     if(e&&e.code==='already_decided'){const b=e.body||{};const who=b.decided_by?(b.decided_by.name+' ('+((Component.ROLE[Component.RK[b.decided_by.role]]||{}).label||b.decided_by.role)+')'):'another reviewer';this.toast('Already decided by '+who+'. Showing the latest status.','#E9791E');this.loadPosts(this.state.postPage);this.refreshPost(p.id);return}
     this.fail(e)})}
   postAction(kind,p){if(kind==='urgent')return this.urgentPost(p);const title=p.titleTe;const area=p.areaName;const C=Component;
+    // Citizens' posts (contract section 15): block the phone for some days, unblock, or discard all its pending posts.
+    const after=msg=>()=>{this.toast(msg);this.setState({panel:null});this.loadPosts(this.state.postPage)};
+    if(kind==='blockCitizen')this.ask({title:'Block this citizen',body:'The phone cannot post until the block ends. Its other pending posts in your area are discarded. The citizen sees your reason.',hasSelect:true,selectLabel:'Block for',options:[{id:'1',label:'1 day'},{id:'7',label:'7 days'},{id:'30',label:'30 days'},{id:'90',label:'90 days'}],sel:'7',needsText:true,textLabel:'Reason (required)',confirmLabel:'Block',bg:'#b3261e',onConfirm:(t,sel)=>this.api.post('/posts/'+p.id+'/block-citizen/',{comment:t,days:Number(sel||7)}).then(after('Citizen blocked')).catch(e=>this.fail(e))});
+    if(kind==='unblockCitizen')this.ask({title:'Unblock this citizen',body:'The phone can post again.',confirmLabel:'Unblock',bg:'#1d7a33',onConfirm:()=>this.api.post('/posts/'+p.id+'/unblock-citizen/',{comment:''}).then(after('Citizen unblocked')).catch(e=>this.fail(e))});
+    if(kind==='discardCitizen')this.ask({title:'Discard all their pending posts',body:'Every pending post from this phone is discarded (for spam). The phone is not blocked.',needsText:true,textLabel:'Reason (required)',confirmLabel:'Discard all',bg:'#3b4a5c',onConfirm:t=>this.api.post('/posts/'+p.id+'/discard-citizen-posts/',{comment:t}).then(d=>after('Discarded '+((d&&d.discarded)||0)+' posts')()).catch(e=>this.fail(e))});
     if(kind==='publish')this.ask({title:'Publish post',body:'Publish "'+title+'" to citizens in '+area+'? This overrides the local review queue.',confirmLabel:'Publish',bg:'#1F8A3B',onConfirm:()=>this.review(p,{action:'publish'},()=>this.toast('Post published'))});
     if(kind==='recheck')this.ask({title:'Send for recheck',body:'The author will see your comment and can edit and resubmit.',needsText:true,textLabel:'Comment to author (required)',confirmLabel:'Send for recheck',bg:'#E9791E',onConfirm:t=>this.review(p,{action:'recheck',comment:t},()=>this.toast('Sent back for recheck','#E9791E'))});
     if(kind==='discard')this.ask({title:'Discard post',body:'The post will not be published. The author is notified with your reason.',needsText:true,textLabel:'Reason (required)',confirmLabel:'Discard',bg:'#3b4a5c',onConfirm:t=>this.review(p,{action:'discard',comment:t},()=>this.toast('Post discarded','#cfd8e3'))});
@@ -195,9 +276,34 @@ export default class Component extends React.Component {
     else{const v={...base,pin_code:f.pin||''};if(String(f.lat).trim())v.latitude=String(f.lat).trim();if(String(f.lng).trim())v.longitude=String(f.lng).trim();req=f.id?this.api.patch('/geo/villages/'+f.id+'/',v):this.api.post('/geo/villages/',{...v,mandal_id:f.parentId})}
     req.then(()=>{const ex={...this.state.expanded};if(f.parentKey)ex[f.parentKey]=true;this.setState({geoForm:null,expanded:ex});this.toast((f.id?'Updated ':'Added ')+f.kind+' · '+name);this.loadGeo()}).catch(e=>this.fail(e))}
   geoDeact(node){const next=!node.active;const path={district:'districts',mandal:'mandals',village:'villages'}[node.kind];this.ask({title:(next?'Reactivate ':'Deactivate ')+node.kind,body:(next?'Reactivate ':'Deactivate ')+node.name+'? '+(next?'It becomes selectable again for users and posts.':'Existing posts stay visible; no new users or posts can be assigned here'+(node.kind!=='village'?', including all areas under it.':'.')),confirmLabel:next?'Reactivate':'Deactivate',bg:next?'#1F8A3B':'#b3261e',onConfirm:()=>this.api.patch('/geo/'+path+'/'+node.id+'/',{is_active:next}).then(()=>{this.toast(node.name+(next?' reactivated':' deactivated'),next?'#6cc04a':'#E9791E');this.loadGeo()}).catch(e=>this.fail(e))})}
-  importCsv(){const input=document.createElement('input');input.type='file';input.accept='.csv,text/csv';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const form=()=>{const fd=new FormData();fd.append('file',file);return fd};
-    this.api.upload('/geo/villages/import/',form(),{dry_run:1}).then(r=>{const c=r.counts||{};const v=c.village||{created:0,updated:0,unchanged:0};const body=r.rows+' rows checked. Villages: '+v.created+' new, '+v.updated+' updated, '+v.unchanged+' unchanged.'+(r.missing_coordinates_count?' '+r.missing_coordinates_count+' without coordinates.':'')+(r.warnings&&r.warnings.length?' '+r.warnings.length+' warning(s).':'');
-      this.ask({title:'Import villages',body,confirmLabel:'Import',bg:'#0D3B7A',onConfirm:()=>this.api.upload('/geo/villages/import/',form()).then(()=>{this.toast('Imported '+r.rows+' rows');this.loadGeo()}).catch(e=>this.fail(e))})}).catch(e=>{const rep=e&&e.body&&e.body.report;if(rep&&rep.errors&&rep.errors.length){this.ask({title:'File has errors',body:rep.errors.slice(0,5).join(' · ')+(rep.errors.length>5?' · and '+(rep.errors.length-5)+' more.':''),confirmLabel:'Close',bg:'#3b4a5c',onConfirm:()=>{}})}else this.fail(e)})};input.click()}
+  // Villages CSV import. Big files go up in parts of ~4,000 villages (each mandal kept in one part) so no request
+  // reaches the server's 60 s limit; the importer is safe to repeat. Every part is checked first (dry run), the
+  // totals are shown, and only then is anything saved. Helpers and rules: src/lib/csv-parts.js.
+  importCsv(){const input=document.createElement('input');input.type='file';input.accept='.csv,text/csv';input.onchange=()=>{const file=input.files&&input.files[0];if(file)this.importParts(file)};input.click()}
+  async importParts(file){
+    const info=(title,body)=>this.ask({title,body,confirmLabel:'Close',bg:'#3b4a5c',noCancel:true,onConfirm:()=>{}});
+    const text=decodeUtf8(await file.arrayBuffer());
+    if(text===null){info('Save the file as UTF-8','This file is not saved as UTF-8, so Telugu names would be lost. In Excel choose File › Save As › "CSV UTF-8 (Comma delimited)" and import that file.');return}
+    const plan=planParts(text);
+    if(plan.error){info('This file cannot be imported',plan.error);return}
+    const n=plan.parts.length;
+    const send=(part,dry)=>{const fd=new FormData();fd.append('file',new Blob([part.text],{type:'text/csv'}),file.name);return this.api.upload('/geo/villages/import/',fd,dry?{dry_run:1}:undefined)};
+    const step=(phase,done)=>this.setState({imp:{phase,done,total:n,name:file.name}});
+    // 1. check every part; nothing is saved
+    const sum={created:0,updated:0,unchanged:0,noXY:0,warn:0};const errors=[];
+    for(let i=0;i<n;i++){step('Checking',i);
+      try{const r=await send(plan.parts[i],true);const v=(r.counts||{}).village||{};sum.created+=v.created||0;sum.updated+=v.updated||0;sum.unchanged+=v.unchanged||0;sum.noXY+=r.missing_coordinates_count||0;sum.warn+=(r.warnings||[]).length}
+      catch(e){const rep=e&&e.body&&e.body.report;if(rep&&rep.errors&&rep.errors.length){errors.push(...rep.errors.map(m=>fileLine(m,plan.parts[i])))}else{this.setState({imp:null});this.fail(e);return}}}
+    this.setState({imp:null});
+    if(errors.length){info('File has errors · nothing imported',errors.slice(0,6).join(' · ')+(errors.length>6?' · and '+(errors.length-6)+' more.':'')+' Fix them in the file and import it again.');return}
+    const body=plan.rows.toLocaleString('en-IN')+' villages in '+plan.districts+' district'+(plan.districts===1?'':'s')+' and '+plan.mandals+' mandal'+(plan.mandals===1?'':'s')+' checked. Villages: '+sum.created.toLocaleString('en-IN')+' new, '+sum.updated+' updated, '+sum.unchanged.toLocaleString('en-IN')+' unchanged.'+(sum.noXY?' '+sum.noXY+' without coordinates.':'')+(sum.warn?' '+sum.warn+' warning(s).':'')+(n>1?' It is imported in '+n+' parts.':'');
+    this.ask({title:'Import villages',body,confirmLabel:'Import',bg:'#0D3B7A',onConfirm:async()=>{
+      // 2. import part by part
+      for(let i=0;i<n;i++){step('Importing',i);
+        try{await send(plan.parts[i],false)}
+        catch(e){this.setState({imp:null});this.loadGeo();
+          info('Import stopped at part '+(i+1)+' of '+n,(i?'Parts 1'+(i>1?'–'+i:'')+' are saved. ':'')+'Nothing in part '+(i+1)+' was saved ('+((e&&e.message)||'the server did not answer')+'). Importing the same file again is safe: villages already there stay as they are.');return}}
+      this.setState({imp:null});this.toast('Imported '+plan.rows.toLocaleString('en-IN')+' villages');this.loadGeo()}})}
 
   // ---- exports ----
   exportCsv(){const s=this.state;const stamp=new Date().toISOString().slice(0,10);if(s.page==='audit')this.api.download('/audit/export/',{q:s.auditQ},'grama-audit-'+stamp+'.csv').then(()=>this.toast('Audit log exported')).catch(e=>this.fail(e));else this.exportReport('posts-by-area')}
@@ -207,7 +313,7 @@ export default class Component extends React.Component {
     const s=this.state,C=Component,ST=C.STATUS,R=C.ROLE;
     const is={checking:s.screen==='checking',auth:s.screen==='login'||s.screen==='change_password',login:s.screen==='login',changePassword:s.screen==='change_password',app:s.screen==='app'};
     const pg={};pg[s.page]=true;
-    const titles={requests:'Service requests',dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
+    const titles={ads:'Sponsored banners',services:'Services',requests:'Services',dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
     const pendingN=s.pendingCount;
     const navItems=C.PAGES.filter(k=>this.navOk(k)).map(k=>{const on=s.page===k;return {label:titles[k].split(' ·')[0],d:C.ICON[k],color:on?'#fff':'rgba(255,255,255,.78)',bg:on?'#0D3B7A':'transparent',hasCount:k==='posts'&&pendingN>0,count:pendingN,go:()=>this.goPage(k)}});
     const hist=h=>{const rk=C.RK[h.actor&&h.actor.role]||'system';const label=h.action==='REVERSE'?'Override: '+(ST[C.SK[h.from_status]]||{label:h.from_status}).label+' → '+(ST[C.SK[h.to_status]]||{label:h.to_status}).label:(C.HIST[h.action]||h.action);return {who:(h.actor&&h.actor.name)||'System',role:R[rk].label,action:label,note:h.comment||'',hasNote:!!h.comment,time:this.fmt(h.at),dot:/PUBLISH/.test(h.action)?'#1F8A3B':h.action==='RECHECK'?'#8f4bb4':/DISCARD|UNPUBLISH/.test(h.action)?'#b3261e':h.action==='REVERSE'?'#0D3B7A':'#E9791E'}};
@@ -216,8 +322,12 @@ export default class Component extends React.Component {
       else if(p.status==='Published'){if(al.includes('unpublish'))acts.push(['Take down','takedown','#b3261e','#fff','#b3261e']);if(al.includes('reverse'))acts.push(['Override previous decision','override','#0D3B7A','#fff','#0D3B7A'])}
       else if(al.includes('reverse'))acts.push(['Override previous decision','override','#0D3B7A','#0D3B7A','#fff']);
       if(al.includes('set_urgent'))acts.push([p.urgent?'Remove urgent':'Mark urgent','urgent','#E9791E','#fff','#b35a0e']);
+      if(al.includes('block_citizen'))acts.push(['Block this citizen','blockCitizen','#b3261e','#fff','#b3261e']);
+      if(al.includes('unblock_citizen'))acts.push(['Unblock this citizen','unblockCitizen','#1d7a33','#fff','#1d7a33']);
+      if(al.includes('discard_citizen_posts'))acts.push(['Discard all their pending posts','discardCitizen','#cfd8e3','#fff','#3b4a5c']);
+      const cz=p.citizen;const czLine=cz?[(cz.posts_total||0)+' posts from this phone',(cz.posts_discarded||0)+' discarded',cz.blocked?(cz.blocked_until?'Blocked till '+this.fmt(cz.blocked_until,true).slice(0,11):'Blocked'):''].filter(Boolean).join(' · '):'';
       const ev=p.event;const evs=ev?(C.EVENT[ev.kind]||[ev.kind,'#e3f0fb','#0D3B7A']):null;const evDates=ev?(this.fmt(ev.start_date+'T00:00:00+05:30',true).slice(0,11)+(ev.end_date?' – '+this.fmt(ev.end_date+'T00:00:00+05:30',true).slice(0,11):'')):'';
-      return {id:p.id,cat:p.cat,catLabel:p.catLabel,titleTe:p.titleTe,titleEn:p.titleEn,bodyTe:p.bodyTe,bodyEn:p.bodyEn,area:p.area,date:p.date,author:p.author,authorRole:rr.label,amobile:'',abg:rr.bg,ainitial:(p.author||'?')[0],st:{bg:st.bg,color:st.color,label:st.label},hasPhoto:p.media.length>0,photos:p.media.slice(0,5).map(m=>({src:m.thumb_url||m.url,pos:'center'})),urgent:!!p.urgent,hasEvent:!!ev,eventLabel:evs?evs[0]+' · '+evDates:'',eventBg:evs?evs[1]:'',eventColor:evs?evs[2]:'',hasVideo:(p.videos||[]).length>0,videos:(p.videos||[]).map(v=>({src:v.url,poster:v.poster_url||v.thumb_url||''})),rowBg:s.panel&&s.panel.type==='post'&&s.panel.id===p.id?'#f0f6fd':'#fff',
+      return {id:p.id,cat:p.cat,catLabel:p.catLabel,titleTe:p.titleTe,titleEn:p.titleEn,bodyTe:p.bodyTe,bodyEn:p.bodyEn,area:p.area,date:p.date,author:p.author,authorRole:czLine||rr.label,amobile:'',abg:rr.bg,ainitial:(p.author||'?')[0],st:{bg:st.bg,color:st.color,label:st.label},hasPhoto:p.media.length>0,photos:p.media.slice(0,5).map(m=>({src:m.thumb_url||m.url,pos:'center'})),urgent:!!p.urgent,hasEvent:!!ev,eventLabel:evs?evs[0]+' · '+evDates:'',eventBg:evs?evs[1]:'',eventColor:evs?evs[2]:'',hasVideo:(p.videos||[]).length>0,videos:(p.videos||[]).map(v=>({src:v.url,poster:v.poster_url||v.thumb_url||''})),rowBg:s.panel&&s.panel.type==='post'&&s.panel.id===p.id?'#f0f6fd':'#fff',
         history:withHistory?s.panelHistory.map(hist):[],open:()=>this.openPost(p),actions:acts.map(([label,k,border,bg,color])=>({label,border,bg,color,go:()=>this.postAction(k,p)}))}};
     // dashboard
     const D=s.dash,K=D?D.kpis:{};const dayLabel=iso=>{const d=new Date(iso+'T00:00:00');return d.getDate()+' '+d.toLocaleString('en-GB',{month:'short'})};
@@ -272,7 +382,7 @@ export default class Component extends React.Component {
     const sp=dp(s.panelPost||empty,true);
     const pu=s.panelUser;const su=pu?{name:pu.name,te:pu.te,initial:pu.name[0],bg:R[pu.role].bg,fields:[{k:'Role',v:R[pu.role].label},{k:'Mobile',v:pu.mobile?'+91 '+pu.mobile:(pu.email||'—')},{k:'District',v:pu.district||'—'},{k:'Mandal',v:pu.mandal||'—'},{k:'Village',v:pu.village||'—'},{k:'Status',v:(pu.active?'Active · last login '+pu.last:'Blocked')+(pu.locked?' · locked after failed logins':'')}],posts:s.panelUserPosts.map(p=>dp(p)),roles:(pu.ras||[]).map(ra=>{const k=C.RK[ra.role]||'panchayat';return {label:R[k].label,rbg:R[k].tbg,rcolor:R[k].tc,area:ra.area?(ra.area.path||ra.area.name):'—',canRemove:this.userCan(pu,'remove_assignment'),remove:()=>this.removeRole(pu,ra)}}),canEdit:this.userCan(pu,'edit'),edit:()=>this.editUser(pu),canAddRole:this.userCan(pu,'add_assignment')&&this.roleChoices().length>0,canReassign:!!pu.raId&&this.userCan(pu,'reassign'),canReset:this.userCan(pu,'reset_password'),canUnlock:pu.locked&&this.userCan(pu,'unlock'),canToggle:this.userCan(pu,pu.active?'block':'unblock'),addRole:()=>this.addRole(pu),reassign:()=>this.reassignUser(pu),reset:()=>this.resetPassword(pu),unlock:()=>this.unlockUser(pu),toggle:()=>this.toggleUser(pu),toggleLabel:pu.active?'Block user':'Unblock user',tbg:pu.active?'#b3261e':'#1F8A3B'}:{fields:[],posts:[],roles:[]};
     // modal
-    const m=s.modal;const cannot=!!(m&&m.needsText&&!s.modalText.trim());
+    const m=s.modal;const cannot=!!(m&&m.needsText&&!m.textOptional&&!s.modalText.trim());
     const modal=m?{show:true,title:m.title,body:m.body,hasInput:!!m.hasInput,hasGen:!!m.hasInput&&!m.noGen,inputLabel:m.inputLabel||'',inputPh:m.inputPh||'',hasSecret:!!m.secret,secret:m.secret||'',hasCancel:!m.noCancel,needsText:!!m.needsText,textLabel:m.textLabel||'',hasSelect:!!m.hasSelect,selectLabel:m.selectLabel||'',options:m.options||[],confirmLabel:m.confirmLabel,bg:m.bg||'#0D3B7A',cannot,opacity:cannot?.5:1}:{show:false,options:[],hasCancel:true};
     const nu=s.nu;const nuAreas=this.areaOptions(nu.role);const canNU=this.nuValid(nu);const nuRoles=this.roleChoices();
     const nuShown=nu;const nuSteps=this.areaSteps(nu);const nuPlace=this.areaSummary(nu);
@@ -294,11 +404,48 @@ export default class Component extends React.Component {
       contactQ:s.contactQ,onContactQ:e=>{this.setState({contactQ:e.target.value});clearTimeout(this._ct);this._ct=setTimeout(()=>this.loadContacts(1),300)},contactFilter:s.contactFilter,contactFilters:[{id:'new',label:'New'},{id:'handled',label:'Handled'},{id:'all',label:'All'}],onContactFilter:e=>this.setState({contactFilter:e.target.value},()=>this.loadContacts(1)),
       contactRows:s.contacts.map(c=>{const done=this.isHandled(c);return {time:this.fmt(c.created_at,false),name:c.name,mobile:c.mobile?'+91 '+c.mobile:'—',village:c.village_text||'—',message:c.message,status:done?'Handled':'New',sbg:done?'#e4f4df':'#fff0dc',scolor:done?'#1d7a33':'#b35a0e',toggleLabel:done?'Mark new':'Mark handled',toggle:()=>this.toggleContact(c)}}),contactCount:s.contactCount+(s.contactCount===1?' message':' messages'),contactEmpty:!s.contacts.length,contactEmptyText:s.contactLoading?'Loading…':'No messages match.',contactPager:pager(s.contactPage,s.contactPages,p=>this.loadContacts(p)),
       reqTabs:[...Object.keys(Component.SVC_STATUS),'ALL'].map(k=>{const on=s.reqFilter===k;const c=s.reqCounts||{};const n=k==='ALL'?Object.values(c).reduce((a,b)=>a+(b||0),0):(c[k]||0);return {label:k==='ALL'?'All':Component.SVC_STATUS[k].label,count:n,line:on?'#0D3B7A':'transparent',color:on?'#0A2550':'#6b7a8c',cbg:on?'#0D3B7A':'#eef2f6',ccolor:on?'#fff':'#3b4a5c',go:()=>this.setState({reqFilter:k},()=>this.loadRequests(1))}}),
-      reqQ:s.reqQ,onReqQ:e=>{this.setState({reqQ:e.target.value});clearTimeout(this._rqt);this._rqt=setTimeout(()=>this.loadRequests(1),300)},reqMine:s.reqMine,toggleReqMine:()=>this.setState(st=>({reqMine:!st.reqMine}),()=>this.loadRequests(1)),
-      reqRows:s.reqs.map(r=>{const st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW;return {time:this.fmt(r.created_at,false),service:Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),name:r.name,mobile:'+91 '+r.phone,place:[r.village&&r.village.name,r.mandal&&r.mandal.name].filter(Boolean).join(', ')||'—',status:st.label,sbg:st.bg,scolor:st.color,assignee:r.assigned_to?r.assigned_to.name:'—',open:()=>this.openRequest(r)}}),
+      reqQ:s.reqQ,onReqQ:e=>{this.setState({reqQ:e.target.value});clearTimeout(this._rqt);this._rqt=setTimeout(()=>this.loadRequests(1),300)},
+      reqRows:s.reqs.map(r=>{const st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW;return {address:r.address||'',time:this.fmt(r.created_at,false),service:r.service_name||Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),name:r.name,mobile:'+91 '+r.phone,place:[r.village&&r.village.name,r.mandal&&r.mandal.name].filter(Boolean).join(', ')||'—',status:st.label,sbg:st.bg,scolor:st.color,assignee:r.assigned_to?r.assigned_to.name:'—',open:()=>this.openRequest(r)}}),
       reqCountLabel:s.reqCount+(s.reqCount===1?' request':' requests'),reqEmpty:!s.reqs.length,reqEmptyText:s.reqLoading?'Loading…':s.reqUnavailable?'Service requests will show here once the server is updated.':'No requests here. Citizens send them from Services in the app.',reqPager:pager(s.reqPage,s.reqPages,p=>this.loadRequests(p)),
+      newAd:()=>this.openAd(null),adsCountLabel:s.ads.filter(a=>this.adStatus(a)==='live').length+' running · '+s.ads.length+' in all',adsEmpty:!s.ads.length,adsUnavailable:s.adsUnavailable,
+      adsEmptyText:s.adsLoading?'Loading…':s.adsUnavailable?'Ads will show here once the server is updated.':'No ads yet. Create one and it shows at the top of Home in the villages you choose.',
+      adRows:s.ads.map(a=>{const k=this.adStatus(a);const S=C.AD_STATUS[k];const ar=a.area;return {title:a.title,image:a.image,area:!ar||ar.level==='STATE'?'All villages':ar.name+' '+ar.level.toLowerCase(),dates:[a.starts_on?'From '+this.dayLabel(a.starts_on):'',a.ends_on?'till '+this.dayLabel(a.ends_on):'no end date'].filter(Boolean).join(' '),status:S.label,sbg:S.bg,scolor:S.color,dim:k==='live'?1:.55,canToggle:k!=='ended',on:!!a.is_active,toggle:()=>this.toggleAd(a),open:()=>this.openAd(a)}}),
+      afShow:!!s.af,closeAF:()=>this.setState({af:null}),pickAdImage:()=>this.pickAdImage(),saveAF:()=>this.saveAd(),
+      onAF:e=>{const {name,value,type,checked}=e.target;this.setState(x=>{const f={...x.af,[name]:type==='checkbox'?checked:value};if(name==='d'){f.m='';f.v=''}if(name==='m')f.v='';return {af:f}})},
+      af:s.af?(()=>{const f=s.af;const err=f.tried?this.adErrors(f):{};const d=s.geo.find(x=>String(x.id)===f.d);const m=d&&d.mandals.find(x=>String(x.id)===f.m);
+        return {...f,title_:f.id?'Edit ad':'New ad',saveLabel:f.saving?'Saving…':f.id?'Save':'Publish ad',isEdit:!!f.id,del:()=>this.deleteAd(s.ads.find(a=>a.id===f.id)),
+          imgLabel:f.preview?'Change image':'Choose image',errTitle:err.title||'',errImage:err.image||'',errLink:err.link||'',errEnd:err.end||'',
+          toggleActive:()=>this.setState(x=>({af:{...x.af,active:!x.af.active}})),
+          showM:!!d,showV:!!m,allM:d?'All mandals in '+d.name:'',allV:m?'All villages in '+m.name:'',
+          where:(()=>{const v=m&&m.villages.find(x=>String(x.id)===f.v);return v?v.name+' village only, '+m.name+' mandal':m?'all villages of '+m.name+' mandal, '+d.name:d?'all villages of '+d.name+' district':'every village'})(),
+          dOpts:s.geo.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})),mOpts:d?d.mandals.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})):[],vOpts:m?m.villages.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})):[]}})():null,
+      // Services page
+      svcRows:s.svcs.map((g,i)=>{const [c,tint]=C.SVC_COLORS[g.color]||C.SVC_COLORS.blue;const icon=g.logo?'img:'+g.logo:(C.SVC_ICONS[g.icon]||C.SVC_ICONS.services);const on=g.is_active!==false;
+        return {name:g.name_en,sub:on?(g.name_te&&g.name_te!==g.name_en?g.name_te:'Shown on Home'):'Hidden',on,c,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,
+          up:()=>this.moveService(g,-1),down:()=>this.moveService(g,1),canUp:i>0&&!s.svcsUnavailable,canDown:i<s.svcs.length-1&&!s.svcsUnavailable,toggle:()=>this.toggleService(g),open:()=>this.openService(g),locked:s.svcsUnavailable}}),
+      svcsUnavailable:s.svcsUnavailable,svcsEmpty:!s.svcs.length,svcsEmptyText:s.svcsLoading?'Loading…':'No services yet. Add one and citizens can request it from Home.',
+      svcShownLabel:'On Home: '+s.svcs.filter(g=>g.is_active!==false).length,newService:()=>this.openService(null),
+      sfShow:!!s.sf,closeSF:()=>this.setState({sf:null}),saveSF:()=>this.saveService(),
+      sf:s.sf?(()=>{const f=s.sf,[c,tint]=C.SVC_COLORS[f.color]||C.SVC_COLORS.blue,icon=f.image?'img:'+f.image:(C.SVC_ICONS[f.icon]||C.SVC_ICONS.services);
+        return {...f,err:f.tried?this.svcErr(f):'',c,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,preview:f.en.trim()||'e.g. Ration Card',title:f.key?'Edit service':'New service',saveLabel:f.saving?'Saving…':(f.key?'Save':'Add service'),
+          onField:e=>{const {name,value}=e.target;this.setState(st=>({sf:{...st.sf,[name]:value}}))},toggle:()=>this.setState(st=>({sf:{...st.sf,active:!st.sf.active}})),
+          icons:Object.entries(C.SVC_ICONS).map(([k,v])=>({k,on:!f.image&&f.icon===k,img:v.startsWith('img:')?v.slice(4):'',d:v.startsWith('img:')?'':v,pick:()=>this.setState(st=>({sf:{...st.sf,icon:k,image:'',file:null}}))})),
+          ownIcon:f.image,pickIcon:()=>this.pickServiceIcon(),removeIcon:()=>this.setState(st=>({sf:{...st.sf,image:'',file:null}})),
+          colors:Object.entries(C.SVC_COLORS).map(([k,[cc,tt,label]])=>({k,label,c:cc,tint:tt,on:f.color===k,pick:()=>this.setState(st=>({sf:{...st.sf,color:k}}))}))}})():null,
+      svcView:s.svcView,canCatalog:this.navOk('services'),
+      svcTabs:[['requests','Citizen requests'],['catalog','Services list']].map(([k,label])=>({label,on:s.svcView===k,go:()=>this.setState({svcView:k}),bg:s.svcView===k?'#fff':'transparent',color:s.svcView===k?'#0A2550':'#6b7a8c',shadow:s.svcView===k?'0 1px 3px rgba(10,37,80,.12)':'none'})),
+      imp:s.imp?{...s.imp,pct:Math.round(s.imp.done*100/s.imp.total),label:s.imp.phase+(s.imp.total>1?' part '+Math.min(s.imp.done+1,s.imp.total)+' of '+s.imp.total:'')+'…'}:null,
       rqShow:!!s.rq,closeRQ:()=>this.setState({rq:null}),saveRQ:()=>this.saveRequest(),onRQ:e=>{const {name,value}=e.target;this.setState(st=>({rq:{...st.rq,[name]:value}}))},
-      rq:s.rq?(()=>{const q=s.rq,r=q.r,st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW,al=r.allowed_actions||[];const was=r.assigned_to?String(r.assigned_to.id):'';return {service:Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),time:this.fmt(r.created_at,true),statusLabel:st.label,sbg:st.bg,scolor:st.color,name:r.name,mobile:'+91 '+r.phone,tel:'tel:+91'+r.phone,email:r.email||'',mailto:'mailto:'+(r.email||''),place:[r.village&&r.village.name,r.mandal&&r.mandal.name,r.district&&r.district.name].filter(Boolean).join(', '),details:r.details||'',canEdit:al.includes('set_status')||al.includes('assign'),canAssign:al.includes('assign'),status:q.status,assigned:q.assigned,note:q.note,noteLabel:q.status==='REJECTED'&&r.status!=='REJECTED'?'Note (required to reject; the citizen sees it)':'Note (the citizen sees it)',canSave:q.status!==r.status||q.assigned!==was||!!q.note.trim()}})():{},
+      rq:s.rq?(()=>{const q=s.rq,r=q.r,st=Component.SVC_STATUS[r.status]||Component.SVC_STATUS.NEW,al=r.allowed_actions||[];const was=r.assigned_to?String(r.assigned_to.id):'';return {service:r.service_name||Component.SERVICES[r.service]||r.service,ref:String(r.id).slice(-6).toUpperCase(),time:this.fmt(r.created_at,true),statusLabel:st.label,sbg:st.bg,scolor:st.color,name:r.name,mobile:'+91 '+r.phone,tel:'tel:+91'+r.phone,email:r.email||'',mailto:'mailto:'+(r.email||''),place:[r.village&&r.village.name,r.mandal&&r.mandal.name,r.district&&r.district.name].filter(Boolean).join(', '),details:r.details||'',address:r.address||'',canEdit:al.includes('set_status')||al.includes('assign'),canAssign:al.includes('assign'),status:q.status,assigned:was,note:q.note,noteLabel:q.status==='REJECTED'&&r.status!=='REJECTED'?'Note (required to reject; the citizen sees it)':'Note (the citizen sees it)',canSave:q.status!==r.status||q.assigned!==was||!!q.note.trim()}})():{},
+      rqView:s.rq?(()=>{const r=s.rq.r,steps=['NEW','APPROVED','IN_PROGRESS','COMPLETED'],rej=r.status==='REJECTED',at=rej?1:steps.indexOf(r.status);
+        const allowed=this.svcAllowed(r),cur=C.SVC_STATUS[r.status]||C.SVC_STATUS.NEW;
+        // Every step reached (the current one too) is a filled green tick; Rejected: a red cross after New.
+        const tone=i=>rej&&i===1?'#b3261e':i<=at?'#1F8A3B':'#cfd8e3';
+        return {steps:steps.map((k,i)=>{const red=rej&&i===1,on=i<=at;return {label:red?'Rejected':C.SVC_STATUS[k].label,bg:on?tone(i):'#fff',border:tone(i),bw:2,mark:on?(red?'✕':'✓'):'',weight:i===at?800:600,color:red?'#b3261e':i===at?'#0A2550':'#6b7a8c',line:i===0?'':(on?tone(i):'#cfd8e3')}}),
+          curLabel:cur.label,curBg:cur.bg,curColor:cur.color,note:r.note||'',
+          viewOnly:!allowed.length?((r.allowed_actions||[]).includes('assign')?'Nobody handles this request yet. Assign it to someone below.':'View only. '+(r.assigned_to?r.assigned_to.name:'Nobody')+' handles this request; only they can change it.'):'',
+          moves:allowed.filter(k=>k!==r.status).map(k=>({label:C.SVC_STATUS[k].label,go:()=>this.moveRequest(r,k),color:k==='REJECTED'?'#b3261e':'#0D3B7A'})),
+          assignedName:r.assigned_to?r.assigned_to.name:'Not assigned',onAssign:e=>this.assignRequest(r,e.target.value)}})():{},
       rqStatusOpts:s.rq?Object.keys(Component.SVC_STATUS).filter(k=>(s.rq.r.allowed_actions||[]).includes('assign')||k===s.rq.r.status||k==='IN_PROGRESS'||k==='COMPLETED').map(k=>({id:k,label:Component.SVC_STATUS[k].label})):[],
       rqAssigneeOpts:s.rq?[{id:'',label:'Not assigned'},...(s.rq.r.assigned_to&&!s.rqAssignees.some(a=>a.id===String(s.rq.r.assigned_to.id))?[{id:String(s.rq.r.assigned_to.id),label:s.rq.r.assigned_to.name}]:[]),...s.rqAssignees]:[],
       rqHistory:s.rq?[...(s.rq.r.history||[]).slice().reverse().map(h=>({dot:(Component.SVC_STATUS[h.status]||{dot:'#9aa6b4'}).dot,what:[h.status?(Component.SVC_STATUS[h.status]||{label:h.status}).label:'',h.assigned_to!==undefined?('Assigned to '+(h.assigned_to?h.assigned_to.name:'nobody')):''].filter(Boolean).join(' · '),note:h.note||'',meta:this.fmt(h.at,true)+(h.by?' · by '+h.by.name:'')})),{dot:'#9aa6b4',what:'Request received',note:'',meta:this.fmt(s.rq.r.created_at,true)+' · from '+s.rq.r.name}]:[],
@@ -758,6 +905,11 @@ export default class Component extends React.Component {
                     ))}
                   </div>
                   <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+                    <select name="source" value={val(v.pf?.source, "")} onChange={v.onPF} aria-label="Who posted" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "150px"}}>
+                      <option value="">All posts</option>
+                      <option value="official">Officials' posts</option>
+                      <option value="citizen">Citizens' posts</option>
+                    </select>
                     <select name="district" value={val(v.pf?.district, "")} onChange={v.onPF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
                       <option value="">All districts</option>
                       {list(v.districtOpts).map((_o, _i1) => (
@@ -1039,7 +1191,13 @@ export default class Component extends React.Component {
                   </div>
                 </> : null}
                 {/* SERVICE REQUESTS */}
-                {v.pg?.requests ? <>
+                {v.pg?.requests && v.canCatalog ? <div role="tablist" aria-label="Services" style={{display: "inline-flex", alignSelf: "flex-start", gap: "4px", padding: "4px", borderRadius: "12px", background: "#eef2f6"}}>
+                    {list(v.svcTabs).map((_t, _i1) => (
+                      <button key={_i1} role="tab" aria-selected={!!_t?.on} onClick={_t?.go} style={css(`height:36px;padding:0 18px;border:0;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;background: ${_t?.bg};color: ${_t?.color};box-shadow: ${_t?.shadow}`)}>{I(_t?.label)}</button>
+                    ))}
+                  </div> : null}
+                {v.pg?.requests && (v.svcView === "requests" || !v.canCatalog) ? <>
+                  <span style={{fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>Requests citizens send from the app. Each goes to the Village Admin of their village; the Mandal and District Admins see it too.</span>
                   <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto"}}>
                     {list(v.reqTabs).map((_s, _i1) => (
                       <React.Fragment key={_i1}>
@@ -1052,10 +1210,6 @@ export default class Component extends React.Component {
                   </div>
                   <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
                     <input value={val(v.reqQ, "")} onChange={v.onReqQ} placeholder="Search name or phone" aria-label="Search service requests" style={{flex: "1", minWidth: "200px", maxWidth: "340px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px"}} />
-                    <label style={{display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: "600", color: "#3b4a5c", cursor: "pointer"}}>
-                      <input type="checkbox" checked={!!v.reqMine} onChange={v.toggleReqMine} style={{width: "16px", height: "16px"}} />
-                      Assigned to me
-                    </label>
                     <span style={{fontSize: "13px", color: "#6b7a8c", marginLeft: "auto"}}>{I(v.reqCountLabel)}</span>
                   </div>
                   <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
@@ -1077,7 +1231,7 @@ export default class Component extends React.Component {
                             <tr style={{borderTop: "1px solid #f3f5f8"}}>
                               <td style={{padding: "10px 16px", color: "#6b7a8c", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>{I(_c?.time)}</td>
                               <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.service)}<div style={{fontWeight: "400", color: "#6b7a8c", fontSize: "12px"}}>{"No. "}{I(_c?.ref)}</div></td>
-                              <td style={{padding: "10px 16px", color: "#17212e"}}>{I(_c?.name)}<div style={{color: "#6b7a8c", fontSize: "12px", whiteSpace: "nowrap"}}>{I(_c?.mobile)}</div></td>
+                              <td style={{padding: "10px 16px", color: "#17212e"}}>{I(_c?.name)}<div style={{color: "#6b7a8c", fontSize: "12px", whiteSpace: "nowrap"}}>{I(_c?.mobile)}</div>{_c?.address ? <div style={{color: "#3b4a5c", fontSize: "12px", maxWidth: "240px"}}>{I(_c?.address)}</div> : null}</td>
                               <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.place)}</td>
                               <td style={{padding: "10px 16px"}}>
                                 <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.sbg ?? ""};color: ${_c?.scolor ?? ""}`)}>{I(_c?.status)}</span>
@@ -1098,6 +1252,62 @@ export default class Component extends React.Component {
                       <span>{"Page "}{I(v.reqPager?.page)}{" of "}{I(v.reqPager?.pages)}</span>
                       <button onClick={v.reqPager?.next} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${v.reqPager?.nextOpacity ?? ""}`)}>Next ›</button>
                     </div> : null}
+                </> : null}
+                {/* ADS */}
+                {v.pg?.ads ? <>
+                  <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+                    <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>Banners at the top of citizens' Home page, after the welcome picture. Each shows only in the area and on the dates you choose.</span>
+                    <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.adsCountLabel)}</span>
+                    <button onClick={v.newAd} disabled={v.adsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;opacity: ${v.adsUnavailable ? .5 : 1}`)}>+ New ad</button>
+                  </div>
+                  <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+                    {list(v.adRows).map((_a, _i1) => (
+                      <React.Fragment key={_i1}>
+                        <div style={css(`display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap;border-top: ${_i1 ? "1px solid #f3f5f8" : "0"}`)}>
+                          <button onClick={_a?.open} aria-label={"Edit " + (_a?.title || "")} style={css(`width:144px;aspect-ratio:3/2;border:0;padding:0;border-radius:10px;overflow:hidden;background:#f1f3f6;cursor:pointer;flex-shrink:0;opacity: ${_a?.dim ?? 1}`)}>
+                            <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={_a?.image} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={_a?.image} alt="" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span>
+                          </button>
+                          <div style={{flex: "1", minWidth: "180px", display: "flex", flexDirection: "column", gap: "4px"}}>
+                            <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14.5px"}}>{I(_a?.title)}</span>
+                            <span style={{fontSize: "13px", color: "#3b4a5c"}}>{I(_a?.area)}</span>
+                            <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(_a?.dates)}</span>
+                          </div>
+                          <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_a?.sbg ?? ""};color: ${_a?.scolor ?? ""}`)}>{I(_a?.status)}</span>
+                          <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+                            {_a?.canToggle ? <button type="button" role="switch" aria-checked={!!_a?.on} aria-label={"Show " + (_a?.title || "")} onClick={_a?.toggle} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${_a?.on ? "flex-end" : "flex-start"};background: ${_a?.on ? "#1F8A3B" : "#cfd8e3"}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button> : null}
+                            <button onClick={_a?.open} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button>
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                    {v.adsEmpty ? <div style={{padding: "40px", textAlign: "center", color: "#6b7a8c", fontSize: "13px"}}>{I(v.adsEmptyText)}</div> : null}
+                  </div>
+                </> : null}
+                {/* SERVICES: the services citizens can request from Home (same as the app's Super Admin › Services) */}
+                {v.pg?.requests && v.canCatalog && v.svcView === "catalog" ? <>
+                  <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+                    <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>The services citizens can choose from on the app's Home. Only the Super Admin adds or changes them.</span>
+                    <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.svcShownLabel)}</span>
+                    <button onClick={v.newService} disabled={v.svcsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;opacity: ${v.svcsUnavailable ? .5 : 1}`)}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New service</button>
+                  </div>
+                  {v.svcsUnavailable ? <div role="status" style={{background: "#FFF0DC", color: "#9a4a08", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", lineHeight: "1.5"}}>The services list is not on the server yet. Until it is, citizens see the built-in list below, and changes can't be saved.</div> : null}
+                  <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+                    {list(v.svcRows).map((_g, _i1) => (
+                      <div key={_i1} style={css(`display:flex;align-items:center;gap:14px;padding:12px 16px;border-top: ${_i1 ? "1px solid #f3f5f8" : "0"}`)}>
+                        <span style={{opacity: _g?.on ? "1" : ".45", display: "flex"}}><span style={{width: "44px", height: "44px", borderRadius: "13px", background: _g.tint, color: _g.c, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>{_g.img ? <img src={_g.img} alt="" style={{height: "24px", maxWidth: "30px"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={_g.d} /></svg>}</span></span>
+                        <button onClick={_g?.open} disabled={_g?.locked} style={{flex: "1", minWidth: "0", display: "flex", flexDirection: "column", gap: "2px", textAlign: "left", background: "none", border: "0", padding: "0", cursor: _g?.locked ? "default" : "pointer"}}>
+                          <span style={{fontWeight: "700", fontSize: "14.5px", color: _g?.on ? "#0A2550" : "#6b7a8c"}}>{I(_g?.name)}</span>
+                          <span style={{fontSize: "12.5px", color: "#6b7a8c"}}>{I(_g?.sub)}</span>
+                        </button>
+                        <button onClick={_g?.up} disabled={!_g?.canUp} aria-label={"Move up: " + (_g?.name || "")} style={{width: "34px", height: "34px", border: "0", borderRadius: "8px", background: "none", cursor: "pointer", color: _g?.canUp ? "#3b4a5c" : "#cfd8e3", display: "flex", alignItems: "center", justifyContent: "center"}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6" /></svg></button>
+                        <button onClick={_g?.down} disabled={!_g?.canDown} aria-label={"Move down: " + (_g?.name || "")} style={{width: "34px", height: "34px", border: "0", borderRadius: "8px", background: "none", cursor: "pointer", color: _g?.canDown ? "#3b4a5c" : "#cfd8e3", display: "flex", alignItems: "center", justifyContent: "center"}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+                        <button type="button" role="switch" aria-checked={!!_g?.on} aria-label={"Show on Home: " + (_g?.name || "")} onClick={_g?.toggle} disabled={_g?.locked} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${_g?.on ? "flex-end" : "flex-start"};background: ${_g?.on ? "#1F8A3B" : "#cfd8e3"};opacity: ${_g?.locked ? .5 : 1}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
+                        <button onClick={_g?.open} disabled={_g?.locked} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", opacity: _g?.locked ? ".5" : "1"}}>Edit</button>
+                      </div>
+                    ))}
+                    {v.svcsEmpty ? <div style={{padding: "40px", textAlign: "center", color: "#6b7a8c", fontSize: "13px"}}>{I(v.svcsEmptyText)}</div> : null}
+                  </div>
+                  <span style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.5"}}>Use the arrows to set the order on Home. A hidden service is not on Home; requests already sent stay as they are.</span>
                 </> : null}
                 {/* IMPORTANT NUMBERS */}
                 {v.pg?.numbers ? <>
@@ -1523,37 +1733,50 @@ export default class Component extends React.Component {
                 </button>
               </div>
               <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px"}}>
-                <div style={{display: "flex", flexDirection: "column", gap: "6px", fontSize: "14px", color: "#17212e"}}>
-                  <span style={{fontWeight: "700", color: "#0A2550"}}>{I(v.rq?.name)}</span>
-                  <a href={v.rq?.tel} style={{color: "#0D3B7A", fontWeight: "700", textDecoration: "none"}}>{I(v.rq?.mobile)}</a>
-                  {v.rq?.email ? <a href={v.rq?.mailto} style={{color: "#0D3B7A", textDecoration: "none"}}>{I(v.rq?.email)}</a> : null}
-                  <span style={{color: "#3b4a5c"}}>{I(v.rq?.place)}</span>
+                <div role="img" aria-label={"Status: " + (v.rq?.statusLabel || "")} style={{display: "flex", alignItems: "flex-start", flexShrink: "0"}}>
+                  {list(v.rqView?.steps).map((_p, _i1) => (
+                    <React.Fragment key={_i1}>
+                      {_p?.line ? <span style={{flex: "1", height: "2px", marginTop: "9px", background: _p.line}} /> : null}
+                      <span style={{width: "72px", display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", flexShrink: "0"}}>
+                        <span style={{width: "20px", height: "20px", borderRadius: "50%", boxSizing: "border-box", background: _p?.bg, border: _p?.bw + "px solid " + _p?.border, color: "#fff", fontSize: "11px", fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center"}}>{_p?.mark}</span>
+                        <span style={{fontSize: "11px", fontWeight: _p?.weight, color: _p?.color, textAlign: "center", lineHeight: "1.2"}}>{I(_p?.label)}</span>
+                      </span>
+                    </React.Fragment>
+                  ))}
                 </div>
-                {v.rq?.details ? <div style={{background: "#f7f9fb", borderRadius: "10px", padding: "12px 14px", fontSize: "14px", color: "#3b4a5c", lineHeight: "1.5"}}>{I(v.rq?.details)}</div> : null}
-                {v.rq?.canEdit ? <>
-                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Status</span>
-                    <select name="status" value={val(v.rq?.status, "")} onChange={v.onRQ} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
-                      {list(v.rqStatusOpts).map((_o, _i1) => (
-                        <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
+                <div style={{border: "1px solid #eef2f6", borderRadius: "14px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "12px", flexShrink: "0"}}>
+                  <div style={{display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap"}}>
+                    <span style={{fontSize: "13px", fontWeight: "700", color: "#6b7a8c"}}>Current status</span>
+                    <span style={{padding: "5px 14px", borderRadius: "999px", fontSize: "15px", fontWeight: "800", background: v.rqView?.curBg, color: v.rqView?.curColor}}>{I(v.rqView?.curLabel)}</span>
+                  </div>
+                  {v.rqView?.note ? <span style={{fontSize: "13.5px", color: "#3b4a5c", lineHeight: "1.45"}}>{"Note to the citizen: “"}{I(v.rqView?.note)}{"”"}</span> : null}
+                  {v.rqView?.viewOnly ? <span style={{display: "flex", gap: "8px", alignItems: "flex-start", padding: "10px 12px", borderRadius: "10px", background: "#f7f9fb", fontSize: "13px", color: "#3b4a5c", lineHeight: "1.4"}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink: "0", marginTop: "1px"}} aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>{I(v.rqView?.viewOnly)}</span> : null}
+                  {list(v.rqView?.moves).length ? <>
+                    <span style={{fontSize: "13px", fontWeight: "700", color: "#6b7a8c"}}>Change status to</span>
+                    <div style={{display: "flex", gap: "8px", flexWrap: "wrap"}}>
+                      {list(v.rqView?.moves).map((_m, _i1) => (
+                        <button key={_i1} onClick={_m?.go} style={{height: "38px", padding: "0 16px", borderRadius: "999px", border: "1.5px solid #cfd8e3", background: "#fff", color: _m?.color, fontWeight: "700", fontSize: "13.5px", cursor: "pointer"}}>{I(_m?.label)}</button>
                       ))}
-                    </select>
-                  </label>
-                  {v.rq?.canAssign ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                      <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Assign to</span>
-                      <select name="assigned" value={val(v.rq?.assigned, "")} onChange={v.onRQ} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
-                        {list(v.rqAssigneeOpts).map((_o, _i1) => (
-                          <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
-                        ))}
-                      </select>
-                    </label> : null}
-                  <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.rq?.noteLabel)}</span>
-                    <textarea name="note" value={val(v.rq?.note, "")} onChange={v.onRQ} rows="3" maxLength="500" placeholder="e.g. Come to the Sachivalayam on Monday with your documents" style={{padding: "10px 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", fontFamily: "inherit", resize: "vertical"}} />
-                  </label>
-                </> : null}
+                    </div>
+                  </> : null}
+                </div>
+                <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>Requested by</span>
+                <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden", marginTop: "-6px", flexShrink: "0"}}>
+                  <div style={{display: "flex", flexDirection: "column", gap: "2px", padding: "10px 14px"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Name</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.name)}</span></div>
+                  <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: "1px solid #f3f5f8"}}><span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Phone</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.mobile)}</span></span><a href={v.rq?.tel} style={{color: "#0D3B7A", fontWeight: "700", fontSize: "14px", textDecoration: "none", padding: "8px"}}>Call</a></div>
+                  {v.rq?.email ? <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: "1px solid #f3f5f8"}}><span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Email</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.email)}</span></span><a href={v.rq?.mailto} style={{color: "#0D3B7A", fontWeight: "700", fontSize: "14px", textDecoration: "none", padding: "8px"}}>Email</a></div> : null}
+                  {v.rq?.address ? <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: "1px solid #f3f5f8"}}><span style={{display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Address</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.address)}</span></span></div> : null}
+                  <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: "1px solid #f3f5f8"}}><span style={{display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Village</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.place)}</span></span></div>
+                  {v.rq?.details ? <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: "1px solid #f3f5f8"}}><span style={{display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>What they need</span><span style={{fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"}}>{I(v.rq?.details)}</span></span></div> : null}
+                </div>
+                <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>Assigned to</span>
+                {v.rq?.canAssign ? <select aria-label="Assigned to" value={val(v.rq?.assigned, "")} onChange={v.rqView?.onAssign} style={{height: "46px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "12px", fontSize: "14.5px", fontWeight: "600", background: "#fff", marginTop: "-6px", flexShrink: "0"}}>
+                    {list(v.rqAssigneeOpts).map((_o, _i1) => (
+                      <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
+                    ))}
+                  </select> : <div style={{border: "1px solid #eef2f6", borderRadius: "14px", padding: "12px 14px", fontSize: "14.5px", fontWeight: "600", color: "#17212e", marginTop: "-6px", flexShrink: "0"}}>{I(v.rqView?.assignedName)}</div>}
                 <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-                  <span style={{fontSize: "12px", fontWeight: "700", color: "#6b7a8c", letterSpacing: ".04em", textTransform: "uppercase"}}>History</span>
+                  <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>History</span>
                   {list(v.rqHistory).map((_h, _i1) => (
                     <React.Fragment key={_i1}>
                       <div style={{display: "flex", gap: "10px", fontSize: "13px"}}>
@@ -1568,10 +1791,168 @@ export default class Component extends React.Component {
                   ))}
                 </div>
               </div>
-              {v.rq?.canEdit ? <div style={{padding: "14px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px", justifyContent: "flex-end"}}>
-                  <button onClick={v.closeRQ} style={{height: "42px", padding: "0 18px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
-                  <button onClick={v.saveRQ} disabled={!v.rq?.canSave} style={css(`height:42px;padding:0 22px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.rq?.canSave ? 1 : .5}`)}>Save</button>
-                </div> : null}
+              {/* each change above saves at once, as in the app */}
+            </div>
+          </> : null}
+          {v.sfShow ? <>
+            <div onClick={v.closeSF} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
+            <div role="dialog" aria-label={v.sf?.title} style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(480px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
+                <div style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.sf?.title)}</div>
+                <button onClick={v.closeSF} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+              </div>
+              <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px"}}>
+                <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "6px"}}>
+                  <div style={{width: "108px", padding: "14px 8px", borderRadius: "16px", background: "#fff", border: "1px solid #eef2f6", boxShadow: "0 4px 14px rgba(0,64,126,.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px"}}>
+                    <span style={{width: "52px", height: "52px", borderRadius: "15px", background: v.sf.tint, color: v.sf.c, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>{v.sf.img ? <img src={v.sf.img} alt="" style={{height: "28px", maxWidth: "36px"}} /> : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={v.sf.d} /></svg>}</span>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550", textAlign: "center", lineHeight: "1.3", wordBreak: "break-word"}}>{I(v.sf?.preview)}</span>
+                  </div>
+                  <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>How it looks on Home</span>
+                </div>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English) <span style={{color: "#b3261e"}}>*</span></span>
+                  <input name="en" value={val(v.sf?.en, "")} onChange={v.sf?.onField} placeholder="e.g. Ration Card" maxLength="60" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", borderColor: v.sf?.err ? "#b3261e" : "#cfd8e3"}} />
+                  {v.sf?.err ? <span role="alert" style={{fontSize: "12px", color: "#b3261e", fontWeight: "700"}}>{I(v.sf.err)}</span> : null}
+                </label>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (Telugu)</span>
+                  <input name="te" value={val(v.sf?.te, "")} onChange={v.sf?.onField} placeholder="ఉదా: రేషన్ కార్డు" maxLength="60" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                  <span style={{fontSize: "12px", color: "#6b7a8c"}}>Shown when the app is in Telugu. Left empty, the English name is used.</span>
+                </label>
+                <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Icon <span style={{color: "#b3261e"}}>*</span></span>
+                  <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "12px", background: "#fff", border: v.sf?.ownIcon ? "2px solid " + v.sf.c : "1px solid #cfd8e3"}}>
+                    <span style={{width: "48px", height: "48px", borderRadius: "12px", background: v.sf?.ownIcon ? v.sf.tint : "#f7f9fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>
+                      {v.sf?.ownIcon ? <img src={v.sf.ownIcon} alt="" style={{width: "32px", height: "32px", objectFit: "contain"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D3B7A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" /></svg>}
+                    </span>
+                    <span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
+                      <span style={{fontWeight: "700", fontSize: "13.5px", color: "#0A2550"}}>{v.sf?.ownIcon ? "Your icon" : "Upload your own icon"}</span>
+                      <span style={{fontSize: "12px", color: "#6b7a8c"}}>Square PNG, JPG or WebP, at least 64 × 64, up to 2 MB. For example a department logo.</span>
+                    </span>
+                    <button type="button" onClick={v.sf?.pickIcon} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}>{v.sf?.ownIcon ? "Change" : "Upload"}</button>
+                    {v.sf?.ownIcon ? <button type="button" onClick={v.sf?.removeIcon} aria-label="Remove the uploaded icon" style={{height: "32px", padding: "0 10px", border: "0", borderRadius: "999px", background: "none", color: "#b3261e", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}>Remove</button> : null}
+                  </div>
+                  <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Or pick one from the set</span>
+                  <div role="radiogroup" aria-label="Icon" style={{display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(52px,1fr))", gap: "8px"}}>
+                    {list(v.sf?.icons).map((_o, _i1) => (
+                      <button key={_i1} role="radio" aria-checked={_o?.on} aria-label={"Icon: " + _o?.k.replace("_", " ")} onClick={_o?.pick} style={{height: "52px", borderRadius: "12px", border: _o?.on ? "2px solid " + v.sf.c : "1px solid #cfd8e3", background: _o?.on ? v.sf.tint : "#fff", color: _o?.on ? v.sf.c : "#3b4a5c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                        {_o?.img ? <img src={_o.img} alt="" style={{height: "24px", maxWidth: "36px"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={_o?.d} /></svg>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Colour</span>
+                  <div role="radiogroup" aria-label="Colour" style={{display: "flex", gap: "12px", flexWrap: "wrap"}}>
+                    {list(v.sf?.colors).map((_o, _i1) => (
+                      <button key={_i1} role="radio" aria-checked={_o?.on} aria-label={"Colour: " + _o?.label} onClick={_o?.pick} style={{width: "46px", height: "46px", padding: "3px", borderRadius: "50%", border: "2.5px solid " + (_o?.on ? _o?.c : "transparent"), background: "none", cursor: "pointer"}}>
+                        <span style={{width: "100%", height: "100%", borderRadius: "50%", background: _o?.tint, display: "flex", alignItems: "center", justifyContent: "center"}}><span style={{width: "14px", height: "14px", borderRadius: "50%", background: _o?.c}} /></span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{display: "flex", alignItems: "center", gap: "12px", border: "1px solid #eef2f6", borderRadius: "14px", padding: "12px 14px"}}>
+                  <div style={{flex: "1"}}>
+                    <div style={{fontSize: "14px", fontWeight: "700", color: "#0A2550"}}>Show on Home</div>
+                    <div style={{fontSize: "12px", color: "#6b7a8c"}}>When off, citizens do not see it</div>
+                  </div>
+                  <button type="button" role="switch" aria-checked={!!v.sf?.active} aria-label={"Show on Home"} onClick={v.sf?.toggle} disabled={false} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${v.sf?.active ? "flex-end" : "flex-start"};background: ${v.sf?.active ? "#1F8A3B" : "#cfd8e3"};opacity: ${false ? .5 : 1}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
+                </div>
+              </div>
+              <div style={{display: "flex", gap: "10px", padding: "16px 24px", borderTop: "1px solid #eef2f6"}}>
+                <button onClick={v.closeSF} style={{flex: "1", height: "46px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", fontSize: "14px", cursor: "pointer"}}>Cancel</button>
+                <button onClick={v.saveSF} disabled={v.sf?.saving} style={{flex: "1", height: "46px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", fontSize: "14px", cursor: "pointer", opacity: v.sf?.saving ? ".6" : "1"}}>{I(v.sf?.saveLabel)}</button>
+              </div>
+            </div>
+          </> : null}
+          {v.afShow ? <>
+            <div onClick={v.closeAF} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
+            <div role="dialog" aria-label={v.af?.title_} style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(500px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
+                <span style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.af?.title_)}</span>
+                <button onClick={v.closeAF} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px"}}>
+                <div style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Banner image <span style={{color: "#b3261e"}}>*</span></span>
+                  <button onClick={v.pickAdImage} style={css(`aspect-ratio:3/2;width:100%;border-radius:12px;overflow:hidden;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;background: ${v.af?.preview ? "#0A2550" : "#eef4fb"};border: ${v.af?.preview ? "0" : "1.5px dashed " + (v.af?.errImage ? "#b3261e" : "#9db8d9")}`)}>
+                    {v.af?.preview ? <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={v.af?.preview} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={v.af?.preview} alt="Banner preview" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span> : <>
+                      <span style={{fontWeight: "700", color: "#0D3B7A", fontSize: "14px"}}>Choose an image</span>
+                      <span style={{fontSize: "12px", color: "#3b4a5c"}}>Wide picture, 3:2 (e.g. 1500 × 1000), JPG or PNG, up to 5 MB</span>
+                    </>}
+                  </button>
+                  {v.af?.preview ? <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                      <span style={{flex: "1", fontSize: "12px", color: "#6b7a8c"}}>This is how it looks on Home. The whole picture is shown, nothing is cut off; a wide 3:2 picture fills the banner best.</span>
+                      <button onClick={v.pickAdImage} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Change image</button>
+                    </div> : null}
+                  {v.af?.errImage ? <span style={{fontSize: "12px", fontWeight: "700", color: "#b3261e"}}>{I(v.af?.errImage)}</span> : null}
+                </div>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Ad name <span style={{color: "#b3261e"}}>*</span></span>
+                  <input name="title" value={val(v.af?.title, "")} onChange={v.onAF} maxLength="80" placeholder="e.g. Free eye camp at Tenali" style={css(`height:42px;padding:0 12px;border-radius:10px;font-size:14px;background:#fff;border:1px solid ${v.af?.errTitle ? "#b3261e" : "#cfd8e3"}`)} />
+                  <span style={{fontSize: "12px", color: v.af?.errTitle ? "#b3261e" : "#6b7a8c", fontWeight: v.af?.errTitle ? "700" : "400"}}>{v.af?.errTitle || "Shown in this list and read out by screen readers in the app."}</span>
+                </label>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Link to open on tap</span>
+                  <input name="link" value={val(v.af?.link, "")} onChange={v.onAF} maxLength="500" placeholder="https://" style={css(`height:42px;padding:0 12px;border-radius:10px;font-size:14px;background:#fff;border:1px solid ${v.af?.errLink ? "#b3261e" : "#cfd8e3"}`)} />
+                  <span style={{fontSize: "12px", color: v.af?.errLink ? "#b3261e" : "#6b7a8c", fontWeight: v.af?.errLink ? "700" : "400"}}>{v.af?.errLink || "Optional. Without a link, tapping the banner does nothing."}</span>
+                </label>
+                <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Who sees it</span>
+                  <span style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.4"}}>Leave it on All to show it in every village, or pick a district, mandal or village to show it only there.</span>
+                  <label style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>District</span>
+                    <select name="d" value={val(v.af?.d, "")} onChange={v.onAF} style={{height: "42px", padding: "0 12px", borderRadius: "10px", fontSize: "14px", background: "#fff", border: "1px solid #cfd8e3"}}>
+                      <option value="">All districts</option>
+                      {list(v.af?.dOpts).map((_o, _i1) => <option key={_i1} value={_o?.id}>{_o?.label}</option>)}
+                    </select>
+                  </label>
+                  {v.af?.showM ? <label style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+                      <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Mandal</span>
+                      <select name="m" value={val(v.af?.m, "")} onChange={v.onAF} style={{height: "42px", padding: "0 12px", borderRadius: "10px", fontSize: "14px", background: "#fff", border: "1px solid #cfd8e3"}}>
+                        <option value="">{v.af?.allM}</option>
+                        {list(v.af?.mOpts).map((_o, _i1) => <option key={_i1} value={_o?.id}>{_o?.label}</option>)}
+                      </select>
+                    </label> : null}
+                  {v.af?.showV ? <label style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+                      <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>Village</span>
+                      <select name="v" value={val(v.af?.v, "")} onChange={v.onAF} style={{height: "42px", padding: "0 12px", borderRadius: "10px", fontSize: "14px", background: "#fff", border: "1px solid #cfd8e3"}}>
+                        <option value="">{v.af?.allV}</option>
+                        {list(v.af?.vOpts).map((_o, _i1) => <option key={_i1} value={_o?.id}>{_o?.label}</option>)}
+                      </select>
+                    </label> : null}
+                  <div aria-live="polite" style={{display: "flex", gap: "8px", alignItems: "flex-start", padding: "10px 12px", borderRadius: "10px", background: "#eef4fb", fontSize: "13px", color: "#0A2550", lineHeight: "1.4"}}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D3B7A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink: "0", marginTop: "1px"}}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                    <span>Shows in: <b>{I(v.af?.where)}</b></span>
+                  </div>
+                </div>
+                <div style={{display: "flex", gap: "12px", flexWrap: "wrap"}}>
+                  <label style={{flex: "1", minWidth: "160px", display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Start</span>
+                    <input type="date" name="start" value={val(v.af?.start, "")} onChange={v.onAF} style={{height: "42px", padding: "0 12px", borderRadius: "10px", fontSize: "14px", background: "#fff", border: "1px solid #cfd8e3"}} />
+                  </label>
+                  <label style={{flex: "1", minWidth: "160px", display: "flex", flexDirection: "column", gap: "6px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>End <span style={{fontWeight: "400", color: "#6b7a8c"}}>(empty = no end)</span></span>
+                    <input type="date" name="end" value={val(v.af?.end, "")} onChange={v.onAF} style={css(`height:42px;padding:0 12px;border-radius:10px;font-size:14px;background:#fff;border:1px solid ${v.af?.errEnd ? "#b3261e" : "#cfd8e3"}`)} />
+                  </label>
+                </div>
+                {v.af?.errEnd ? <span style={{fontSize: "12px", fontWeight: "700", color: "#b3261e"}}>{I(v.af?.errEnd)}</span> : null}
+                <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", border: "1px solid #eef2f6", borderRadius: "12px"}}>
+                  <span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px"}}>
+                    <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14px"}}>Show this ad</span>
+                    <span style={{fontSize: "12px", color: "#6b7a8c"}}>When off, it is hidden even on its dates.</span>
+                  </span>
+                  <button type="button" role="switch" aria-checked={!!v.af?.active} aria-label="Show this ad" onClick={v.af?.toggleActive} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${v.af?.active ? "flex-end" : "flex-start"};background: ${v.af?.active ? "#1F8A3B" : "#cfd8e3"}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
+                </div>
+              </div>
+              <div style={{padding: "14px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px", alignItems: "center"}}>
+                {v.af?.isEdit ? <button onClick={v.af?.del} style={{height: "42px", padding: "0 16px", border: "1px solid #f0c7c4", borderRadius: "999px", background: "#fff", color: "#b3261e", fontWeight: "700", cursor: "pointer"}}>Delete</button> : null}
+                <span style={{flex: "1"}} />
+                <button onClick={v.closeAF} style={{height: "42px", padding: "0 18px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
+                <button onClick={v.saveAF} disabled={!!v.af?.saving} style={css(`height:42px;padding:0 22px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.af?.saving ? .6 : 1}`)}>{I(v.af?.saveLabel)}</button>
+              </div>
             </div>
           </> : null}
           {v.nfShow ? <>
@@ -1699,6 +2080,15 @@ export default class Component extends React.Component {
           {" "}
         </> : null}
         {" "}
+        {/* CSV import progress */}
+        {v.imp ? <div style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "60", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px"}}>
+            <div role="status" aria-live="polite" style={{width: "min(420px, 100%)", background: "#fff", borderRadius: "16px", padding: "22px 24px", boxShadow: "0 20px 50px rgba(0,64,126,.25)", display: "flex", flexDirection: "column", gap: "12px"}}>
+              <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "16px", color: "#0A2550"}}>{I(v.imp.label)}</div>
+              <div style={{fontSize: "13px", color: "#6b7a8c", wordBreak: "break-all"}}>{I(v.imp.name)}</div>
+              <div style={{height: "8px", borderRadius: "999px", background: "#eef2f6", overflow: "hidden"}}><div style={{height: "100%", width: v.imp.pct + "%", background: "#0D3B7A", borderRadius: "999px", transition: "width .3s ease"}} /></div>
+              <div style={{fontSize: "12px", color: "#6b7a8c"}}>Keep this page open until it finishes.</div>
+            </div>
+          </div> : null}
         {/* TOASTS */}
         {" "}
         <div style={{position: "fixed", top: "20px", right: "24px", display: "flex", flexDirection: "column", gap: "8px", zIndex: "100", pointerEvents: "none"}}>
