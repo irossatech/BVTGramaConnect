@@ -7,8 +7,22 @@ import * as ds from "./ds";
 import GC_API from "../lib/console-api";
 import { decodeUtf8, planParts, fileLine } from "../lib/csv-parts";
 
+// Select several rows and remove them at once: a tick box (with the "some" dash) and the bar shown while rows are ticked.
+const TickBox = ({on, some, onChange, label}) => (
+  <input type="checkbox" checked={!!on} onChange={onChange} aria-label={label} ref={el => { if (el) el.indeterminate = !!some; }} style={{width: "18px", height: "18px", accentColor: "#0D3B7A", cursor: "pointer", margin: "0", flexShrink: "0"}} />
+);
+const SelBar = ({sel, removeLabel}) => sel?.count ? (
+  <div role="region" aria-label="Selected rows" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
+    <strong style={{fontWeight: "700"}}>{sel.label}</strong>
+    {sel.busy ? <span aria-live="polite" style={{color: "#3b4a5c"}}>{sel.busy}</span> : <>
+      <button onClick={sel.remove} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{removeLabel}</button>
+      <button onClick={sel.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
+    </>}
+  </div>
+) : null;
+
 export default class Component extends React.Component {
-  static ICON={services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  static ICON={bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   static STATUS={Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
   static ROLE={super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
   static CATL={announce:'Announcements',schemes:'Govt Schemes',news:'News & Notices',updates:'Public Updates'};
@@ -26,13 +40,13 @@ export default class Component extends React.Component {
   static AD_STATUS={live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#6b7a8c'}};
   // Service request: what the citizen is told when it moves to each status.
   static SVC_MOVE={NEW:'The request goes back to New.',APPROVED:'The citizen sees that it is approved.',IN_PROGRESS:'The citizen sees that work has started.',COMPLETED:'The citizen sees that it is done. Write what they should do next.',REJECTED:'Write why. The citizen sees your reason.'};
-  static PAGES=['dashboard','geography','users','posts','requests','ads','reports','audit','contact','numbers','settings'];
+  static PAGES=['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
   // Service requests from citizens (backend plan: service-requests). Status keys as the server sends them.
   static SVC_STATUS={NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'}};
   static SERVICES={aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
   static LVROLE={DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  static NAV_PERM={services:['service_requests.manage_services','web_admin.access_web_console'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services','posts.view_review_queue'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  static NAV_PERM={bills:['bills.manage_bills','service_requests.manage_services'],services:['service_requests.manage_services','web_admin.access_web_console'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services','posts.view_review_queue'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   static MANAGE={district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   static CONSOLE_PERM='web_admin.access_web_console';
   static LOGIN_ERR={invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
@@ -40,8 +54,8 @@ export default class Component extends React.Component {
   state={screen:'checking',page:'dashboard',username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},menuOpen:false,gsearch:'',me:null,
     geo:[],stateRow:null,expanded:{},geoForm:null,
     users:[],userCount:0,userPage:1,userPages:1,usersLoading:false,
-    reqs:[],reqCount:0,reqPage:1,reqPages:1,reqLoading:false,reqFilter:'NEW',svcView:'requests',ads:[],adsLoading:false,adsUnavailable:false,af:null,svcs:[],svcsLoading:false,svcsUnavailable:false,sf:null,reqQ:'',reqCounts:{},reqUnavailable:false,rq:null,rqAssignees:[],uf:{role:'',district:'',status:'',q:''},
-    posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:'',source:''},statusTab:'Pending',
+    reqs:[],reqCount:0,reqPage:1,reqPages:1,reqLoading:false,reqFilter:'NEW',svcView:'requests',ads:[],adsLoading:false,adsUnavailable:false,af:null,svcs:[],svcsLoading:false,svcsUnavailable:false,bills:[],billsLoading:false,billsUnavailable:false,sf:null,reqQ:'',reqCounts:{},reqUnavailable:false,rq:null,rqAssignees:[],uf:{role:'',district:'',status:'',q:''},
+    posts:[],postCount:0,postPage:1,postPages:1,postsLoading:false,statusCounts:{},pendingCount:0,pf:{district:'',cat:'',source:''},statusTab:'Pending',numSel:[],adSel:[],bulk:'',
     panel:null,panelPost:null,panelHistory:[],panelUser:null,panelUserPosts:[],drawerOpen:false,nu:{id:null,name:'',te:'',email:'',username:'',mobile:'',password:'',role:'panchayat',area:'',nuD:'',nuM:''},
     audit:[],auditCount:0,auditPage:1,auditPages:1,auditQ:'',auditLoading:false,
     contacts:[],contactCount:0,contactPage:1,contactPages:1,contactQ:'',contactFilter:'new',contactLoading:false,
@@ -102,6 +116,10 @@ export default class Component extends React.Component {
   dayKey(d){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(d)}
   fmtLast(iso){if(!iso)return 'Never';const d=new Date(iso),now=new Date();const t=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(d);if(this.dayKey(d)===this.dayKey(now))return 'Today '+t;if(this.dayKey(d)===this.dayKey(new Date(now-864e5)))return 'Yesterday '+t;return this.fmt(iso,false)}
   te(ref){return ref?(this._te||{})[ref.level+':'+ref.id]||'':''}
+  // Where a post goes: one post can go to Everyone or to several areas (`targets`): "Guntur +2".
+  postWhere(p){const t=p.targets||[];if(!t.length)return this.an(p.target_area);if(t[0].level==='STATE')return 'Everyone';return this.an(t[0])+(t.length>1?' +'+(t.length-1):'')}
+  // "Tenali · తెనాలి"; just "Tenali" when there is no Telugu name (the server then sends the English one again).
+  nl(x){const t=(x.te||'').trim();return x.name+(t&&t.toLowerCase()!==String(x.name).trim().toLowerCase()?' · '+t:'')}
   an(ref){if(!ref)return '';const t=this.te(ref);return ref.name+(t&&t!==ref.name?' · '+t:'')}
   pathParts(area){const parts=(area&&area.path?area.path.split(' · '):[]);const lv=area&&area.level;const r={district:null,mandal:null,village:null};if(lv==='VILLAGE'){r.village=parts[0];r.mandal=parts[1];r.district=parts[2]}else if(lv==='MANDAL'){r.mandal=parts[0];r.district=parts[1]}else if(lv==='DISTRICT'){r.district=parts[0]}return r}
 
@@ -116,13 +134,13 @@ export default class Component extends React.Component {
   logout(leave){this.api.logout().finally(()=>{if(leave){window.location.replace('/');return}this.setState({screen:'login',menuOpen:false,panel:null,drawerOpen:false,modal:null,username:'',password:'',cpCurrent:'',cpNext:'',cpVoluntary:false,showPw:{},me:null});this.toast('Signed out')})}
 
   // ---- loading ----
-  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='ads')this.loadAds();if(p==='requests'){this.loadRequests(1);if(this.navOk('services'))this.loadServices()}if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
+  loadPage(p){if(p==='dashboard')this.loadDash();if(p==='users')this.loadUsers(1);if(p==='posts')this.loadPosts(1);if(p==='audit')this.loadAudit(1);if(p==='contact')this.loadContacts(1);if(p==='ads')this.loadAds();if(p==='bills')this.loadServices(true);if(p==='requests'){this.loadRequests(1);if(this.navOk('services'))this.loadServices()}if(p==='numbers'){this.loadTypes();if(this.state.numTab!=='TYPES')this.loadNumbers(1)}if(p==='reports')this.loadReports();if(p==='settings')this.loadSettings();if(p==='geography')this.loadGeo()}
   loadGeo(){return this.api.get('/geo/tree/',{villages:1}).then(tree=>{const st=tree[0]||null;const teMap={};const geo=(st?st.districts:[]).map(d=>{teMap['DISTRICT:'+d.id]=d.name_te;return {id:d.id,name:d.name_en,te:d.name_te,lgd:d.lgd_code||'',active:d.is_active,mandals:d.mandals.map(m=>{teMap['MANDAL:'+m.id]=m.name_te;return {id:m.id,name:m.name_en,te:m.name_te,lgd:m.lgd_code||'',active:m.is_active,villages:(m.villages||[]).map(v=>{teMap['VILLAGE:'+v.id]=v.name_te;return {id:v.id,name:v.name_en,te:v.name_te,lgd:v.lgd_code||'',lat:v.latitude||'',lng:v.longitude||'',pin:v.pin_code||'',active:v.is_active}})}})}});if(st)teMap['STATE:'+st.id]=st.name_te;this._te=teMap;const expanded={...this.state.expanded};if(geo[0]&&!Object.keys(expanded).length){expanded[geo[0].id]=true;if(geo[0].mandals[0])expanded['m'+geo[0].mandals[0].id]=true}this.setState({geo,stateRow:st,expanded})}).catch(e=>this.fail(e))}
   loadCategories(){return this.api.get('/admin/categories/').then(d=>{const list=Array.isArray(d)?d:(d.results||[]);this.setState({categories:list})}).catch(()=>{})}
   loadDash(){this.api.get('/admin/dashboard/').then(dash=>this.setState({dash,pendingCount:dash.kpis.pending})).catch(e=>this.fail(e))}
   adaptUser(u){const ras=(u.role_assignments||[]).filter(r=>r.is_active!==false);const ra=ras[0]||null;const role=ra?(Component.RK[ra.role]||'panchayat'):'panchayat';const parts=this.pathParts(ra&&ra.area);return {id:u.id,name:u.name,te:u.name_te||u.name,nameTe:u.name_te||'',mobile:u.mobile||'',email:u.email||'',username:u.username||'',role,district:parts.district,mandal:parts.mandal,village:parts.village,area:ra?ra.area:null,raId:ra?ra.id:null,ras,active:u.is_active!==undefined?!!u.is_active:u.status==='ACTIVE',locked:!!u.locked_out,allowed:Array.isArray(u.allowed_actions)?u.allowed_actions:null,last:this.fmtLast(u.last_login_at)}}
   loadUsers(page){const uf=this.state.uf;this.setState({usersLoading:true});this.api.get('/users/',{role:uf.role?Component.RAPI[uf.role]:'',district:uf.district,status:uf.status?uf.status.toUpperCase():'',is_active:uf.status?String(uf.status==='active'):'',q:uf.q,page,page_size:Component.PAGE}).then(d=>this.setState({users:d.results.map(u=>this.adaptUser(u)),userCount:d.count,userPage:page,userPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),usersLoading:false})).catch(e=>{this.setState({usersLoading:false});this.fail(e)})}
-  adaptPost(p){const a=p.author||{};const role=Component.RK[a.role]||'panchayat';return {id:p.id,raw:p,cat:p.category?p.category.key:'updates',catLabel:p.category?p.category.name:'',titleTe:p.title,titleEn:p.translation?p.translation.title:'',bodyTe:p.body,bodyEn:p.translation?p.translation.body:'',area:this.an(p.target_area),areaName:p.target_area?p.target_area.name:'',date:this.fmt(p.submitted_at||p.published_at||p.created_at),author:a.name||(p.citizen?'Citizen':'—'),authorId:a.id,role,status:Component.SK[p.status]||'Pending',media:(p.media||[]).filter(m=>m.kind!=='video'),videos:(p.media||[]).filter(m=>m.kind==='video'),urgent:!!p.is_urgent,event:p.event||null,allowed:p.allowed_actions||[],escalated:p.escalated,citizen:p.citizen||null}}
+  adaptPost(p){const a=p.author||{};const role=Component.RK[a.role]||'panchayat';return {id:p.id,raw:p,cat:p.category?p.category.key:'updates',catLabel:p.category?p.category.name:'',titleTe:p.title,titleEn:p.translation?p.translation.title:'',bodyTe:p.body,bodyEn:p.translation?p.translation.body:'',area:this.postWhere(p),areaName:p.target_area?p.target_area.name:'',date:this.fmt(p.submitted_at||p.published_at||p.created_at),author:a.name||(p.citizen?'Citizen':'—'),authorId:a.id,role,status:Component.SK[p.status]||'Pending',media:(p.media||[]).filter(m=>m.kind!=='video'),videos:(p.media||[]).filter(m=>m.kind==='video'),urgent:!!p.is_urgent,event:p.event||null,allowed:p.allowed_actions||[],escalated:p.escalated,citizen:p.citizen||null}}
   postQuery(page){const s=this.state;return {status:s.statusTab==='All'?'':Component.SAPI[s.statusTab],source:s.pf.source,district:s.pf.district,category:s.pf.cat,q:s.gsearch,page,page_size:Component.PAGE}}
   loadPosts(page){this.setState({postsLoading:true});this.api.get('/posts/',this.postQuery(page)).then(d=>this.setState({posts:d.results.map(p=>this.adaptPost(p)),postCount:d.count,postPage:page,postPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),statusCounts:d.status_counts||{},pendingCount:(d.status_counts||{}).PENDING||0,postsLoading:false})).catch(e=>{this.setState({postsLoading:false});this.fail(e)})}
   loadAudit(page){this.setState({auditLoading:true});this.api.get('/audit/',{q:this.state.auditQ,page,page_size:Component.PAGE}).then(d=>this.setState({audit:d.results,auditCount:d.count,auditPage:page,auditPages:Math.max(1,Math.ceil(d.count/Component.PAGE)),auditLoading:false})).catch(e=>{this.setState({auditLoading:false});this.fail(e)})}
@@ -139,23 +157,34 @@ export default class Component extends React.Component {
     health:'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',education:'M2 9l10-5 10 5-10 5zM6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5M22 9v6',pension:'M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 22l1-7 3 3v4M11 15l-1-4 4-1 2 3M17 13v9',women:'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 15v7M9 19h6',
     job:'M4 7h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18',water:'M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',power:'M13 2 4 14h7l-1 8 9-12h-7z',police:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9.5 11.5l1.8 1.8 3.4-3.6',
     help:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z',services:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
-  loadServices(){this.setState({svcsLoading:true});this.api.get('/admin/services/').then(d=>this.setState({svcs:Array.isArray(d)?d:(d.results||[]),svcsLoading:false,svcsUnavailable:false}))
-    .catch(e=>{const nf=!!(e&&e.status===404);this.setState({svcsLoading:false,svcsUnavailable:nf,svcs:nf?Component.SVC_SEED:[]});if(!nf)this.fail(e)})}
-  openService(g){if(this.state.svcsUnavailable)return;this.setState({sf:g?{key:g.key,en:g.name_en,te:g.name_te||'',icon:g.icon||'services',color:g.color||'blue',image:g.logo||'',had:!!g.logo,file:null,active:g.is_active!==false,tried:false,saving:false}:{key:null,en:'',te:'',icon:'services',color:'blue',image:'',had:false,file:null,active:true,tried:false,saving:false}})}
+  // ---- bills & recharges on Home (mobile: Super Admin › More › Bills & Recharges; API: bills-catalog-backend-plan.md) ----
+  // A separate list with its own endpoints; same fields, logo upload and screens as services. Until the server has
+  // GET /admin/bills/, the page shows the app's built-in bills read-only.
+  static BILL_SEED=[['electricity','Electricity Bill','కరెంట్ బిల్లు','power','orange'],['water_bill','Water Bill','నీటి బిల్లు','water','blue'],['mobile_recharge','Mobile Recharge','మొబైల్ రీఛార్జ్','mobile','purple'],['dth_recharge','DTH Recharge','DTH రీఛార్జ్','dth','teal'],['broadband','Broadband','బ్రాడ్‌బ్యాండ్','broadband','green']].map(([key,name_en,name_te,icon,color])=>({key,name_en,name_te,icon,color,is_active:true}));
+  static BILL_ICONS={power:'M13 2 4 14h7l-1 8 9-12h-7z',water:'M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',gas:'M10 2h4v3h-4zM8 5h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM6 11h12',
+    mobile:'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01',landline:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',
+    dth:'M4 10a7.3 7.3 0 0 0 10 10zM10.5 13.5l3-3M13 7a4 4 0 0 1 4 4M13 3a8 8 0 0 1 8 8',broadband:'M5 12.55a11 11 0 0 1 14 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.1a6 6 0 0 1 6.95 0M12 20h.01',
+    fastag:'M3 7h18v10H3zM7 7v10M17 11h-6M17 14h-4',credit_card:'M3 6h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM2 10h20M6 15h4',
+    bill:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11'};
+  // Where a list lives: state keys, endpoint, built-in fallback, icon set and words.
+  cat(b){return b?{l:'bills',ld:'billsLoading',un:'billsUnavailable',path:'/admin/bills/',seed:Component.BILL_SEED,icon:'bill',icons:Component.BILL_ICONS,one:'bill',what:'bills list'}:{l:'svcs',ld:'svcsLoading',un:'svcsUnavailable',path:'/admin/services/',seed:Component.SVC_SEED,icon:'services',icons:Component.SVC_ICONS,one:'service',what:'services list'}}
+  loadServices(b=false){const c=this.cat(b);this.setState({[c.ld]:true});this.api.get(c.path).then(d=>this.setState({[c.l]:Array.isArray(d)?d:(d.results||[]),[c.ld]:false,[c.un]:false}))
+    .catch(e=>{const nf=!!(e&&e.status===404);this.setState({[c.ld]:false,[c.un]:nf,[c.l]:nf?c.seed:[]});if(!nf)this.fail(e)})}
+  openService(g,b=false){const c=this.cat(b);if(this.state[c.un])return;this.setState({sf:g?{bill:b,key:g.key,en:g.name_en,te:g.name_te||'',icon:g.icon||c.icon,color:g.color||'blue',image:g.logo||'',had:!!g.logo,file:null,active:g.is_active!==false,tried:false,saving:false}:{bill:b,key:null,en:'',te:'',icon:c.icon,color:'blue',image:'',had:false,file:null,active:true,tried:false,saving:false}})}
   // The Super Admin's own logo (contract section 16: `logo`): PNG, JPG or WebP up to 2 MB.
   pickServiceIcon(){const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;if(file.size>2*1024*1024){this.toast('The logo is larger than 2 MB','#E9791E');return}this.setState(st=>({sf:st.sf&&{...st.sf,file,image:URL.createObjectURL(file)}}))};input.click()}
-  svcErr(f){const en=f.en.trim();if(en.length<2)return 'Enter an English name of at least 2 letters';if(this.state.svcs.some(g=>g.key!==f.key&&g.name_en.toLowerCase()===en.toLowerCase()))return 'A service with this name already exists';return ''}
+  svcErr(f){const c=this.cat(f.bill),en=f.en.trim();if(en.length<2)return 'Enter an English name of at least 2 letters';if(this.state[c.l].some(g=>g.key!==f.key&&g.name_en.toLowerCase()===en.toLowerCase()))return 'A '+c.one+' with this name already exists';return ''}
   saveService(){const f=this.state.sf;if(!f||f.saving)return;if(this.svcErr(f)){this.setState({sf:{...f,tried:true}});return}
-    const body={name_en:f.en.trim(),name_te:f.te.trim(),icon:f.icon,color:f.color,is_active:f.active};this.setState({sf:{...f,saving:true}});
-    const path=f.key?'/admin/services/'+f.key+'/':'/admin/services/';let req;
+    const c=this.cat(f.bill),body={name_en:f.en.trim(),name_te:f.te.trim(),icon:f.icon,color:f.color,is_active:f.active};this.setState({sf:{...f,saving:true}});
+    const path=f.key?c.path+f.key+'/':c.path;let req;
     if(f.file){const fd=new FormData();Object.keys(body).forEach(k=>fd.append(k,String(body[k])));fd.append('logo',f.file);req=this.api.upload(path,fd,null,f.key?'PATCH':'POST')}
     else req=f.key?this.api.patch(path,{...body,...(f.had&&!f.image?{logo:null}:{})}):this.api.post(path,body);
-    req.then(()=>{this.setState({sf:null});this.toast(f.key?'Changes saved':'Service added · '+body.name_en);this.loadServices()})
-      .catch(e=>{this.setState(x=>({sf:x.sf&&{...x.sf,saving:false}}));if(e&&e.status===404){this.setState({svcsUnavailable:true});this.toast('The services list is not on the server yet.','#E9791E');return}this.fail(e)})}
-  toggleService(g){if(this.state.svcsUnavailable)return;this.api.patch('/admin/services/'+g.key+'/',{is_active:g.is_active===false}).then(()=>{this.toast(g.is_active===false?'Service is on Home':'Service hidden');this.loadServices()}).catch(e=>this.fail(e))}
-  moveService(g,by){const list=this.state.svcs,i=list.findIndex(x=>x.key===g.key),j=i+by;if(this.state.svcsUnavailable||i<0||j<0||j>=list.length)return;
-    const next=[...list];next[i]=list[j];next[j]=g;this.setState({svcs:next});
-    this.api.post('/admin/services/order/',{keys:next.map(x=>x.key)}).catch(e=>{this.setState({svcs:list});this.fail(e)})}
+    req.then(()=>{this.setState({sf:null});this.toast(f.key?'Changes saved':(f.bill?'Bill added · ':'Service added · ')+body.name_en);this.loadServices(f.bill)})
+      .catch(e=>{this.setState(x=>({sf:x.sf&&{...x.sf,saving:false}}));if(e&&e.status===404){this.setState({[c.un]:true});this.toast('The '+c.what+' is not on the server yet.','#E9791E');return}this.fail(e)})}
+  toggleService(g,b=false){const c=this.cat(b);if(this.state[c.un])return;this.api.patch(c.path+g.key+'/',{is_active:g.is_active===false}).then(()=>{this.toast(g.is_active===false?(b?'Bill is on Home':'Service is on Home'):(b?'Bill hidden':'Service hidden'));this.loadServices(b)}).catch(e=>this.fail(e))}
+  moveService(g,by,b=false){const c=this.cat(b),list=this.state[c.l],i=list.findIndex(x=>x.key===g.key),j=i+by;if(this.state[c.un]||i<0||j<0||j>=list.length)return;
+    const next=[...list];next[i]=list[j];next[j]=g;this.setState({[c.l]:next});
+    this.api.post(c.path+'order/',{keys:next.map(x=>x.key)}).catch(e=>{this.setState({[c.l]:list});this.fail(e)})}
   loadAds(){this.setState({adsLoading:true});if(!this.state.geo.length)this.loadGeo();this.api.get('/admin/ads/',{page_size:100}).then(d=>this.setState({ads:Array.isArray(d)?d:(d.results||[]),adsLoading:false,adsUnavailable:false})).catch(e=>{this.setState({adsLoading:false,ads:[],adsUnavailable:!!(e&&e.status===404)});if(!(e&&e.status===404))this.fail(e)})}
   today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   adStatus(a){const t=this.today();if(a.ends_on&&a.ends_on<t)return 'ended';if(!a.is_active)return 'paused';if(a.starts_on&&a.starts_on>t)return 'scheduled';return 'live'}
@@ -189,19 +218,39 @@ export default class Component extends React.Component {
   toggleContact(c){const done=!this.isHandled(c);this.api.patch('/admin/contact-messages/'+c.id+'/',{handled:done}).then(()=>{this.toast(done?'Marked handled':'Marked new',done?'#6cc04a':'#E9791E');this.loadContacts(this.state.contactPage)}).catch(e=>this.fail(e))}
   // ---- important numbers (contract section 14) ----
   loadNumbers(page){const s=this.state;this.setState({numLoading:true});this.api.get('/admin/contacts/',{section:s.numTab,type:s.numType,q:s.numQ,page,page_size:Component.PAGE}).then(d=>this.setState({nums:d.results||[],numCount:d.count||0,numPage:page,numPages:Math.max(1,Math.ceil((d.count||0)/Component.PAGE)),numLoading:false})).catch(e=>{this.setState({numLoading:false,nums:[],numCount:0});this.fail(e)})}
-  loadTypes(){this.api.get('/contact-types/').then(d=>this.setState({ctypes:Array.isArray(d)?d:(d.results||[])})).catch(()=>{});if(this.can('contacts.manage_contact_types'))this.api.get('/admin/contact-types/').then(d=>this.setState({ctypesAdmin:Array.isArray(d)?d:(d.results||[])})).catch(e=>this.fail(e))}
+  // adminOnly: after adding a type, the public list may still be the cached one, so only the admin list reloads.
+  loadTypes(adminOnly){if(!adminOnly)this.api.get('/contact-types/').then(d=>this.setState({ctypes:Array.isArray(d)?d:(d.results||[])})).catch(()=>{});if(this.can('contacts.manage_contact_types'))this.api.get('/admin/contact-types/').then(d=>this.setState({ctypesAdmin:Array.isArray(d)?d:(d.results||[])})).catch(e=>this.fail(e))}
   // The server's phone grammar: drop spaces, dashes, brackets and a leading +91 (or 91 before 10 digits).
   phoneDigits(p){const d=String(p||'').replace(/[\s\-()]/g,'');return d.startsWith('+91')?d.slice(3):/^91\d{10}$/.test(d)?d.slice(2):d}
   openNumber(c){const a=c&&c.area&&c.area.level!=='STATE'?c.area:null;this.setState({nf:c?{id:c.id,section:c.type.section,type:c.type.key,typeObj:{...c.type,is_other:!!c.custom_type},custom:c.custom_type||'',name:c.name,te:c.name_te||'',phone:c.phone,email:c.email||'',level:a?a.level:'VILLAGE',area:a?String(a.id):'',sort:String(c.sort_order==null?100:c.sort_order),consent:!!c.consent_recorded}:{id:null,section:this.state.numTab==='HELPLINE'?'HELPLINE':'AREA',type:'',custom:'',name:'',te:'',phone:'',email:'',level:'VILLAGE',area:'',sort:'100',consent:false}})}
-  nfView(){const f=this.state.nf;if(!f)return null;const types=this.state.ctypes.filter(x=>x.section===f.section);if(f.typeObj&&!types.some(x=>x.key===f.typeObj.key))types.unshift(f.typeObj);const type=types.find(x=>x.key===f.type)||types[0]||null;const areas=f.section==='AREA'?this.areaOptions(Component.LVROLE[f.level]):[];const area=areas.find(x=>x.id===f.area)||areas[0]||null;const mobile=/^[6-9]\d{9}$/.test(this.phoneDigits(f.phone));
+  nfView(){const f=this.state.nf;if(!f)return null;const types=this.state.ctypes.filter(x=>x.section===f.section&&!x.is_other); /* "Other" is not a type: new kinds come from Add type; a number already "Other" keeps it (typeObj below) */if(f.typeObj&&!types.some(x=>x.key===f.typeObj.key))types.unshift(f.typeObj);const type=types.find(x=>x.key===f.type)||types[0]||null;const areas=f.section==='AREA'?this.areaOptions(Component.LVROLE[f.level]):[];const area=areas.find(x=>x.id===f.area)||areas[0]||null;const mobile=/^[6-9]\d{9}$/.test(this.phoneDigits(f.phone));
     const ok=!!(f.name.trim()&&this.phoneDigits(f.phone)&&type&&(!type.is_other||f.custom.trim())&&(f.section!=='AREA'||area)&&(!mobile||f.consent)&&(!f.email.trim()||/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())));return {f,types,type,areas,area,mobile,ok}}
   saveNumber(){const n=this.nfView();if(!n||!n.ok)return;const f=n.f;const body={type:n.type.key,name:f.name.trim(),name_te:f.te.trim(),phone:f.phone.trim(),email:f.email.trim(),sort_order:f.sort===''?100:Number(f.sort),consent_recorded:n.mobile&&f.consent,area:f.section==='AREA'?{level:n.area.level,id:Number(n.area.id)}:{level:'STATE',id:this.state.stateRow&&this.state.stateRow.id}};if(n.type.is_other)body.custom_type=f.custom.trim();
     (f.id?this.api.patch('/admin/contacts/'+f.id+'/',body):this.api.post('/admin/contacts/',body)).then(()=>{this.setState({nf:null});this.toast((f.id?'Number updated · ':'Number added · ')+body.name);this.loadNumbers(f.id?this.state.numPage:1)}).catch(e=>this.fail(e))}
   verifyNumber(c){this.api.patch('/admin/contacts/'+c.id+'/',{verified:true}).then(()=>{this.toast('Marked verified · '+c.name);this.loadNumbers(this.state.numPage)}).catch(e=>this.fail(e))}
   removeNumber(c){this.ask({title:'Remove number',body:'Remove '+c.name+' ('+c.phone+')? Citizens stop seeing it at once. The audit log keeps a record.',confirmLabel:'Remove',bg:'#b3261e',onConfirm:()=>this.api.del('/admin/contacts/'+c.id+'/').then(()=>{this.toast('Number removed','#E9791E');this.loadNumbers(this.state.numPage)}).catch(e=>this.fail(e))})}
+  // ---- select several and remove them at once (the server removes one per request, so one by one with progress) ----
+  toggleSel(key,id){this.setState(s=>({[key]:s[key].includes(id)?s[key].filter(x=>x!==id):[...s[key],id]}))}
+  selAll(key,ids){this.setState(s=>({[key]:ids.length&&ids.every(i=>s[key].includes(i))?[]:ids}))}
+  bulkRemove(key,ids,o){if(!ids.length||this.state.bulk)return;this.ask({title:o.title,body:o.body,confirmLabel:o.confirm,bg:'#b3261e',onConfirm:async()=>{let ok=0,why='';for(let i=0;i<ids.length;i++){this.setState({bulk:'Removing '+(i+1)+' of '+ids.length+'…'});try{await this.api.del(o.url(ids[i]));ok++}catch(e){why=why||(e&&e.message)||'the server did not answer'}}this.setState({bulk:'',[key]:[]});o.done();if(why)this.ask({title:ok+' removed',body:(ids.length-ok)+' could not be removed: '+why,confirmLabel:'Close',bg:'#3b4a5c',noCancel:true,onConfirm:()=>{}});else this.toast(ok+' removed','#E9791E')}})}
+  selView(key,ids,o){const s=this.state;const picked=s[key].filter(i=>ids.includes(i));const n=picked.length;return {show:ids.length>0,all:n>0&&n===ids.length,some:n>0&&n<ids.length,count:n,label:n+' selected',busy:s.bulk,toggleAll:()=>this.selAll(key,ids),clear:()=>this.setState({[key]:[]}),remove:()=>this.bulkRemove(key,picked,o(n))}}
   importNumbers(){const input=document.createElement('input');input.type='file';input.accept='.csv,text/csv';input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const form=()=>{const fd=new FormData();fd.append('file',file);return fd};
     this.api.upload('/admin/contacts/import/',form(),{dry_run:1}).then(r=>this.ask({title:'Import important numbers',body:'File checked: '+r.created+' new, '+r.updated+' updated, '+r.skipped+' unchanged.',confirmLabel:'Import',bg:'#0D3B7A',onConfirm:()=>this.api.upload('/admin/contacts/import/',form()).then(d=>{this.toast('Imported · '+d.created+' new, '+d.updated+' updated');this.loadNumbers(1)}).catch(e=>this.fail(e))})).catch(e=>{const rep=e&&e.body&&e.body.report;if(rep&&rep.errors&&rep.errors.length){this.ask({title:'File has errors',body:rep.errors.slice(0,5).map(x=>'Row '+x.row+(x.field?' · '+x.field:'')+': '+x.message).join(' · ')+(rep.errors.length>5?' · and '+(rep.errors.length-5)+' more.':''),confirmLabel:'Close',bg:'#3b4a5c',onConfirm:()=>{}})}else this.fail(e)})};input.click()}
-  addType(){this.ask({title:'Add contact type',body:'"For you" types are numbers for a district, mandal or village. Helpline types are statewide.',hasSelect:true,selectLabel:'Section',options:[{id:'AREA',label:'For you (area numbers)'},{id:'HELPLINE',label:'Government helplines'}],needsText:true,textLabel:'English name',confirmLabel:'Next',bg:'#0D3B7A',onConfirm:(en,section)=>setTimeout(()=>this.ask({title:'Add contact type · '+en.trim(),body:'The Telugu name citizens see.',needsText:true,textLabel:'తెలుగు పేరు',confirmLabel:'Add type',bg:'#0D3B7A',onConfirm:te=>{const key=(en.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'type').slice(0,40);this.api.post('/admin/contact-types/',{key,section,name_en:en.trim(),name_te:te.trim()}).then(()=>{this.toast('Type added · '+en.trim());this.loadTypes()}).catch(e=>this.fail(e))}}),0)})}
+  // Add a contact type: one form (section, English and Telugu names); the key is made from the English name.
+  addType(section,forNumber){this.setState({tf:{section:section||(this.state.numTab==='HELPLINE'?'HELPLINE':'AREA'),forNumber:!!forNumber,en:'',te:'',tried:false,saving:false}})}
+  // Edit a type: the same form; the names change, the section and key stay (the server keeps them).
+  editType(t){this.setState({tf:{id:t.id,section:t.section,en:t.name_en||'',te:t.name_te&&t.name_te!==t.name_en?t.name_te:'',tried:false,saving:false}})}
+  // Delete a type nobody uses. One with numbers cannot go: move or remove them first, or switch it off.
+  deleteType(t){const n=t.contact_count||0;
+    if(n){this.ask({title:'This type is in use',body:n+' number'+(n===1?' uses':'s use')+' "'+t.name_en+'". Change '+(n===1?'its':'their')+' type, or remove '+(n===1?'it':'them')+', then delete the type. Or switch the type off: it is hidden from citizens and its numbers stay.',confirmLabel:'OK',bg:'#3b4a5c',noCancel:true,onConfirm:()=>{}});return}
+    this.ask({title:'Delete "'+t.name_en+'"?',body:'No number uses this type. It is removed from the list for good.',confirmLabel:'Delete',bg:'#b3261e',onConfirm:()=>this.api.del('/admin/contact-types/'+t.id+'/').then(()=>{this.setState(st=>({ctypesAdmin:st.ctypesAdmin.filter(x=>x.id!==t.id),ctypes:st.ctypes.filter(x=>x.key!==t.key)}));this.toast('Type deleted · '+t.name_en,'#E9791E')}).catch(e=>{
+      // Until the server can delete types (backend plan: contact-type-delete), it answers 405.
+      if(e&&e.status===405)this.ask({title:'Not available yet',body:'Deleting a type needs a server update, which is planned. For now, switch the type off: citizens stop seeing it.',confirmLabel:'OK',bg:'#3b4a5c',noCancel:true,onConfirm:()=>{}});else this.fail(e)})})}
+  tfErrs(f){return {en:!f.en.trim()?'Enter the English name.':'',te:''}}
+  saveType(){const f=this.state.tf;if(!f||f.saving)return;const e=this.tfErrs(f);if(e.en||e.te){this.setState({tf:{...f,tried:true}});return}
+    const en=f.en.trim(),key=(en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'type').slice(0,40);this.setState({tf:{...f,saving:true}});
+    if(f.id){this.api.patch('/admin/contact-types/'+f.id+'/',{name_en:en,name_te:f.te.trim()||en}).then(x=>{this.setState(st=>({tf:null,ctypesAdmin:st.ctypesAdmin.map(c=>c.id===f.id?{...c,...(x||{}),name_en:en,name_te:f.te.trim()||en}:c),ctypes:st.ctypes.map(c=>x&&c.key===x.key?{...c,name:en}:c)}));this.toast('Type saved · '+en)}).catch(err=>{this.setState(st=>({tf:st.tf&&{...st.tf,saving:false}}));this.fail(err)});return}
+    this.api.post('/admin/contact-types/',{key,section:f.section,name_en:en,name_te:f.te.trim()||en}).then(x=>{const k=(x&&x.key)||key;/* the public types list can come back cached for a moment: add the new type here */this.setState(st=>({tf:null,ctypes:st.ctypes.some(c=>c.key===k)?st.ctypes:[...st.ctypes,{key:k,section:f.section,name:en,is_other:false}],nf:f.forNumber&&st.nf?{...st.nf,type:k,custom:''}:st.nf}));this.toast('Type added · '+en);this.loadTypes(true)}).catch(err=>{this.setState(x=>({tf:x.tf&&{...x.tf,saving:false}}));this.fail(err)})}
   toggleType(t){this.api.patch('/admin/contact-types/'+t.id+'/',{is_active:!t.is_active}).then(()=>{this.toast(t.name_en+(t.is_active?' switched off':' switched on'),t.is_active?'#E9791E':'#6cc04a');this.loadTypes()}).catch(e=>this.fail(e))}
   humanAction(k){const p=String(k||'').split('.');return (p[1]||p[0]).replace(/_/g,' ')}
   loadReports(){Promise.all([this.api.get('/admin/reports/summary/'),this.api.get('/admin/reports/posts-by-area/'),this.api.get('/admin/reports/review-time/'),this.api.get('/admin/reports/admin-activity/',{page_size:8})]).then(([summary,byArea,reviewTime,activity])=>this.setState({reports:{summary,byArea,reviewTime,activity:activity.results}})).catch(e=>this.fail(e))}
@@ -231,9 +280,9 @@ export default class Component extends React.Component {
   // ---- users actions ----
   // Add User area picker, same as the mobile app: district -> mandal -> village, each list only inside the step above.
   areaSteps(f){const g=this.state.geo.filter(d=>d.active);const lv=Component.LEVEL_OF_ROLE[f.role];const d=g.find(x=>String(x.id)===String(f.nuD));const m=d&&d.mandals.find(x=>String(x.id)===String(f.nuM));
-    const steps=[{key:'nuD',label:'District',ph:'Choose a district',value:f.nuD||'',options:g.map(x=>({id:String(x.id),label:x.name+' · '+x.te}))}];
-    if(lv!=='DISTRICT'&&d)steps.push({key:'nuM',label:'Mandal',ph:'Choose a mandal',value:f.nuM||'',options:d.mandals.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name+' · '+x.te}))});
-    if(lv==='VILLAGE'&&m)steps.push({key:'area',label:'Village',ph:'Choose a village',value:f.area||'',options:m.villages.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name+' · '+x.te}))});
+    const steps=[{key:'nuD',label:'District',ph:'Choose a district',value:f.nuD||'',options:g.map(x=>({id:String(x.id),label:this.nl(x)}))}];
+    if(lv!=='DISTRICT'&&d)steps.push({key:'nuM',label:'Mandal',ph:'Choose a mandal',value:f.nuM||'',options:d.mandals.filter(x=>x.active).map(x=>({id:String(x.id),label:this.nl(x)}))});
+    if(lv==='VILLAGE'&&m)steps.push({key:'area',label:'Village',ph:'Choose a village',value:f.area||'',options:m.villages.filter(x=>x.active).map(x=>({id:String(x.id),label:this.nl(x)}))});
     return steps}
   areaPick(n,name,value){n={...n,[name]:value};const lv=Component.LEVEL_OF_ROLE[n.role];
     if(name==='role'){n.nuD='';n.nuM='';n.area=''}
@@ -242,7 +291,7 @@ export default class Component extends React.Component {
     return n}
   areaSummary(f){if(!f.area)return '';const lv=Component.LEVEL_OF_ROLE[f.role];const d=this.state.geo.find(x=>String(x.id)===String(f.nuD));const m=d&&d.mandals.find(x=>String(x.id)===String(f.nuM));const v=m&&m.villages.find(x=>String(x.id)===String(f.area));
     return [lv==='VILLAGE'&&v?v.name:null,lv!=='DISTRICT'&&m?m.name:null,d?d.name:null].filter(Boolean).join(' · ')}
-  areaOptions(role){const lv=Component.LEVEL_OF_ROLE[role];const g=this.state.geo;if(lv==='DISTRICT')return g.filter(d=>d.active).map(d=>({id:String(d.id),label:d.name+' · '+d.te,level:lv}));if(lv==='MANDAL')return g.flatMap(d=>d.mandals.filter(m=>m.active&&d.active).map(m=>({id:String(m.id),label:m.name+' · '+m.te,level:lv})));return g.flatMap(d=>d.mandals.flatMap(m=>m.villages.filter(v=>v.active&&m.active&&d.active).map(v=>({id:String(v.id),label:v.name+' · '+v.te,level:'VILLAGE'}))))}
+  areaOptions(role){const lv=Component.LEVEL_OF_ROLE[role];const g=this.state.geo;if(lv==='DISTRICT')return g.filter(d=>d.active).map(d=>({id:String(d.id),label:this.nl(d),level:lv}));if(lv==='MANDAL')return g.flatMap(d=>d.mandals.filter(m=>m.active&&d.active).map(m=>({id:String(m.id),label:this.nl(m),level:lv})));return g.flatMap(d=>d.mandals.flatMap(m=>m.villages.filter(v=>v.active&&m.active&&d.active).map(v=>({id:String(v.id),label:this.nl(v),level:'VILLAGE'}))))}
   toggleUser(u){const R=Component.ROLE;this.ask({title:u.active?'Block user':'Unblock user',body:(u.active?'Block ':'Unblock ')+u.name+' ('+R[u.role].label+', '+(u.area?u.area.name:'—')+')? '+(u.active?'They will be signed out and cannot post or review.':'They regain access immediately.'),confirmLabel:u.active?'Block':'Unblock',bg:u.active?'#b3261e':'#1F8A3B',onConfirm:()=>this.api.post('/users/'+u.id+'/'+(u.active?'block':'unblock')+'/',{}).then(d=>{const nu=this.adaptUser(d&&d.user?d.user:d);this.setState(s=>({users:s.users.map(x=>x.id===u.id?nu:x),panelUser:s.panelUser&&s.panelUser.id===u.id?nu:s.panelUser}));this.toast(u.name+(u.active?' blocked':' unblocked'),u.active?'#E9791E':'#6cc04a')}).catch(e=>this.fail(e))})}
   reassignUser(u){const R=Component.ROLE;const opts=this.areaOptions(u.role);if(!u.raId){this.toast('This user has no role to move.','#E9791E');return}this.ask({title:'Reassign area',body:'Move '+u.name+' ('+R[u.role].label+') to a different '+(u.role==='district'?'district':u.role==='mandal'?'mandal':'village')+'. Their pending reviews stay with the old area.',hasSelect:true,selectLabel:'New area',options:opts,confirmLabel:'Reassign',bg:'#0D3B7A',onConfirm:(t,sel)=>{const o=opts.find(x=>x.id===sel)||opts[0];if(!o)return;this.api.patch('/users/'+u.id+'/role-assignments/'+u.raId+'/',{area:{level:o.level,id:Number(o.id)}}).then(()=>{this.toast(u.name+' reassigned to '+o.label.split(' · ')[0]);this.loadUsers(this.state.userPage);if(this.state.panel&&this.state.panel.type==='user')this.setState({panel:null})}).catch(e=>this.fail(e))}})}
   refreshUser(id){return this.api.get('/users/'+id+'/').then(x=>{const u=this.adaptUser(x);this.setState(s=>({panelUser:s.panel&&s.panel.id===id?u:s.panelUser}));this.loadUsers(this.state.userPage)}).catch(e=>this.fail(e))}
@@ -299,11 +348,16 @@ export default class Component extends React.Component {
     const body=plan.rows.toLocaleString('en-IN')+' villages in '+plan.districts+' district'+(plan.districts===1?'':'s')+' and '+plan.mandals+' mandal'+(plan.mandals===1?'':'s')+' checked. Villages: '+sum.created.toLocaleString('en-IN')+' new, '+sum.updated+' updated, '+sum.unchanged.toLocaleString('en-IN')+' unchanged.'+(sum.noXY?' '+sum.noXY+' without coordinates.':'')+(sum.warn?' '+sum.warn+' warning(s).':'')+(n>1?' It is imported in '+n+' parts.':'');
     this.ask({title:'Import villages',body,confirmLabel:'Import',bg:'#0D3B7A',onConfirm:async()=>{
       // 2. import part by part
+      let last=null;
       for(let i=0;i<n;i++){step('Importing',i);
-        try{await send(plan.parts[i],false)}
+        try{last=await send(plan.parts[i],false)}
         catch(e){this.setState({imp:null});this.loadGeo();
           info('Import stopped at part '+(i+1)+' of '+n,(i?'Parts 1'+(i>1?'–'+i:'')+' are saved. ':'')+'Nothing in part '+(i+1)+' was saved ('+((e&&e.message)||'the server did not answer')+'). Importing the same file again is safe: villages already there stay as they are.');return}}
-      this.setState({imp:null});this.toast('Imported '+plan.rows.toLocaleString('en-IN')+' villages');this.loadGeo()}})}
+      this.setState({imp:null});this.loadGeo();
+      // Villages without coordinates in the whole database: "Use my location" can never find them.
+      const noXY=(last&&last.missing_coordinates_total)||0;
+      if(noXY)info('Imported '+plan.rows.toLocaleString('en-IN')+' villages',noXY.toLocaleString('en-IN')+' village'+(noXY===1?'':'s')+' in the database still '+(noXY===1?'has':'have')+' no latitude and longitude, so "Use my location" can never find '+(noXY===1?'it':'them')+'. Citizens there must choose their village by hand. Fill in the coordinates and import the file again.');
+      else this.toast('Imported '+plan.rows.toLocaleString('en-IN')+' villages')}})}
 
   // ---- exports ----
   exportCsv(){const s=this.state;const stamp=new Date().toISOString().slice(0,10);if(s.page==='audit')this.api.download('/audit/export/',{q:s.auditQ},'grama-audit-'+stamp+'.csv').then(()=>this.toast('Audit log exported')).catch(e=>this.fail(e));else this.exportReport('posts-by-area')}
@@ -313,7 +367,7 @@ export default class Component extends React.Component {
     const s=this.state,C=Component,ST=C.STATUS,R=C.ROLE;
     const is={checking:s.screen==='checking',auth:s.screen==='login'||s.screen==='change_password',login:s.screen==='login',changePassword:s.screen==='change_password',app:s.screen==='app'};
     const pg={};pg[s.page]=true;
-    const titles={ads:'Sponsored banners',services:'Services',requests:'Services',dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
+    const titles={bills:'Bills & Recharges',ads:'Sponsored banners',services:'Services',requests:'Services',dashboard:'Dashboard',geography:'Geography · Master Data',users:'Users',posts:'Posts & Moderation',reports:'Reports',audit:'Audit Log',contact:'Contact messages',numbers:'Important numbers',settings:'Settings'};
     const pendingN=s.pendingCount;
     const navItems=C.PAGES.filter(k=>this.navOk(k)).map(k=>{const on=s.page===k;return {label:titles[k].split(' ·')[0],d:C.ICON[k],color:on?'#fff':'rgba(255,255,255,.78)',bg:on?'#0D3B7A':'transparent',hasCount:k==='posts'&&pendingN>0,count:pendingN,go:()=>this.goPage(k)}});
     const hist=h=>{const rk=C.RK[h.actor&&h.actor.role]||'system';const label=h.action==='REVERSE'?'Override: '+(ST[C.SK[h.from_status]]||{label:h.from_status}).label+' → '+(ST[C.SK[h.to_status]]||{label:h.to_status}).label:(C.HIST[h.action]||h.action);return {who:(h.actor&&h.actor.name)||'System',role:R[rk].label,action:label,note:h.comment||'',hasNote:!!h.comment,time:this.fmt(h.at),dot:/PUBLISH/.test(h.action)?'#1F8A3B':h.action==='RECHECK'?'#8f4bb4':/DISCARD|UNPUBLISH/.test(h.action)?'#b3261e':h.action==='REVERSE'?'#0D3B7A':'#E9791E'}};
@@ -367,9 +421,10 @@ export default class Component extends React.Component {
     const auditRows=s.audit.map(auditRow);
     // important numbers
     const sw=on=>({swBg:on?'#1F8A3B':'#cfd8e3',swLeft:on?'21px':'3px'});
-    const numTabs=[{id:'AREA',label:'For you'},{id:'HELPLINE',label:'Government helplines'},...(this.can('contacts.manage_contact_types')?[{id:'TYPES',label:'Types'}]:[])].map(t=>{const on=s.numTab===t.id;return {label:t.label,line:on?'#0D3B7A':'transparent',color:on?'#0A2550':'#6b7a8c',go:()=>this.setState({numTab:t.id,numType:'',nf:null},()=>{if(t.id==='TYPES')this.loadTypes();else this.loadNumbers(1)})}});
-    const numRows=s.nums.map(c=>{const al=c.allowed_actions||[];const rc=c.needs_recheck;return {type:c.custom_type||c.type.name,name:c.name,te:c.name_te&&c.name_te!==c.name?c.name_te:'',phone:c.phone_kind==='MOBILE'?'+91 '+c.phone.slice(0,5)+' '+c.phone.slice(5):c.phone,email:c.email||'',area:c.area?(c.area.path||c.area.name):'—',status:rc?'Needs check':'Verified '+this.fmt(c.verified_at,true).slice(0,11),sbg:rc?'#fff0dc':'#e4f4df',scolor:rc?'#b35a0e':'#1d7a33',canEdit:al.includes('edit'),canVerify:al.includes('verify'),canRemove:al.includes('remove'),edit:()=>this.openNumber(c),verify:()=>this.verifyNumber(c),remove:()=>this.removeNumber(c)}});
-    const typeRows=s.ctypesAdmin.map(t=>({key:t.key,section:t.section==='HELPLINE'?'Government helplines':'For you',en:t.name_en,te:t.name_te,count:t.contact_count+(t.is_other?' · typed names':''),...sw(t.is_active),toggle:()=>this.toggleType(t)}));
+    const numTabs=[{id:'AREA',label:'For villages'},{id:'HELPLINE',label:'Government helplines'},...(this.can('contacts.manage_contact_types')?[{id:'TYPES',label:'Types'}]:[])].map(t=>{const on=s.numTab===t.id;return {label:t.label,line:on?'#0D3B7A':'transparent',color:on?'#0A2550':'#6b7a8c',go:()=>this.setState({numTab:t.id,numType:'',nf:null},()=>{if(t.id==='TYPES')this.loadTypes();else this.loadNumbers(1)})}});
+    const numIds=s.nums.filter(c=>(c.allowed_actions||[]).includes('remove')).map(c=>c.id);
+    const numRows=s.nums.map(c=>{const al=c.allowed_actions||[];const rc=c.needs_recheck;return {id:c.id,canSel:al.includes('remove'),sel:s.numSel.includes(c.id),toggleSel:()=>this.toggleSel('numSel',c.id),type:c.custom_type||c.type.name,name:c.name,te:c.name_te&&c.name_te!==c.name?c.name_te:'',phone:c.phone_kind==='MOBILE'?'+91 '+c.phone.slice(0,5)+' '+c.phone.slice(5):c.phone,email:c.email||'',area:c.area?(c.area.path||c.area.name):'—',status:rc?'Needs check':'Verified '+this.fmt(c.verified_at,true).slice(0,11),sbg:rc?'#fff0dc':'#e4f4df',scolor:rc?'#b35a0e':'#1d7a33',canEdit:al.includes('edit'),canVerify:al.includes('verify'),canRemove:al.includes('remove'),edit:()=>this.openNumber(c),verify:()=>this.verifyNumber(c),remove:()=>this.removeNumber(c)}});
+    const typeRows=s.ctypesAdmin.filter(t=>!t.is_other).map(t=>/* "Other" is not a type: not listed */({key:t.key,section:t.section==='HELPLINE'?'Government helplines':'For villages',en:t.name_en,te:t.name_te,count:t.contact_count+(t.is_other?' · typed names':''),...sw(t.is_active),toggle:()=>this.toggleType(t),edit:()=>this.editType(t),del:()=>this.deleteType(t)}));
     const nv=this.nfView();
     // settings
     const catRows=s.categories.map(c=>({te:c.name_te,en:c.name_en,icon:C.CATL[c.key]?c.key:'updates',count:c.post_count||0,swBg:c.is_active?'#1F8A3B':'#cfd8e3',swLeft:c.is_active?'21px':'3px',toggle:()=>this.api.patch('/admin/categories/'+c.id+'/',{is_active:!c.is_active}).then(()=>{this.toast(c.name_en+(c.is_active?' disabled':' enabled'),c.is_active?'#E9791E':'#6cc04a');this.loadCategories()}).catch(e=>this.fail(e))}));
@@ -380,6 +435,8 @@ export default class Component extends React.Component {
     const panel=s.panel?{show:true,isPost:s.panel.type==='post',isUser:s.panel.type==='user',title:s.panel.type==='post'?'Post review':'User details'}:{show:false};
     const empty={id:'',cat:'updates',catLabel:'',titleTe:'',titleEn:'',bodyTe:'',bodyEn:'',area:'',areaName:'',date:'',author:'',role:'panchayat',status:'Pending',media:[],allowed:[]};
     const sp=dp(s.panelPost||empty,true);
+    // The panel names every area the post goes to (the list shows the first one and "+N").
+    const spTargets=((s.panelPost&&s.panelPost.raw&&s.panelPost.raw.targets)||[]);if(spTargets.length>1&&spTargets[0].level!=='STATE')sp.area=spTargets.map(t=>this.an(t)).join(', ');
     const pu=s.panelUser;const su=pu?{name:pu.name,te:pu.te,initial:pu.name[0],bg:R[pu.role].bg,fields:[{k:'Role',v:R[pu.role].label},{k:'Mobile',v:pu.mobile?'+91 '+pu.mobile:(pu.email||'—')},{k:'District',v:pu.district||'—'},{k:'Mandal',v:pu.mandal||'—'},{k:'Village',v:pu.village||'—'},{k:'Status',v:(pu.active?'Active · last login '+pu.last:'Blocked')+(pu.locked?' · locked after failed logins':'')}],posts:s.panelUserPosts.map(p=>dp(p)),roles:(pu.ras||[]).map(ra=>{const k=C.RK[ra.role]||'panchayat';return {label:R[k].label,rbg:R[k].tbg,rcolor:R[k].tc,area:ra.area?(ra.area.path||ra.area.name):'—',canRemove:this.userCan(pu,'remove_assignment'),remove:()=>this.removeRole(pu,ra)}}),canEdit:this.userCan(pu,'edit'),edit:()=>this.editUser(pu),canAddRole:this.userCan(pu,'add_assignment')&&this.roleChoices().length>0,canReassign:!!pu.raId&&this.userCan(pu,'reassign'),canReset:this.userCan(pu,'reset_password'),canUnlock:pu.locked&&this.userCan(pu,'unlock'),canToggle:this.userCan(pu,pu.active?'block':'unblock'),addRole:()=>this.addRole(pu),reassign:()=>this.reassignUser(pu),reset:()=>this.resetPassword(pu),unlock:()=>this.unlockUser(pu),toggle:()=>this.toggleUser(pu),toggleLabel:pu.active?'Block user':'Unblock user',tbg:pu.active?'#b3261e':'#1F8A3B'}:{fields:[],posts:[],roles:[]};
     // modal
     const m=s.modal;const cannot=!!(m&&m.needsText&&!m.textOptional&&!s.modalText.trim());
@@ -409,7 +466,8 @@ export default class Component extends React.Component {
       reqCountLabel:s.reqCount+(s.reqCount===1?' request':' requests'),reqEmpty:!s.reqs.length,reqEmptyText:s.reqLoading?'Loading…':s.reqUnavailable?'Service requests will show here once the server is updated.':'No requests here. Citizens send them from Services in the app.',reqPager:pager(s.reqPage,s.reqPages,p=>this.loadRequests(p)),
       newAd:()=>this.openAd(null),adsCountLabel:s.ads.filter(a=>this.adStatus(a)==='live').length+' running · '+s.ads.length+' in all',adsEmpty:!s.ads.length,adsUnavailable:s.adsUnavailable,
       adsEmptyText:s.adsLoading?'Loading…':s.adsUnavailable?'Ads will show here once the server is updated.':'No ads yet. Create one and it shows at the top of Home in the villages you choose.',
-      adRows:s.ads.map(a=>{const k=this.adStatus(a);const S=C.AD_STATUS[k];const ar=a.area;return {title:a.title,image:a.image,area:!ar||ar.level==='STATE'?'All villages':ar.name+' '+ar.level.toLowerCase(),dates:[a.starts_on?'From '+this.dayLabel(a.starts_on):'',a.ends_on?'till '+this.dayLabel(a.ends_on):'no end date'].filter(Boolean).join(' '),status:S.label,sbg:S.bg,scolor:S.color,dim:k==='live'?1:.55,canToggle:k!=='ended',on:!!a.is_active,toggle:()=>this.toggleAd(a),open:()=>this.openAd(a)}}),
+      adSel:this.selView('adSel',s.ads.map(a=>a.id),n=>({title:'Delete '+n+' ad'+(n===1?'':'s')+'?',body:'They are removed from every Home page, with their pictures. This cannot be undone.',confirm:'Delete '+n,url:id=>'/admin/ads/'+id+'/',done:()=>this.loadAds()})),
+      adRows:s.ads.map(a=>{const k=this.adStatus(a);const S=C.AD_STATUS[k];const ar=a.area;return {sel:s.adSel.includes(a.id),toggleSel:()=>this.toggleSel('adSel',a.id),title:a.title,image:a.image,area:!ar||ar.level==='STATE'?'All villages':ar.name+' '+ar.level.toLowerCase(),dates:[a.starts_on?'From '+this.dayLabel(a.starts_on):'',a.ends_on?'till '+this.dayLabel(a.ends_on):'no end date'].filter(Boolean).join(' '),status:S.label,sbg:S.bg,scolor:S.color,dim:k==='live'?1:.55,canToggle:k!=='ended',on:!!a.is_active,toggle:()=>this.toggleAd(a),open:()=>this.openAd(a)}}),
       afShow:!!s.af,closeAF:()=>this.setState({af:null}),pickAdImage:()=>this.pickAdImage(),saveAF:()=>this.saveAd(),
       onAF:e=>{const {name,value,type,checked}=e.target;this.setState(x=>{const f={...x.af,[name]:type==='checkbox'?checked:value};if(name==='d'){f.m='';f.v=''}if(name==='m')f.v='';return {af:f}})},
       af:s.af?(()=>{const f=s.af;const err=f.tried?this.adErrors(f):{};const d=s.geo.find(x=>String(x.id)===f.d);const m=d&&d.mandals.find(x=>String(x.id)===f.m);
@@ -420,16 +478,22 @@ export default class Component extends React.Component {
           where:(()=>{const v=m&&m.villages.find(x=>String(x.id)===f.v);return v?v.name+' village only, '+m.name+' mandal':m?'all villages of '+m.name+' mandal, '+d.name:d?'all villages of '+d.name+' district':'every village'})(),
           dOpts:s.geo.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})),mOpts:d?d.mandals.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})):[],vOpts:m?m.villages.filter(x=>x.active).map(x=>({id:String(x.id),label:x.name})):[]}})():null,
       // Services page
-      svcRows:s.svcs.map((g,i)=>{const [c,tint]=C.SVC_COLORS[g.color]||C.SVC_COLORS.blue;const icon=g.logo?'img:'+g.logo:(C.SVC_ICONS[g.icon]||C.SVC_ICONS.services);const on=g.is_active!==false;
-        return {name:g.name_en,sub:on?(g.name_te&&g.name_te!==g.name_en?g.name_te:'Shown on Home'):'Hidden',on,c,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,
-          up:()=>this.moveService(g,-1),down:()=>this.moveService(g,1),canUp:i>0&&!s.svcsUnavailable,canDown:i<s.svcs.length-1&&!s.svcsUnavailable,toggle:()=>this.toggleService(g),open:()=>this.openService(g),locked:s.svcsUnavailable}}),
-      svcsUnavailable:s.svcsUnavailable,svcsEmpty:!s.svcs.length,svcsEmptyText:s.svcsLoading?'Loading…':'No services yet. Add one and citizens can request it from Home.',
-      svcShownLabel:'On Home: '+s.svcs.filter(g=>g.is_active!==false).length,newService:()=>this.openService(null),
+      ...(()=>{const b=s.page==='bills',c=this.cat(b),L=s[c.l];return {
+      catShow:b||(s.svcView==='catalog'&&this.navOk('services')),
+      catSub:b?"What citizens see under Bills & Recharges on the app's Home. Only the Super Admin adds or changes them.":"The services citizens can choose from on the app's Home. Only the Super Admin adds or changes them.",
+      catNew:b?'New bill / recharge':'New service',
+      catUnavailText:b?"The bills list is not on the server yet. Until it is, citizens see the built-in bills below, and changes can't be saved.":"The services list is not on the server yet. Until it is, citizens see the built-in list below, and changes can't be saved.",
+      catHelp:b?'Use the arrows to set the order on Home. A hidden bill is not on Home.':'Use the arrows to set the order on Home. A hidden service is not on Home; requests already sent stay as they are.',
+      svcRows:L.map((g,i)=>{const [col,tint]=C.SVC_COLORS[g.color]||C.SVC_COLORS.blue;const icon=g.logo?'img:'+g.logo:(c.icons[g.icon]||c.icons[c.icon]);const on=g.is_active!==false;
+        return {name:g.name_en,sub:on?(g.name_te&&g.name_te!==g.name_en?g.name_te:'Shown on Home'):'Hidden',on,c:col,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,
+          up:()=>this.moveService(g,-1,b),down:()=>this.moveService(g,1,b),canUp:i>0&&!s[c.un],canDown:i<L.length-1&&!s[c.un],toggle:()=>this.toggleService(g,b),open:()=>this.openService(g,b),locked:s[c.un]}}),
+      svcsUnavailable:s[c.un],svcsEmpty:!L.length,svcsEmptyText:s[c.ld]?'Loading…':b?'No bills yet. Add one and citizens see it under Bills & Recharges.':'No services yet. Add one and citizens can request it from Home.',
+      svcShownLabel:'On Home: '+L.filter(g=>g.is_active!==false).length,newService:()=>this.openService(null,b)}})(),
       sfShow:!!s.sf,closeSF:()=>this.setState({sf:null}),saveSF:()=>this.saveService(),
-      sf:s.sf?(()=>{const f=s.sf,[c,tint]=C.SVC_COLORS[f.color]||C.SVC_COLORS.blue,icon=f.image?'img:'+f.image:(C.SVC_ICONS[f.icon]||C.SVC_ICONS.services);
-        return {...f,err:f.tried?this.svcErr(f):'',c,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,preview:f.en.trim()||'e.g. Ration Card',title:f.key?'Edit service':'New service',saveLabel:f.saving?'Saving…':(f.key?'Save':'Add service'),
+      sf:s.sf?(()=>{const f=s.sf,set=this.cat(f.bill),[c,tint]=C.SVC_COLORS[f.color]||C.SVC_COLORS.blue,icon=f.image?'img:'+f.image:(set.icons[f.icon]||set.icons[set.icon]);
+        return {...f,err:f.tried?this.svcErr(f):'',c,tint,img:icon.startsWith('img:')?icon.slice(4):'',d:icon.startsWith('img:')?'':icon,preview:f.en.trim()||(f.bill?'e.g. Gas Booking':'e.g. Ration Card'),title:f.bill?(f.key?'Edit bill / recharge':'New bill / recharge'):(f.key?'Edit service':'New service'),saveLabel:f.saving?'Saving…':(f.key?'Save':f.bill?'Add bill / recharge':'Add service'),
           onField:e=>{const {name,value}=e.target;this.setState(st=>({sf:{...st.sf,[name]:value}}))},toggle:()=>this.setState(st=>({sf:{...st.sf,active:!st.sf.active}})),
-          icons:Object.entries(C.SVC_ICONS).map(([k,v])=>({k,on:!f.image&&f.icon===k,img:v.startsWith('img:')?v.slice(4):'',d:v.startsWith('img:')?'':v,pick:()=>this.setState(st=>({sf:{...st.sf,icon:k,image:'',file:null}}))})),
+          icons:Object.entries(set.icons).map(([k,v])=>({k,on:!f.image&&f.icon===k,img:v.startsWith('img:')?v.slice(4):'',d:v.startsWith('img:')?'':v,pick:()=>this.setState(st=>({sf:{...st.sf,icon:k,image:'',file:null}}))})),
           ownIcon:f.image,pickIcon:()=>this.pickServiceIcon(),removeIcon:()=>this.setState(st=>({sf:{...st.sf,image:'',file:null}})),
           colors:Object.entries(C.SVC_COLORS).map(([k,[cc,tt,label]])=>({k,label,c:cc,tint:tt,on:f.color===k,pick:()=>this.setState(st=>({sf:{...st.sf,color:k}}))}))}})():null,
       svcView:s.svcView,canCatalog:this.navOk('services'),
@@ -449,10 +513,14 @@ export default class Component extends React.Component {
       rqStatusOpts:s.rq?Object.keys(Component.SVC_STATUS).filter(k=>(s.rq.r.allowed_actions||[]).includes('assign')||k===s.rq.r.status||k==='IN_PROGRESS'||k==='COMPLETED').map(k=>({id:k,label:Component.SVC_STATUS[k].label})):[],
       rqAssigneeOpts:s.rq?[{id:'',label:'Not assigned'},...(s.rq.r.assigned_to&&!s.rqAssignees.some(a=>a.id===String(s.rq.r.assigned_to.id))?[{id:String(s.rq.r.assigned_to.id),label:s.rq.r.assigned_to.name}]:[]),...s.rqAssignees]:[],
       rqHistory:s.rq?[...(s.rq.r.history||[]).slice().reverse().map(h=>({dot:(Component.SVC_STATUS[h.status]||{dot:'#9aa6b4'}).dot,what:[h.status?(Component.SVC_STATUS[h.status]||{label:h.status}).label:'',h.assigned_to!==undefined?('Assigned to '+(h.assigned_to?h.assigned_to.name:'nobody')):''].filter(Boolean).join(' · '),note:h.note||'',meta:this.fmt(h.at,true)+(h.by?' · by '+h.by.name:'')})),{dot:'#9aa6b4',what:'Request received',note:'',meta:this.fmt(s.rq.r.created_at,true)+' · from '+s.rq.r.name}]:[],
+      numSel:this.selView('numSel',numIds,n=>({title:'Remove '+n+' number'+(n===1?'':'s')+'?',body:'Citizens stop seeing them at once. The audit log keeps a record.',confirm:'Remove '+n,url:id=>'/admin/contacts/'+id+'/',done:()=>this.loadNumbers(this.state.numPage)})),
       numTabs,numRows,isTypesTab:s.numTab==='TYPES',typeRows,numQ:s.numQ,onNumQ:e=>{this.setState({numQ:e.target.value});clearTimeout(this._nt);this._nt=setTimeout(()=>this.loadNumbers(1),300)},numType:s.numType,numTypeOpts:[{id:'',label:'All types'},...s.ctypes.filter(x=>x.section===s.numTab).map(x=>({id:x.key,label:x.name}))],onNumType:e=>this.setState({numType:e.target.value},()=>this.loadNumbers(1)),
       numCount:s.numCount+(s.numCount===1?' number':' numbers'),numEmpty:!numRows.length,numEmptyText:s.numLoading?'Loading…':(s.numQ||s.numType?'No numbers match.':'No numbers yet. Add one, or import a CSV file.'),numPager:pager(s.numPage,s.numPages,p=>this.loadNumbers(p)),addNumber:()=>this.openNumber(null),importNumbers:()=>this.importNumbers(),addType:()=>this.addType(),
-      nfShow:!!nv,nf:nv?{...nv.f,type:nv.type?nv.type.key:'',area:nv.area?nv.area.id:''}:{},nfTitle:nv?(nv.f.id?'Edit number':nv.f.section==='HELPLINE'?'Add helpline':'Add number'):'',nfSaveLabel:nv&&nv.f.id?'Save changes':'Add number',nfTypes:nv?nv.types.map(x=>({id:x.key,label:x.name})):[],nfIsOther:!!(nv&&nv.type&&nv.type.is_other),nfIsArea:!!(nv&&nv.f.section==='AREA'),nfLevels:[{id:'VILLAGE',label:'Village'},{id:'MANDAL',label:'Mandal'},{id:'DISTRICT',label:'District'}],nfAreas:nv?nv.areas:[],nfMobile:!!(nv&&nv.mobile),
-      onNF:e=>{const {name,type,checked,value}=e.target;this.setState(st=>{const n={...st.nf,[name]:type==='checkbox'?checked:value};if(name==='level')n.area='';if(name==='type')n.custom='';return {nf:n}})},cannotSaveNF:!(nv&&nv.ok),saveNFOpacity:nv&&nv.ok?1:.5,saveNF:()=>this.saveNumber(),closeNF:()=>this.setState({nf:null}),
+      tfShow:!!s.tf,tf:s.tf||{},tfErr:s.tf&&s.tf.tried?this.tfErrs(s.tf):{},tfSaveLabel:s.tf&&s.tf.saving?(s.tf.id?'Saving…':'Adding…'):(s.tf&&s.tf.id?'Save':'Add type'),tfTitle:s.tf&&s.tf.id?'Edit contact type':'Add contact type',tfEditing:!!(s.tf&&s.tf.id),tfSectionLabel:s.tf&&s.tf.section==='HELPLINE'?'Government helplines':'For villages',closeTF:()=>this.setState({tf:null}),saveTF:()=>this.saveType(),
+      onTF:e=>{const {name,value}=e.target;this.setState(st=>({tf:{...st.tf,[name]:value}}))},
+      tfSections:[{id:'AREA',label:'For villages',sub:'Numbers for a district, mandal or village, such as a VRO or Mee Seva centre.'},{id:'HELPLINE',label:'Government helplines',sub:'Statewide numbers every citizen sees, such as 108 or 1912.'}].map(o=>({...o,on:s.tf&&s.tf.section===o.id,pick:()=>this.setState(st=>({tf:{...st.tf,section:o.id}}))})),
+      nfShow:!!nv,nf:nv?{...nv.f,type:nv.type?nv.type.key:'',area:nv.area?nv.area.id:''}:{},nfTitle:nv?(nv.f.id?'Edit number':nv.f.section==='HELPLINE'?'Add helpline':'Add number'):'',nfSaveLabel:nv&&nv.f.id?'Save changes':'Add number',nfTypes:nv?[...nv.types.map(x=>({id:x.key,label:x.name})),...(this.can('contacts.manage_contact_types')?[{id:'__new',label:'+ Add a new type…'}]:[])]:[],nfIsOther:!!(nv&&nv.type&&nv.type.is_other),nfIsArea:!!(nv&&nv.f.section==='AREA'),nfLevels:[{id:'VILLAGE',label:'Village'},{id:'MANDAL',label:'Mandal'},{id:'DISTRICT',label:'District'}],nfAreas:nv?nv.areas:[],nfMobile:!!(nv&&nv.mobile),
+      onNF:e=>{const {name,type,checked,value}=e.target;if(name==='type'&&value==='__new'){this.addType(this.state.nf.section,true);return}this.setState(st=>{const n={...st.nf,[name]:type==='checkbox'?checked:value};if(name==='level')n.area='';if(name==='type')n.custom='';return {nf:n}})},cannotSaveNF:!(nv&&nv.ok),saveNFOpacity:nv&&nv.ok?1:.5,saveNF:()=>this.saveNumber(),closeNF:()=>this.setState({nf:null}),
       settings:s.settings,catRows,langRows,templates,badge36:{size:36},newCat:s.newCat,onNewCat:e=>{const {name,value}=e.target;this.setState(st=>({newCat:{...st.newCat,[name]:value}}))},addCat:()=>{const c=s.newCat;if(!c.te.trim()&&!c.en.trim()){this.toast('Enter a category name','#E9791E');return}const en=(c.en||c.te).trim(),te=(c.te||c.en).trim();const key=(en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'category').slice(0,20);this.api.post('/admin/categories/',{key,name_te:te,name_en:en}).then(()=>{this.setState({newCat:{te:'',en:''}});this.toast('Category added · '+en);this.loadCategories()}).catch(e=>this.fail(e))},
       onEscalation:e=>this.setState(st=>({settings:{...st.settings,escalation:Number(e.target.value)||0}})),saveSettings:()=>this.api.patch('/admin/settings/',{review_escalation_hours:s.settings.escalation}).then(()=>this.toast('Settings saved · escalation '+s.settings.escalation+' h')).catch(e=>this.fail(e)),
       onCitizenPerDay:e=>this.setState(st=>({settings:{...st.settings,citizenPerDay:e.target.value===''?'':Math.max(0,Math.min(1000,Math.round(Number(e.target.value)||0)))}})),saveCitizenPerDay:()=>{const n=Number(s.settings.citizenPerDay)||0;this.api.patch('/admin/settings/',{citizen_posts_per_day:n}).then(()=>this.toast(n?'Settings saved · '+n+' citizen posts per phone a day':'Settings saved · no daily limit for citizen posts')).catch(e=>this.fail(e))},
@@ -571,7 +639,7 @@ export default class Component extends React.Component {
                   </button>
                 </React.Fragment>
               ))}
-              <div style={{marginTop: "auto", padding: "14px 12px", borderRadius: "12px", background: "rgba(255,255,255,.06)", fontSize: "12px", lineHeight: "1.5", opacity: ".85"}}>మన గ్రామం – మన సేవలు – మన అభివృద్ధి<br />v2.4 · Andhra Pradesh</div>
+              <div style={{marginTop: "auto", padding: "14px 10px", borderRadius: "12px", background: "rgba(255,255,255,.06)", fontSize: "12px", lineHeight: "1.5", opacity: ".85"}}><span style={{display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>మన గ్రామం – మన సేవలు – మన అభివృద్ధి</span>v2.4 · Andhra Pradesh</div>
             </aside>
             <main style={{display: "flex", flexDirection: "column", minWidth: "0", minHeight: "0"}}>
               <header style={{height: "64px", flexShrink: "0", background: "#fff", borderBottom: "1px solid #eef2f6", display: "flex", alignItems: "center", gap: "16px", padding: "0 28px", position: "relative", zIndex: "30"}}>
@@ -1260,10 +1328,15 @@ export default class Component extends React.Component {
                     <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.adsCountLabel)}</span>
                     <button onClick={v.newAd} disabled={v.adsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;opacity: ${v.adsUnavailable ? .5 : 1}`)}>+ New ad</button>
                   </div>
+                  <SelBar sel={v.adSel} removeLabel="Delete selected" />
                   <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+                    {v.adSel?.show ? <label style={{display: "flex", gap: "12px", alignItems: "center", padding: "10px 16px", background: "#f7f9fb", fontSize: "12.5px", fontWeight: "600", color: "#6b7a8c", cursor: "pointer"}}>
+                        <TickBox on={v.adSel?.all} some={v.adSel?.some} onChange={v.adSel?.toggleAll} label="Select all ads" />Select all
+                      </label> : null}
                     {list(v.adRows).map((_a, _i1) => (
                       <React.Fragment key={_i1}>
-                        <div style={css(`display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap;border-top: ${_i1 ? "1px solid #f3f5f8" : "0"}`)}>
+                        <div style={css(`display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap;border-top: ${_i1 || v.adSel?.show ? "1px solid #f3f5f8" : "0"}`)}>
+                          <TickBox on={_a?.sel} onChange={_a?.toggleSel} label={"Select " + (_a?.title || "")} />
                           <button onClick={_a?.open} aria-label={"Edit " + (_a?.title || "")} style={css(`width:144px;aspect-ratio:3/2;border:0;padding:0;border-radius:10px;overflow:hidden;background:#f1f3f6;cursor:pointer;flex-shrink:0;opacity: ${_a?.dim ?? 1}`)}>
                             <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={_a?.image} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={_a?.image} alt="" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span>
                           </button>
@@ -1283,14 +1356,15 @@ export default class Component extends React.Component {
                     {v.adsEmpty ? <div style={{padding: "40px", textAlign: "center", color: "#6b7a8c", fontSize: "13px"}}>{I(v.adsEmptyText)}</div> : null}
                   </div>
                 </> : null}
-                {/* SERVICES: the services citizens can request from Home (same as the app's Super Admin › Services) */}
-                {v.pg?.requests && v.canCatalog && v.svcView === "catalog" ? <>
+                {/* SERVICES / BILLS: the services citizens can request, or the bills & recharges, on the app's Home
+                    (same as the app's Super Admin › Services and › Bills & Recharges) */}
+                {(v.pg?.requests || v.pg?.bills) && v.catShow ? <>
                   <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
-                    <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>The services citizens can choose from on the app's Home. Only the Super Admin adds or changes them.</span>
+                    <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>{I(v.catSub)}</span>
                     <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.svcShownLabel)}</span>
-                    <button onClick={v.newService} disabled={v.svcsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;opacity: ${v.svcsUnavailable ? .5 : 1}`)}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New service</button>
+                    <button onClick={v.newService} disabled={v.svcsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;opacity: ${v.svcsUnavailable ? .5 : 1}`)}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>{I(v.catNew)}</button>
                   </div>
-                  {v.svcsUnavailable ? <div role="status" style={{background: "#FFF0DC", color: "#9a4a08", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", lineHeight: "1.5"}}>The services list is not on the server yet. Until it is, citizens see the built-in list below, and changes can't be saved.</div> : null}
+                  {v.svcsUnavailable ? <div role="status" style={{background: "#FFF0DC", color: "#9a4a08", borderRadius: "12px", padding: "12px 16px", fontSize: "13px", lineHeight: "1.5"}}>{I(v.catUnavailText)}</div> : null}
                   <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
                     {list(v.svcRows).map((_g, _i1) => (
                       <div key={_i1} style={css(`display:flex;align-items:center;gap:14px;padding:12px 16px;border-top: ${_i1 ? "1px solid #f3f5f8" : "0"}`)}>
@@ -1307,7 +1381,7 @@ export default class Component extends React.Component {
                     ))}
                     {v.svcsEmpty ? <div style={{padding: "40px", textAlign: "center", color: "#6b7a8c", fontSize: "13px"}}>{I(v.svcsEmptyText)}</div> : null}
                   </div>
-                  <span style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.5"}}>Use the arrows to set the order on Home. A hidden service is not on Home; requests already sent stay as they are.</span>
+                  <span style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.5"}}>{I(v.catHelp)}</span>
                 </> : null}
                 {/* IMPORTANT NUMBERS */}
                 {v.pg?.numbers ? <>
@@ -1332,6 +1406,7 @@ export default class Component extends React.Component {
                             <th style={{padding: "12px 16px", fontWeight: "600"}}>Key</th>
                             <th style={{padding: "12px 16px", fontWeight: "600"}}>Numbers</th>
                             <th style={{padding: "12px 16px", fontWeight: "600", textAlign: "right"}}>Active</th>
+                            <th style={{padding: "12px 16px"}}><span style={{position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)"}}>Actions</span></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1349,6 +1424,12 @@ export default class Component extends React.Component {
                                   <button onClick={_t?.toggle} aria-label={"Switch " + (_t?.en ?? "")} style={css(`width:44px;height:26px;border-radius:13px;border:0;cursor:pointer;position:relative;background: ${_t?.swBg ?? ""}`)}>
                                     <span style={css(`position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);left: ${_t?.swLeft ?? ""};transition:left .15s`)} />
                                   </button>
+                                </td>
+                                <td style={{padding: "10px 16px", textAlign: "right", whiteSpace: "nowrap"}}>
+                                  <span style={{display: "inline-flex", gap: "6px"}}>
+                                    <button onClick={_t?.edit} aria-label={"Edit " + (_t?.en ?? "")} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button>
+                                    <button onClick={_t?.del} aria-label={"Delete " + (_t?.en ?? "")} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#b3261e", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Delete</button>
+                                  </span>
                                 </td>
                               </tr>
                             </React.Fragment>
@@ -1373,10 +1454,12 @@ export default class Component extends React.Component {
                       <button onClick={v.importNumbers} style={{marginLeft: "auto", height: "40px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
                       <button onClick={v.addNumber} style={{height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add number</button>
                     </div>
+                    <SelBar sel={v.numSel} removeLabel="Remove selected" />
                     <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
                       <table style={{width: "100%", fontSize: "13px"}}>
                         <thead>
                           <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+                            <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.numSel?.show ? <TickBox on={v.numSel?.all} some={v.numSel?.some} onChange={v.numSel?.toggleAll} label="Select all numbers on this page" /> : null}</th>
                             <th style={{padding: "12px 16px", fontWeight: "600"}}>Type</th>
                             <th style={{padding: "12px 16px", fontWeight: "600"}}>Name</th>
                             <th style={{padding: "12px 16px", fontWeight: "600"}}>Phone</th>
@@ -1389,6 +1472,7 @@ export default class Component extends React.Component {
                           {list(v.numRows).map((_c, _i1) => (
                             <React.Fragment key={_i1}>
                               <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                                <td style={{padding: "10px 0 10px 16px"}}>{_c?.canSel ? <TickBox on={_c?.sel} onChange={_c?.toggleSel} label={"Select " + (_c?.name || "")} /> : null}</td>
                                 <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.type)}</td>
                                 <td style={{padding: "10px 16px"}}>
                                   <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</span>
@@ -1412,7 +1496,7 @@ export default class Component extends React.Component {
                               </tr>
                             </React.Fragment>
                           ))}
-                          {v.numEmpty ? <tr><td colSpan="6" style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.numEmptyText)}</td></tr> : null}
+                          {v.numEmpty ? <tr><td colSpan="7" style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.numEmptyText)}</td></tr> : null}
                         </tbody>
                       </table>
                       {v.numPager?.show ? <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#6b7a8c"}}>
@@ -1811,7 +1895,7 @@ export default class Component extends React.Component {
                 </div>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English) <span style={{color: "#b3261e"}}>*</span></span>
-                  <input name="en" value={val(v.sf?.en, "")} onChange={v.sf?.onField} placeholder="e.g. Ration Card" maxLength="60" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", borderColor: v.sf?.err ? "#b3261e" : "#cfd8e3"}} />
+                  <input name="en" value={val(v.sf?.en, "")} onChange={v.sf?.onField} placeholder={v.sf?.bill ? "e.g. Gas Booking" : "e.g. Ration Card"} maxLength="60" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", borderColor: v.sf?.err ? "#b3261e" : "#cfd8e3"}} />
                   {v.sf?.err ? <span role="alert" style={{fontSize: "12px", color: "#b3261e", fontWeight: "700"}}>{I(v.sf.err)}</span> : null}
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
@@ -2032,6 +2116,49 @@ export default class Component extends React.Component {
               <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>
                 <button onClick={v.saveNF} disabled={v.cannotSaveNF} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.saveNFOpacity ?? ""}`)}>{I(v.nfSaveLabel)}</button>
                 <button onClick={v.closeNF} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
+              </div>
+            </div>
+          </> : null}
+          {v.tfShow ? <>
+            <div onClick={v.closeTF} style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.35)", zIndex: "50"}} />
+            <div role="dialog" aria-modal="true" aria-label={v.tfTitle} style={{position: "fixed", top: "0", right: "0", bottom: "0", width: "min(460px, 100vw)", background: "#fff", boxShadow: "-10px 0 40px rgba(0,64,126,.2)", zIndex: "51", display: "flex", flexDirection: "column", animation: "sa-slide .2s ease-out"}}>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid #eef2f6"}}>
+                <span style={{flex: "1", fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.tfTitle)}</span>
+                <button onClick={v.closeTF} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px"}}>
+                {v.tfEditing ? <div style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+                    <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Section</span>
+                    <span style={{fontSize: "14px", color: "#3b4a5c"}}>{I(v.tfSectionLabel)} <span style={{color: "#6b7a8c", fontSize: "12.5px"}}>· cannot be changed</span></span>
+                  </div> : null}
+                {v.tfEditing ? null : <div role="radiogroup" aria-label="Section" style={{display: "flex", flexDirection: "column", gap: "8px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Section</span>
+                  {list(v.tfSections).map((_o, _i1) => (
+                    <button key={_i1} type="button" role="radio" aria-checked={!!_o?.on} onClick={_o?.pick} style={css(`display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px 14px;border-radius:12px;cursor:pointer;background: ${_o?.on ? "#e3f0fb" : "#fff"};border: 1.5px solid ${_o?.on ? "#0D3B7A" : "#cfd8e3"}`)}>
+                      <span aria-hidden="true" style={css(`flex-shrink:0;margin-top:2px;width:18px;height:18px;border-radius:50%;box-sizing:border-box;border: ${_o?.on ? "5px solid #0D3B7A" : "2px solid #cfd8e3"};background:#fff`)} />
+                      <span style={{display: "flex", flexDirection: "column", gap: "2px"}}>
+                        <span style={{fontSize: "14px", fontWeight: "700", color: "#0A2550"}}>{I(_o?.label)}</span>
+                        <span style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.4"}}>{I(_o?.sub)}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>}
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>English name</span>
+                  <input name="en" value={val(v.tf?.en, "")} onChange={v.onTF} maxLength="60" placeholder="e.g. Anganwadi centre" aria-invalid={!!v.tfErr?.en} style={css(`height:44px;padding:0 12px;border-radius:10px;font-size:14px;border:1px solid ${v.tfErr?.en ? "#b3261e" : "#cfd8e3"}`)} />
+                  {v.tfErr?.en ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.tfErr?.en)}</span> : null}
+                </label>
+                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                  <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Telugu name <span style={{fontWeight: "600", color: "#6b7a8c"}}>(optional)</span></span>
+                  <input name="te" value={val(v.tf?.te, "")} onChange={v.onTF} maxLength="60" placeholder="ఉదా. అంగన్‌వాడీ కేంద్రం" aria-invalid={!!v.tfErr?.te} style={css(`height:44px;padding:0 12px;border-radius:10px;font-size:14px;border:1px solid ${v.tfErr?.te ? "#b3261e" : "#cfd8e3"}`)} />
+                  {v.tfErr?.te ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.tfErr?.te)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>Citizens see this name in the app's Telugu mode. Left empty, they see the English name.</span>}
+                </label>
+              </div>
+              <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>
+                <button onClick={v.saveTF} disabled={!!v.tf?.saving} style={css(`flex:1;height:44px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;opacity: ${v.tf?.saving ? .6 : 1}`)}>{I(v.tfSaveLabel)}</button>
+                <button onClick={v.closeTF} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Cancel</button>
               </div>
             </div>
           </> : null}
