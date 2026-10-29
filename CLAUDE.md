@@ -7,7 +7,7 @@ The BVT Grama Connect public website (served at `/`) and Super Admin console (se
 @.claude/conventions.md
 @.claude/api.md
 
-Read when needed: `.claude/operations.md` (build, run, visual checks, deploy) and `.claude/backlog.md` (open work).
+Read when needed: `.claude/operations.md` (build, run, checking the look, deploy) and `.claude/backlog.md` (open work).
 
 ## Always
 
@@ -21,7 +21,8 @@ Read when needed: `.claude/operations.md` (build, run, visual checks, deploy) an
 
 ```
 npm ci
-npm run build          # dist/ (website) and dist/console/ (console)
+npm run build          # dist/ (website) and dist/console/ (console); type-checks first
+npm run typecheck      # TypeScript only (strict); must print nothing
 npm run dev            # hot reload at http://localhost:3000/ and /console/, on the live server's API and data
-                       # (src/proxy.dev.js forwards /api/ and /media/; GC_DEV_API points it elsewhere)
+                       # (src/proxy.dev.ts forwards /api/ and /media/; GC_DEV_API points it elsewhere)
 ```

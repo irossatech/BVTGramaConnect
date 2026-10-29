@@ -12,7 +12,7 @@ npm run build          # next build --webpack, static export to dist/
 | Variable | Default | Meaning |
 |---|---|---|
 | `GC_API_BASE` | `/api/v1` | API base URL both apps call, built into the scripts |
-| `GC_CONSOLE_URL` | `/console/` | Where the website's "Admin Login" and the admin card's button lead |
+| `GC_SITE_URL` | `https://bvtgramaconnect.com` | The website's public address: canonical links, share previews, structured data |
 
 Set them in the environment, or copy `.env.example` to `.env`. The environment wins over `.env`. `dist/` is recreated on every build and is not committed.
 
@@ -32,20 +32,9 @@ Output: `dist/index.html` (website), `dist/console/index.html` (console), `dist/
 
 After an edit, build again and reload. For quick markup work, `npm run dev` serves both pages with hot reload at http://localhost:3000/ and /console/ (its files go to `.next/`, never `dist/`); API calls only work through the backend's runserver.
 
-## Visual checks
+## Checking the look
 
-Install the browser once in this folder: `npm install --no-save playwright`, then `npx playwright install chromium`. Python needs Pillow.
-
-**Website** (375 px and 1280 px), details in `tools/visual-check/README.md`:
-1. Serve the prototype folder on port 8199: `python -m http.server 8199` inside "BVT Grama Connect mobile prototype".
-2. Run the backend on port 8101: `python manage.py runserver 127.0.0.1:8101`.
-3. `node tools/visual-check/capture.mjs <shots>` then `python tools/visual-check/compare.py <shots> docs/visual-check`.
-
-**Console** (1440x900):
-1. Run the backend with sample data on port 8102 (`python manage.py runserver 127.0.0.1:8102`), log in once at http://127.0.0.1:8102/console/ as `super.admin` and set a new password.
-2. Serve the prototype folder: `python -m http.server 8198` inside "BVT Grama Connect mobile prototype".
-3. `node console/tools/visual-check.mjs console/docs/visual-check super.admin "<new password>"`. The script logs in through the form with a real session.
-4. `python console/tools/visual_diff.py console/docs/visual-check`, then update the table in `console/docs/visual-check/README.md`.
+There is no screenshot tooling any more (the prototype comparison was finished and removed on 29 Oct 2026). After a change near the markup, open the built pages in a browser at 375 px and 1280 px (website) and 1440 px (console), in both languages, and compare with the page before the change.
 
 ## Deploy
 

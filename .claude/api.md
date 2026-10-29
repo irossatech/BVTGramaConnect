@@ -2,9 +2,9 @@
 
 The source of truth is the BackEnd repo's `docs/api-contract.md`. If this file and the contract disagree, the contract wins; tell the backend team. Both apps call relative URLs under `GC_API_BASE` (default `/api/v1`, set at build time) on the same domain.
 
-## Website (`src/components/Site.jsx`)
+## Website (`src/website/Site.tsx`)
 
-Contract section 9. All calls go through `GCApi` (`src/lib/site-api.js`) with relative URLs under `GC_API_BASE` (default `/api/v1`). No login is involved.
+Contract section 9. All calls go through `GCApi` (`src/website/api.ts`) with relative URLs under `GC_API_BASE` (default `/api/v1`). No login is involved.
 
 ### GET /public/site-config/
 
@@ -60,9 +60,9 @@ Called on page load and again the first time the language is switched, with `Acc
 - The backend's `SITE_SHOWCASE_VILLAGE_ID` picks the village; without it the backend chooses.
 - When `featured` is null or the call fails, the prototype's static picture stays.
 
-## Console (`src/components/Console.jsx`)
+## Console (`src/console/Console.tsx`)
 
-This section lists what the console calls today, read from `src/components/Console.jsx` and `src/lib/console-api.js`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the session cookie (same-origin); every POST, PATCH and DELETE also sends `X-CSRFToken` from the `csrftoken` cookie.
+This section lists what the console calls today, read from `src/console/Console.tsx` and `src/console/api.ts`. All paths are under `/api/v1/`. Every call sends `Accept-Language: en` and the session cookie (same-origin); every POST, PATCH and DELETE also sends `X-CSRFToken` from the `csrftoken` cookie.
 
 ### By screen
 
@@ -87,7 +87,7 @@ This section lists what the console calls today, read from `src/components/Conso
 | Important numbers | `GET /contact-types/` for the type choices; `GET /admin/contacts/?section=AREA\|HELPLINE&type=&q=&page=&page_size=20` (tabs "For you" and "Government helplines"); `POST /admin/contacts/` `{type, custom_type?, name, name_te, phone, email, area: {level, id}, sort_order, consent_recorded}` (helplines use `area: {level: STATE}`); `PATCH /admin/contacts/{id}/` (same fields, or `{verified: true}`); `DELETE /admin/contacts/{id}/`; buttons follow `allowed_actions` (`edit`, `verify`, `remove`); CSV: `POST /admin/contacts/import/?dry_run=1` (multipart `file`), then without `dry_run`. Types tab: `GET /admin/contact-types/`, `POST /admin/contact-types/` `{key, section, name_en, name_te}`, `PATCH /admin/contact-types/{id}/` `{is_active}`. The area list comes from the geography tree (the console is Super Admin only), not `/admin/contacts/targets/` |
 | Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}` |
 
-CSV downloads go through `GC_API.download` (`src/lib/console-api.js`), which fetches with the session cookie and saves the file under a dated name.
+CSV downloads go through `GC_API.download` (`src/console/api.ts`), which fetches with the session cookie and saves the file under a dated name.
 
 ### Permissions the console reads from `GET /me/`
 

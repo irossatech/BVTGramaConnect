@@ -9,8 +9,8 @@ A village news platform for Andhra Pradesh. Panchayat members and admins post vi
 | Product | Who uses it | Repo |
 |---|---|---|
 | Mobile app, Android and iOS | Every role, including citizens | BVTGramaConnect_Mobile (Flutter) |
-| Public website, no login | Citizens and visitors | BVTGramaConnect (React, Next.js), page `src/pages/index.jsx` |
-| Super Admin console | Super Admins only | BVTGramaConnect (React, Next.js), page `src/pages/console/index.jsx` |
+| Public website, no login | Citizens and visitors | BVTGramaConnect (React, Next.js), pages `src/pages/index.tsx` and `src/pages/[page].tsx`, code in `src/website/` |
+| Super Admin console | Super Admins only | BVTGramaConnect (React, Next.js), page `src/pages/console/index.tsx`, code in `src/console/` |
 | REST API, Django admin, background jobs, deployment | All three clients | BVTGramaConnect_BackEnd (Django) |
 
 Owners: the backend team owns BVTGramaConnect_BackEnd, the mobile team owns BVTGramaConnect_Mobile, and one web developer owns BVTGramaConnect (website and console). On the server everything sits on one domain: the website at `/`, the console at `/console/`, the API at `/api/v1/`, uploaded photos at `/media/`.

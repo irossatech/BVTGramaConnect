@@ -1,0 +1,9 @@
+# BVT Grama Connect: the public website is open to every crawler, AI search included, so villagers
+# can find it. The console (/console/) is not linked from the website and is marked noindex in its own
+# page (not blocked here, so crawlers can read that mark): it never shows in search results.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /django-admin/
+
+Sitemap: https://bvtgramaconnect.com/sitemap.xml
