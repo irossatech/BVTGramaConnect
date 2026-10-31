@@ -357,6 +357,9 @@ export interface CatalogItem {
   color: string;
   logo?: string | null;
   is_active?: boolean;
+  // Services only: the example under "Your request" on the citizen's request form (backend plan: service hint).
+  hint_en?: string;
+  hint_te?: string;
 }
 
 interface Named {

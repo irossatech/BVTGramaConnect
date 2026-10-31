@@ -263,6 +263,8 @@ interface ServiceForm {
   active: boolean;
   tried: boolean;
   saving: boolean;
+  hintEn: string;
+  hintTe: string;
 }
 
 /** Where a list (services or bills) lives: state keys, endpoint, built-in fallback, icon set and words. */
@@ -1108,8 +1110,8 @@ export default class Component extends React.Component<Props, State> {
     const c = this.cat(b);
     if (this.state[c.un]) return;
     this.setState({sf: g
-      ? {bill: b, key: g.key, en: g.name_en, te: g.name_te || '', icon: g.icon || c.icon, color: g.color || 'blue', image: g.logo || '', had: !!g.logo, file: null, active: g.is_active !== false, tried: false, saving: false}
-      : {bill: b, key: null, en: '', te: '', icon: c.icon, color: 'blue', image: '', had: false, file: null, active: true, tried: false, saving: false}});
+      ? {bill: b, key: g.key, en: g.name_en, te: g.name_te || '', icon: g.icon || c.icon, color: g.color || 'blue', image: g.logo || '', had: !!g.logo, file: null, active: g.is_active !== false, tried: false, saving: false, hintEn: g.hint_en || '', hintTe: g.hint_te || ''}
+      : {bill: b, key: null, en: '', te: '', icon: c.icon, color: 'blue', image: '', had: false, file: null, active: true, tried: false, saving: false, hintEn: '', hintTe: ''}});
   }
 
   // The Super Admin's own logo (contract section 16: `logo`): PNG, JPG or WebP up to 2 MB.
@@ -1143,7 +1145,8 @@ export default class Component extends React.Component<Props, State> {
       this.setState({sf: {...f, tried: true}});
       return;
     }
-    const c = this.cat(f.bill), body = {name_en: f.en.trim(), name_te: f.te.trim(), icon: f.icon, color: f.color, is_active: f.active};
+    const c = this.cat(f.bill), body = {name_en: f.en.trim(), name_te: f.te.trim(), icon: f.icon, color: f.color, is_active: f.active,
+      ...(f.bill ? {} : {hint_en: f.hintEn.trim(), hint_te: f.hintTe.trim()})};
     this.setState({sf: {...f, saving: true}});
     const path = f.key ? c.path + f.key + '/' : c.path;
     let req: Promise<unknown>;
@@ -1153,9 +1156,11 @@ export default class Component extends React.Component<Props, State> {
       fd.append('logo', f.file);
       req = this.api.upload(path, fd, undefined, f.key ? 'PATCH' : 'POST');
     } else req = f.key ? this.api.patch(path, {...body, ...(f.had && !f.image ? {logo: null} : {})}) : this.api.post(path, body);
-    req.then(() => {
+    req.then((x) => {
       this.setState({sf: null});
-      this.toast(f.key ? 'Changes saved' : (f.bill ? 'Bill added · ' : 'Service added · ') + body.name_en);
+      // A server without the example yet drops it: say so rather than lose it quietly.
+      if (!f.bill && (f.hintEn + f.hintTe).trim() && !(x && typeof x === 'object' && 'hint_en' in x)) this.toast('Saved. The request example needs a server update before citizens see it.', '#E9791E');
+      else this.toast(f.key ? 'Changes saved' : (f.bill ? 'Bill added · ' : 'Service added · ') + body.name_en);
       this.loadServices(f.bill);
     }).catch((e: unknown) => {
       this.setState((x) => ({sf: x.sf && {...x.sf, saving: false}}));

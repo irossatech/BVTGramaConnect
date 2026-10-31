@@ -29,6 +29,17 @@ export default function ServiceForm({ v }: { v: View }) {
             <input name="te" value={val(v.sf?.te, "")} onChange={v.sf?.onField} placeholder="ఉదా: రేషన్ కార్డు" maxLength={60} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
             <span style={{fontSize: "12px", color: "#6b7a8c"}}>Shown when the app is in Telugu. Left empty, the English name is used.</span>
           </label>
+          {v.sf?.bill ? null : <>
+            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Request example (English)</span>
+              <input name="hintEn" value={val(v.sf?.hintEn, "")} onChange={v.sf?.onField} placeholder="e.g. apply for a new ration card" maxLength={100} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+            </label>
+            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Request example (Telugu)</span>
+              <input name="hintTe" value={val(v.sf?.hintTe, "")} onChange={v.sf?.onField} placeholder="ఉదా: కొత్త రేషన్ కార్డు కోసం దరఖాస్తు" maxLength={100} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+              <span style={{fontSize: "12px", color: "#6b7a8c"}}>Shown in grey in the citizen’s “Your request” box when they request this service. Left empty, a general example is shown.</span>
+            </label>
+          </>}
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Icon <span style={{color: "#b3261e"}}>*</span></span>
             <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "12px", background: "#fff", border: v.sf?.ownIcon ? "2px solid " + v.sf.c : "1px solid #cfd8e3"}}>

@@ -87,10 +87,10 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `http://147.93.102.247:8509`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
+Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `http://147.93.102.247:9501`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
 
 - Log in to the console with your live Super Admin account. **Everything you save changes live data.**
-- The live API docs (Swagger) are at http://147.93.102.247:8509/api/docs/.
+- The live API docs (Swagger) are at http://147.93.102.247:9501/api/docs/.
 - To use another server (staging, or a local backend on `http://127.0.0.1:8000`), change `GC_DEV_API` in `.env` and restart `npm run dev`.
 
 ## Run with a local backend (Windows, PowerShell)
