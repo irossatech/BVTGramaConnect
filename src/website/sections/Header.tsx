@@ -12,7 +12,7 @@ export default function Header({ v }: { v: View }) {
         <button onClick={v.goHome} style={{display: "flex", alignItems: "center", gap: "10px", background: "none", border: "0", padding: "0", cursor: "pointer", color: ink}}>
           <img src="/assets/logo-mark.png" alt="" style={{width: "40px", height: "40px", borderRadius: "18.5%"}} />
           <span style={{textAlign: "left"}}>
-            <span style={{display: "block", fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: ".03em", lineHeight: "1.15", whiteSpace: "nowrap"}}>BVT GRAMA CONNECT</span>
+            <span style={{display: "block", fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: ".03em", lineHeight: "1.15", whiteSpace: "nowrap"}}>GRAMA CONNECT</span>
             <span style={{display: "block", fontSize: fs.xs, fontWeight: "700", color: green}}>{I(v.t?.taglineShort)}</span>
           </span>
         </button>
@@ -21,12 +21,12 @@ export default function Header({ v }: { v: View }) {
               <a key={_i1} className="gc-nav" href={_n?.href} onClick={_n?.link} aria-current={_n?.on ? "page" : undefined} style={{display: "inline-flex", alignItems: "center", boxSizing: "border-box", height: "38px", padding: "0 12px", border: "0", borderRadius: "999px", cursor: "pointer", fontSize: fs.base, fontWeight: "700", lineHeight: "normal", textDecoration: "none", background: _n?.bg, color: _n?.color}}>{I(_n?.label)}</a>
             ))}
           </nav> : null}
-        <button className="gc-lang" onClick={v.toggleLang} aria-label={v.te ? "Switch to English" : "తెలుగుకు మార్చండి"} style={{marginLeft: v.langMargin, height: "36px", padding: "0 12px 0 10px", border: "1.5px solid " + blue, borderRadius: "999px", background: "#fff", color: blue, fontWeight: "700", fontSize: fs.sm, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px"}}>
+        {v.enOff ? null : <button className="gc-lang" onClick={v.toggleLang} aria-label={v.te ? "Switch to English" : "తెలుగుకు మార్చండి"} style={{marginLeft: v.langMargin, height: "36px", padding: "0 12px 0 10px", border: "1.5px solid " + blue, borderRadius: "999px", background: "#fff", color: blue, fontWeight: "700", fontSize: fs.sm, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px"}}>
           <svg className="gc-globe" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M2.5 12h19M12 2.5c2.6 2.6 4 6 4 9.5s-1.4 6.9-4 9.5c-2.6-2.6-4-6-4-9.5s1.4-6.9 4-9.5z" /></svg>
           {I(v.langLabel)}
-        </button>
+        </button>}
         {v.desktop ? <button className="gc-pill" onClick={v.goGetApp} style={{...pillDark, height: "40px", padding: "0 18px", fontSize: fs.base}}>{I(v.t?.getApp)}</button> : null}
-        {v.mobile ? <button onClick={v.toggleMenu} aria-label="Menu" aria-expanded={v.menuOpen} style={{width: "44px", height: "44px", border: "0", background: "none", cursor: "pointer", color: ink, display: "flex", alignItems: "center", justifyContent: "center"}}>
+        {v.mobile ? <button onClick={v.toggleMenu} aria-label="Menu" aria-expanded={v.menuOpen} style={{marginLeft: v.enOff ? "auto" : undefined, width: "44px", height: "44px", border: "0", background: "none", cursor: "pointer", color: ink, display: "flex", alignItems: "center", justifyContent: "center"}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d={v.menuIcon} /></svg>
           </button> : null}
       </div>

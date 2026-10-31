@@ -81,6 +81,8 @@ interface State {
   sending: boolean;
   scrolled: boolean;
   speaking: boolean;
+  /** The Super Admin switched English off (GET /app-config/): Telugu only, no language switch. */
+  enOff: boolean;
 }
 
 // Showcase category chips and labels; announce keeps the prototype's exact chip colours.
@@ -144,6 +146,7 @@ export default class Site extends React.Component<Props, State> {
     sending: false,
     scrolled: false,
     speaking: false,
+    enOff: false,
   };
 
   private el: HTMLDivElement | null = null;
@@ -264,6 +267,18 @@ export default class Site extends React.Component<Props, State> {
     GCApi.get<SiteConfig>("/public/site-config/")
       .then((site) => {
         if (!this.dead) this.setState({ site });
+      })
+      .catch(() => {});
+    // No answer (not on the server yet) keeps both languages.
+    GCApi.get<{ languages?: { en?: boolean } }>("/app-config/")
+      .then((c) => {
+        if (this.dead || c?.languages?.en !== false) return;
+        this.setState({ enOff: true });
+        if (this.state.lang === "en") {
+          this.setState({ lang: "te" });
+          document.documentElement.lang = "te";
+          this.loadShowcase("te");
+        }
       })
       .catch(() => {});
   }
@@ -497,13 +512,13 @@ export default class Site extends React.Component<Props, State> {
     const feed = (sc?.featured ? [sc.featured, ...(sc.items || [])].slice(0, 3) : sample).map(card);
     const f = s.form;
     const site: SiteConfig = s.site || {};
-    const addr = (site[`office_address_${L}`] || "BVT Grama Connect, 2nd Floor, Collectorate Road,\nGuntur – 522004, Andhra Pradesh").split("\n");
+    const addr = (site[`office_address_${L}`] || "GramaConnect, 2nd Floor, Collectorate Road,\nGuntur – 522004, Andhra Pradesh").split("\n");
     const contact = {
       addr1: addr[0] || "",
       addr2: addr.slice(1).join(" "),
       phone: site.phone || "+91 863 223 4567",
       hours: site[`hours_${L}`] || t.hours,
-      email: site.email || "help@bvtgramaconnect.in",
+      email: site.email || "help@gramaconnect.com",
     };
     // Hero: the word that changes every few seconds, and the brand line around the photo.
     const WORD: Record<Lang, Record<Category, string>> = {
@@ -511,7 +526,7 @@ export default class Site extends React.Component<Props, State> {
       en: { announce: "announcements", schemes: "govt schemes", news: "news & notices", updates: "public updates" },
     };
     const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: WORD[L][k], color: CAT[k].color, icon: icons[k] }));
-    const ring = "BVT GRAMA CONNECT  •  CONNECTING VILLAGES  •  EMPOWERING INDIA  •  ";
+    const ring = "GRAMA CONNECT  •  CONNECTING VILLAGES  •  EMPOWERING INDIA  •  ";
     // One day in the village, each moment tied to a feature (index into appFeatures).
     const DAY: { title: string; m: [number, string, string][] } =
       L === "te"
@@ -576,6 +591,7 @@ export default class Site extends React.Component<Props, State> {
       privacyLink: this.link("privacy"),
       termsLink: this.link("terms"),
       langLabel: L === "te" ? "EN" : "తెలుగు",
+      enOff: s.enOff,
       toggleLang: () => {
         this.hush();
         const nl: Lang = L === "te" ? "en" : "te";
@@ -607,6 +623,8 @@ export default class Site extends React.Component<Props, State> {
         : null,
       playClick: () => this.openStore(site.play_store_url, t),
       appClick: () => this.openStore(site.app_store_url, t),
+      // No iPhone app yet: the button says so in large text until the server has an App Store link.
+      appLabel: site.app_store_url ? ["Download on the", "App Store"] as const : ["App Store", L === "te" ? "త్వరలో వస్తోంది" : "Coming soon"] as const,
       contact,
       features,
       steps,

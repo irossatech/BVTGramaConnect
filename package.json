@@ -5,7 +5,7 @@
   "description": "BVT Grama Connect public website (/) and Super Admin console (/console/), a Next.js app exported as static files.",
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "build": "next build --webpack && node scripts/seo-files.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

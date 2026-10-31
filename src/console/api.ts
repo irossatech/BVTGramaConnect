@@ -1,4 +1,4 @@
-/* BVT Grama Connect console: small fetch wrapper around the REST API.
+/* Grama Connect console: small fetch wrapper around the REST API.
  *
  * - Base URL from shared/config.ts (GC_API_BASE at build time).
  * - The console signs in with a Django session: the server sets the HttpOnly

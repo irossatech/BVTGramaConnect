@@ -34,11 +34,11 @@ export default function Contact({ v }: { v: View }) {
             {v.notSent ? <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fName)}</span>
-                  <input name="name" autoComplete="name" value={val(v.form?.name, "")} onChange={v.onField} style={field} />
+                  <input name="name" autoComplete="name" value={val(v.form?.name, "")} onChange={v.onField} placeholder={v.t?.fNamePh} style={field} />
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fMobile)}</span>
-                  <input name="mobile" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={val(v.form?.mobile, "")} onChange={v.onField} placeholder="98765 43210" style={field} />
+                  <input name="mobile" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={val(v.form?.mobile, "")} onChange={v.onField} placeholder={v.t?.fMobilePh} style={field} />
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fVillage)}</span>
@@ -46,7 +46,7 @@ export default function Contact({ v }: { v: View }) {
                 </label>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fMessage)}</span>
-                  <textarea name="message" rows={4} value={val(v.form?.message, "")} onChange={v.onField} style={{...field, height: "auto", padding: "12px 14px", lineHeight: "1.5", resize: "vertical"}} />
+                  <textarea name="message" rows={4} value={val(v.form?.message, "")} onChange={v.onField} placeholder={v.t?.fMessagePh} style={{...field, height: "auto", padding: "12px 14px", lineHeight: "1.5", resize: "vertical"}} />
                 </label>
                 <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{position: "absolute", left: "-10000px", width: "1px", height: "1px", opacity: "0"}} />
                 {v.formError ? <div role="alert" style={{fontSize: fs.base, color: "#b3261e", fontWeight: "500"}}>{I(v.t?.fError)}</div> : null}

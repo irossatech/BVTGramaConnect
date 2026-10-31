@@ -25,7 +25,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
     privacy: {
       title: "గోప్యతా విధానం",
       updated: "చివరిగా నవీకరించినది: 28 అక్టోబర్ 2026",
-      intro: "BVT Grama Connect మీ పంచాయతీ, స్థానిక పరిపాలన ధృవీకరించిన గ్రామ ప్రకటనలను మీ ఫోన్‌కు అందిస్తుంది. మేము ఏ సమాచారం సేకరిస్తాం, ఎందుకు, దాని గురించి మీరు ఏం చేయవచ్చో ఈ పేజీ సులభమైన మాటల్లో చెబుతుంది. పౌరులు ఖాతా లేకుండానే యాప్ వాడవచ్చు.",
+      intro: "Grama Connect మీ పంచాయతీ, స్థానిక పరిపాలన ధృవీకరించిన గ్రామ ప్రకటనలను మీ ఫోన్‌కు అందిస్తుంది. మేము ఏ సమాచారం సేకరిస్తాం, ఎందుకు, దాని గురించి మీరు ఏం చేయవచ్చో ఈ పేజీ సులభమైన మాటల్లో చెబుతుంది. పౌరులు ఖాతా లేకుండానే యాప్ వాడవచ్చు.",
       sections: [
         { h: "మేము సేకరించేవి", body: [[
           "వార్తలు చదవడం: మిమ్మల్ని గుర్తించే సమాచారం ఏదీ లేదు. మీ భాష, గ్రామం, సేవ్ చేసిన పోస్టులు, అక్షరాల పరిమాణం మీ ఫోన్‌లోనే ఉంటాయి.",
@@ -64,7 +64,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
     terms: {
       title: "నిబంధనలు",
       updated: "చివరిగా నవీకరించినది: 28 అక్టోబర్ 2026",
-      intro: "BVT Grama Connect యాప్ లేదా ఈ వెబ్‌సైట్ వాడినప్పుడు ఈ నిబంధనలు వర్తిస్తాయి. వాడటం ద్వారా మీరు వీటికి అంగీకరిస్తున్నారు.",
+      intro: "Grama Connect యాప్ లేదా ఈ వెబ్‌సైట్ వాడినప్పుడు ఈ నిబంధనలు వర్తిస్తాయి. వాడటం ద్వారా మీరు వీటికి అంగీకరిస్తున్నారు.",
       sections: [
         { h: "సేవ", body: ["మీ పంచాయతీ, మండల, జిల్లా పరిపాలన నుంచి ప్రకటనలు, పథకాల సమాచారం, నోటీసులను మీ ఫోన్‌కు చేర్చే ఉచిత సేవ. పౌరులకు ఖాతా అవసరం లేదు."] },
         { h: "సమాచారం గురించి", body: [[
@@ -80,7 +80,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
         { h: "సేవల అభ్యర్థనలు", body: ["అభ్యర్థన మీ వివరాలను మీ గ్రామ అధికారులకు చేరుస్తుంది. అభ్యర్థన పంపినంత మాత్రాన సేవ లభిస్తుందని హామీ కాదు; తదుపరి దశల గురించి అధికారులు మిమ్మల్ని సంప్రదిస్తారు."] },
         { h: "బ్యానర్లు, లింకులు", body: ["బ్యానర్లను అడ్మిన్లు పెడతారు. లింకులు ఇతర వెబ్‌సైట్లు లేదా యాప్‌లను తెరవవచ్చు; వాటికి వాటి సొంత నిబంధనలు ఉంటాయి, వాటికి మేము బాధ్యులం కాదు."] },
         { h: "లభ్యత, బాధ్యత", body: ["సేవ సక్రమంగా, ఖచ్చితంగా ఉండేలా ప్రయత్నిస్తాం, కానీ ఎలాంటి హామీ లేకుండా “ఉన్నది ఉన్నట్లు” అందిస్తాం. చట్టం అనుమతించినంత వరకు, పోస్ట్‌పై ఆధారపడటం, ఆలస్యాలు లేదా సేవ అందుబాటులో లేకపోవడం వల్ల కలిగే నష్టానికి మేము బాధ్యులం కాదు."] },
-        { h: "కంటెంట్, పేరు", body: ["యాప్ డిజైన్, పేరు, లోగో BVT Grama Connect కు చెందినవి. పోస్టులకు వాటిని రాసిన అధికారి లేదా సభ్యుడే బాధ్యులు."] },
+        { h: "కంటెంట్, పేరు", body: ["యాప్ డిజైన్, పేరు, లోగో Grama Connect కు చెందినవి. పోస్టులకు వాటిని రాసిన అధికారి లేదా సభ్యుడే బాధ్యులు."] },
         { h: "మార్పులు", body: ["ఈ నిబంధనలను నవీకరించవచ్చు; పైన ఉన్న తేదీ తాజా వెర్షన్‌ను చూపుతుంది. సేవను వాడటం కొనసాగిస్తే మార్పులను అంగీకరించినట్లే."] },
         { h: "చట్టం", body: ["ఈ నిబంధనలకు భారత చట్టాలు వర్తిస్తాయి."] },
         { h: "సంప్రదించండి", body: ["{email} · {phone} · లేదా సంప్రదించండి పేజీ."] },
@@ -92,7 +92,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
     privacy: {
       title: "Privacy policy",
       updated: "Last updated: 28 October 2026",
-      intro: "BVT Grama Connect brings verified village announcements from your Panchayat and local administration to your phone. This page explains, in plain words, what information we collect, why, and what you can do about it. Citizens can use the app without an account.",
+      intro: "Grama Connect brings verified village announcements from your Panchayat and local administration to your phone. This page explains, in plain words, what information we collect, why, and what you can do about it. Citizens can use the app without an account.",
       sections: [
         { h: "What we collect", body: [[
           "Reading news: nothing that identifies you. Your language, village, saved posts and text size are stored only on your phone.",
@@ -131,7 +131,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
     terms: {
       title: "Terms of use",
       updated: "Last updated: 28 October 2026",
-      intro: "These terms apply when you use the BVT Grama Connect app or this website. By using them, you agree to these terms.",
+      intro: "These terms apply when you use the Grama Connect app or this website. By using them, you agree to these terms.",
       sections: [
         { h: "The service", body: ["A free service that brings announcements, scheme information and notices from your Panchayat, Mandal and District administration to your phone. Citizens do not need an account."] },
         { h: "About the information", body: [[
@@ -147,7 +147,7 @@ const LEGAL: Record<Lang, { note: string; privacy: LegalDoc; terms: LegalDoc }> 
         { h: "Service requests", body: ["A request passes your details to your village officials. Sending one does not guarantee the service; the officials will contact you about next steps."] },
         { h: "Banners and links", body: ["Banners are placed by administrators. Links may open other websites or apps that have their own terms; we are not responsible for them."] },
         { h: "Availability and liability", body: ["We work to keep the service running and accurate, but provide it “as is”, without guarantees. To the extent the law allows, we are not liable for loss caused by relying on a post, by delays, or by the service being unavailable."] },
-        { h: "Content and names", body: ["The app’s design, name and logo belong to BVT Grama Connect. Each post is the responsibility of the official or member who wrote it."] },
+        { h: "Content and names", body: ["The app’s design, name and logo belong to Grama Connect. Each post is the responsibility of the official or member who wrote it."] },
         { h: "Changes", body: ["We may update these terms; the date above shows the latest version. Continuing to use the service means you accept the changes."] },
         { h: "Law", body: ["These terms are governed by the laws of India."] },
         { h: "Contact", body: ["{email} · {phone} · or the Contact page."] },

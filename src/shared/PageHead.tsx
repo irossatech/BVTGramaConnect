@@ -5,7 +5,7 @@
 import Head from "next/head";
 import config from "./config";
 
-const DS = "/_ds/bvt-grama-connect-design-system-3ef6e40d-8ee6-48d5-96b2-aa4e7390341d/";
+const DS = "/_ds/grama-connect/";
 
 interface PageHeadProps {
   /** Google Fonts query, e.g. "family=Rubik:wght@500;700&family=Nunito+Sans:wght@400". */
@@ -34,7 +34,7 @@ export default function PageHead({ fonts, css, title, description, robots, path 
       {description ? <>
         <meta name="description" content={description} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="BVT Grama Connect" />
+        <meta property="og:site_name" content="Grama Connect" />
         <meta property="og:locale" content="te_IN" />
         <meta property="og:locale:alternate" content="en_IN" />
         <meta property="og:title" content={title} />
@@ -46,7 +46,7 @@ export default function PageHead({ fonts, css, title, description, robots, path 
         <meta property="og:image" content={site + "/assets/og-image.jpg"} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="BVT Grama Connect: verified village news for Andhra Pradesh, in Telugu" />
+        <meta property="og:image:alt" content="Grama Connect: verified village news for Andhra Pradesh, in Telugu" />
         <meta name="twitter:card" content="summary_large_image" />
         {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
       </> : null}

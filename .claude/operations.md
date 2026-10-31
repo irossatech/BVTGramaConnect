@@ -12,7 +12,7 @@ npm run build          # next build --webpack, static export to dist/
 | Variable | Default | Meaning |
 |---|---|---|
 | `GC_API_BASE` | `/api/v1` | API base URL both apps call, built into the scripts |
-| `GC_SITE_URL` | `https://bvtgramaconnect.com` | The website's public address: canonical links, share previews, structured data |
+| `GC_SITE_URL` | `https://dev.gramaconnect.com` | The website's public address: canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 
 Set them in the environment, or copy `.env.example` to `.env`. The environment wins over `.env`. `dist/` is recreated on every build and is not committed.
 

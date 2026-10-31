@@ -81,7 +81,7 @@ html,body{height:100%;margin:0}#__next{height:100%}
 html:not(.gc-ready) .gc-site{visibility:hidden}
 `;
 
-const NAME = "BVT Grama Connect";
+const NAME = "Grama Connect";
 const T = STRINGS;
 const cut = (x: string) => (x.length > 160 ? x.slice(0, 157).replace(/\s+\S*$/, "") + "…" : x);
 const HOME_DESC =

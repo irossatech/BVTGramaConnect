@@ -26,7 +26,7 @@ export default function Download({ v }: { v: View }) {
           </div>
           <div style={{position: "relative", display: "flex", flexWrap: "wrap", gap: "12px"}}>
             <button className="gc-pill" onClick={v.playClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid #fff", background: "#fff", color: ink}}>{playIcon}{storeLabel("GET IT ON", "Google Play")}</button>
-            <button className="gc-pill" onClick={v.appClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,.75)", background: "rgba(255,255,255,.08)", color: "#fff"}}>{appleIcon}{storeLabel("Download on the", "App Store")}</button>
+            <button className="gc-pill" onClick={v.appClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,.75)", background: "rgba(255,255,255,.08)", color: "#fff"}}>{appleIcon}{storeLabel(v.appLabel[0], v.appLabel[1])}</button>
           </div>
         </div>
       </div>

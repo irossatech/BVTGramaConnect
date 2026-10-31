@@ -25,7 +25,7 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 | Console markup | the screen in `src/console/screens/`, panel in `panels/`, frame in `layout/`, shared bits in `ui/parts.tsx` | `npm run build` |
 | Console fetch, session login, CSRF | `src/console/api.ts` | `npm run build` |
 | Page `<head>`, page CSS, fonts | `src/website/SitePage.tsx` (website: titles, descriptions, structured data), `src/console/ConsolePage.tsx` (console), `src/shared/PageHead.tsx` | `npm run build` |
-| Search engines: site address, sitemap, robots | `GC_SITE_URL` (default `https://bvtgramaconnect.com`), `public/sitemap.xml`, `public/robots.txt`, `public/llms.txt` | `npm run build` |
+| Search engines: site address, sitemap, robots | `GC_SITE_URL` (default `https://dev.gramaconnect.com`); `scripts/seo-files.mjs` writes sitemap.xml, robots.txt, llms.txt into dist/ | `npm run build` |
 | API base URL | nothing; set `GC_API_BASE` in the environment or `.env` | `npm run build` |
 
 `npm run dev` serves both pages with hot reload at http://localhost:3000/ and /console/, but API calls need the backend on the same origin; check the real thing through the backend's runserver.

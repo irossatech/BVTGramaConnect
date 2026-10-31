@@ -56,9 +56,9 @@ src/
   types/react-css.d.ts      lets inline styles set CSS custom properties ("--d")
   proxy.dev.ts              `npm run dev` only: forwards /api/ and /media/ to GC_DEV_API
 public/
-  _ds/…/                    design-system CSS and tokens from the prototype (never edit)
+  _ds/grama-connect/        design-system CSS and tokens from the prototype (never edit)
   assets/                   logo, photos, icons, share image (og-image.jpg), fonts/
-  robots.txt, sitemap.xml, llms.txt   search engines and AI assistants
+scripts/seo-files.mjs       after the build: dist/robots.txt, sitemap.xml, llms.txt for GC_SITE_URL
 next.config.ts              static export to dist/, build settings
 tsconfig.json               TypeScript, strict
 ```

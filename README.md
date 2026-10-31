@@ -58,9 +58,9 @@ src/
   types/react-css.d.ts      lets inline styles set CSS custom properties ("--d")
   proxy.dev.ts              `npm run dev` only: forwards /api/ and /media/ to GC_DEV_API
 public/
-  _ds/…/                    design-system CSS and tokens from the prototype (never edit)
+  _ds/grama-connect/        design-system CSS and tokens from the prototype (never edit)
   assets/                   logo, photos, icons, share image (og-image.jpg), fonts/
-  robots.txt, sitemap.xml, llms.txt   search engines and AI assistants
+scripts/seo-files.mjs       after the build: dist/robots.txt, sitemap.xml, llms.txt for GC_SITE_URL
 next.config.ts              static export to dist/, build settings
 tsconfig.json               TypeScript, strict
 .env.example                settings; copy to .env (git-ignored)
@@ -87,10 +87,10 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `http://147.93.102.247:9501`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
+Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `https://dev.gramaconnect.com`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
 
 - Log in to the console with your live Super Admin account. **Everything you save changes live data.**
-- The live API docs (Swagger) are at http://147.93.102.247:9501/api/docs/.
+- The live API docs (Swagger) are at https://dev.gramaconnect.com/api/docs/.
 - To use another server (staging, or a local backend on `http://127.0.0.1:8000`), change `GC_DEV_API` in `.env` and restart `npm run dev`.
 
 ## Run with a local backend (Windows, PowerShell)
@@ -181,7 +181,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 | Variable | Default | Used by | Meaning |
 |---|---|---|---|
 | `GC_API_BASE` | `/api/v1` | both apps (built in) | Base URL of the API both apps call |
-| `GC_SITE_URL` | `https://bvtgramaconnect.com` | website (built in) | Public address for canonical links, share previews, structured data |
+| `GC_SITE_URL` | `https://dev.gramaconnect.com` | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
 
 ## What changed from the prototypes

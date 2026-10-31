@@ -1,4 +1,4 @@
-// Tiny fetch wrapper for the BVT Grama Connect API (docs/api-contract.md), used by the website.
+// Tiny fetch wrapper for the Grama Connect API (docs/api-contract.md), used by the website.
 // Errors reject with the contract's error object plus `status`:
 //   { code: "validation_error", message: "...", fields: {...}, status: 400 }
 import config from "../shared/config";

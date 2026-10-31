@@ -20,7 +20,7 @@ export default function AuthLayout({ v }: { v: View }) {
               <span style={{flex: "1", background: "#fff"}} />
               <span style={{flex: "1", background: "#1F8A3B"}} />
             </div>
-            <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "40px", lineHeight: "1.15", letterSpacing: ".01em"}}>BVT GRAMA CONNECT</div>
+            <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "40px", lineHeight: "1.15", letterSpacing: ".01em"}}>GRAMA CONNECT</div>
             <div style={{fontSize: "22px", fontWeight: "600", color: "#f2dd3d"}}>మన గ్రామం – మన సేవలు – మన అభివృద్ధి</div>
             <div style={{fontSize: "16px", opacity: ".9"}}>Connecting Villages, Empowering India · Super Admin Console</div>
           </div>

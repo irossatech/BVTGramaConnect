@@ -13,7 +13,7 @@ Called once on page load.
 ```json
 {
   "office_address_te": "…", "office_address_en": "…",
-  "phone": "+91 863 223 4567", "email": "help@bvtgramaconnect.in",
+  "phone": "+91 863 223 4567", "email": "help@gramaconnect.com",
   "hours_te": "సోమ–శని 10:00–18:00", "hours_en": "Mon–Sat 10:00–18:00",
   "play_store_url": "", "app_store_url": ""
 }

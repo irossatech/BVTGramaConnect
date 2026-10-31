@@ -1,5 +1,5 @@
 // The two design-system components the console uses, copied from the prototype's
-// _ds_bundle.js (BVTGramaConnectDesignSystem_3ef6e4). Keep them identical to the design system.
+// _ds_bundle.js. Keep them identical to the design system (public/_ds/grama-connect/).
 import type { CSSProperties, ReactNode } from "react";
 
 /** Post categories the design system has colours (--cat-*) and icons for. */

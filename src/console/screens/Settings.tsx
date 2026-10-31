@@ -46,7 +46,7 @@ export default function Settings({ v }: { v: View }) {
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Review escalation</span>
             <div style={{fontSize: "13px", color: "#3b4a5c", lineHeight: "1.5"}}>If a pending post is not reviewed within this time, it is escalated to the next level and flagged on the dashboard.</div>
             <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-              <input type="number" min="1" max="168" value={val<number | "">(v.settings?.escalation, "")} onChange={v.onEscalation} style={{width: "100px", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "16px", fontWeight: "700", fontFamily: "'Rubik',sans-serif"}} />
+              <input type="number" min="6" max="168" value={val<number | "">(v.settings?.escalation, "")} onChange={v.onEscalation} style={{width: "100px", height: "42px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "16px", fontWeight: "700", fontFamily: "'Rubik',sans-serif"}} />
               <span style={{color: "#3b4a5c"}}>hours</span>
               <button onClick={v.saveSettings} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Save</button>
             </div>

@@ -9,7 +9,7 @@ export default function Sidebar({ v }: { v: View }) {
       <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "4px 10px 20px"}}>
         <img src="/assets/logo-mark.png" alt="" style={{width: "40px", height: "40px", borderRadius: "18.5%"}} />
         <div>
-          <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "14px", letterSpacing: ".03em", lineHeight: "1.2"}}>BVT GRAMA CONNECT</div>
+          <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "14px", letterSpacing: ".03em", lineHeight: "1.2"}}>GRAMA CONNECT</div>
           <div style={{fontSize: "11px", opacity: ".7"}}>Super Admin Console</div>
         </div>
       </div>

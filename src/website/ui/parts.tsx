@@ -31,7 +31,7 @@ export function StoreButtons({ v }: { v: View }) {
   return (
     <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
       <button className="gc-pill" onClick={v.playClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid " + ink, background: ink, color: "#fff"}}>{playIcon}{storeLabel("GET IT ON", "Google Play")}</button>
-      <button className="gc-pill" onClick={v.appClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid " + ink, background: "#fff", color: ink}}>{appleIcon}{storeLabel("Download on the", "App Store")}</button>
+      <button className="gc-pill" onClick={v.appClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid " + ink, background: "#fff", color: ink}}>{appleIcon}{storeLabel(v.appLabel[0], v.appLabel[1])}</button>
     </div>
   );
 }

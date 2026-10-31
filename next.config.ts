@@ -7,7 +7,7 @@
 //
 // Settings come from the environment or .env (see .env.example):
 //   GC_API_BASE     API base URL both apps call (default "/api/v1")
-//   GC_SITE_URL     the website's public address (default "https://bvtgramaconnect.com")
+//   GC_SITE_URL     the website's public address (default "https://dev.gramaconnect.com")
 //   GC_DEV_API      server `npm run dev` forwards /api/ and /media/ to (default: the live server)
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
@@ -24,7 +24,7 @@ export default function nextConfig(phase: string): NextConfig {
     images: { unoptimized: true },
     env: {
       GC_API_BASE: process.env.GC_API_BASE || "/api/v1",
-      GC_SITE_URL: (process.env.GC_SITE_URL || "https://bvtgramaconnect.com").replace(/\/+$/, ""),
+      GC_SITE_URL: (process.env.GC_SITE_URL || "https://dev.gramaconnect.com").replace(/\/+$/, ""),
     },
   };
 }
