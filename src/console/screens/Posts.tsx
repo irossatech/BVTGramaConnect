@@ -36,6 +36,7 @@ export default function Posts({ v }: { v: View }) {
           ))}
         </select>
         <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.postCount)}{" posts"}</span>
+        {v.canCompose ? <button onClick={v.openCompose} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>New post</button> : null}
       </div>
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
         {" "}

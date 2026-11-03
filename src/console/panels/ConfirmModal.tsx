@@ -32,6 +32,10 @@ export default function ConfirmModal({ v }: { v: View }) {
                 {v.modal?.hasGen ? <button onClick={v.genModal} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Generate</button> : null}
               </span>
             </label> : null}
+          {v.modal?.input2Label ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.input2Label)}</span>
+              <input type="text" lang="te" value={val(v.modalText2, "")} onChange={v.onModalText2} placeholder={v.modal?.input2Ph} autoComplete="off" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px"}} />
+            </label> : null}
           {v.modal?.hasSecret ? <span style={{display: "flex", gap: "10px"}}>
               <input type="text" value={val(v.modal?.secret, "")} onChange={v.noop} autoComplete="off" style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", letterSpacing: ".08em"}} />
               <button onClick={v.copySecret} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Copy</button>

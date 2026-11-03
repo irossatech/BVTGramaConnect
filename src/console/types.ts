@@ -51,6 +51,8 @@ export interface Me {
   id: string;
   username: string;
   name: string;
+  /** Telugu name (PATCH /me/ also takes it, as in the app's profile). */
+  name_te?: string;
   email: string | null;
   must_change_password?: boolean;
   /** "app_label.codename" strings. */

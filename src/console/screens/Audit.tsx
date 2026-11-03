@@ -7,6 +7,11 @@ import { Pager } from "../ui/parts";
 export default function Audit({ v }: { v: View }) {
   return (
     <>
+      <div role="tablist" aria-label="Audit type" style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto", overflowY: "hidden", flexShrink: "0"}}>
+        {list(v.auditTabs).map((_t, _i1) => (
+          <button key={_i1} role="tab" aria-selected={_t.on} onClick={_t.go} style={css(`height:44px;padding:0 16px;flex-shrink:0;white-space:nowrap;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;border-bottom:3px solid ${_t.line};color: ${_t.color};margin-bottom:-1px`)}>{I(_t.label)}</button>
+        ))}
+      </div>
       <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "min(360px, 100%)", color: "#6b7a8c"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>

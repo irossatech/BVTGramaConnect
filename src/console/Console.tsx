@@ -27,6 +27,7 @@ import UserDrawer from "./panels/UserDrawer";
 import RequestPanel from "./panels/RequestPanel";
 import ServiceFormPanel from "./panels/ServiceForm";
 import AdFormPanel from "./panels/AdForm";
+import ComposeFormPanel from "./panels/ComposeForm";
 import NumberFormPanel from "./panels/NumberForm";
 import TypeFormPanel from "./panels/TypeForm";
 import ConfirmModal from "./panels/ConfirmModal";
@@ -77,7 +78,7 @@ interface ModalSpec {
   body: string;
   confirmLabel: string;
   bg?: string;
-  onConfirm: (text: string, sel: string, gen: string) => void;
+  onConfirm: (text: string, sel: string, gen: string, text2: string) => void;
   noCancel?: boolean;
   secret?: string;
   preset?: string;
@@ -91,6 +92,32 @@ interface ModalSpec {
   noGen?: boolean;
   inputLabel?: string;
   inputPh?: string;
+  /** A second text field under the first (My profile: the Telugu name). */
+  input2Label?: string;
+  input2Ph?: string;
+  preset2?: string;
+}
+
+/** The New post panel (same fields as the app's Compose). */
+interface ComposeForm {
+  cat: string;
+  lang: string;
+  title: string;
+  body: string;
+  d: string;
+  m: string;
+  v: string;
+  urgent: boolean;
+  files: File[];
+  previews: string[];
+  saving: boolean;
+  tried: boolean;
+  /** What is happening while saving ("Uploading photo 2 of 3…"). */
+  step: string;
+  /** Set once the post exists, so a retry after a failed photo upload does not create it twice. */
+  postId: string;
+  uploaded: number;
+  photoErr: string;
 }
 
 interface GeoVillageRow {
@@ -401,6 +428,7 @@ interface State {
   adsLoading: boolean;
   adsUnavailable: boolean;
   af: AdForm | null;
+  cf: ComposeForm | null;
   svcs: CatalogItem[];
   svcsLoading: boolean;
   svcsUnavailable: boolean;
@@ -438,6 +466,8 @@ interface State {
   auditPage: number;
   auditPages: number;
   auditQ: string;
+  /** Audit tab: '' (all) or posts, users, areas, logins, settings, system (GET /audit/?type=). */
+  auditType: string;
   /** Dashboard: filter for the "Pending by district" list (English or Telugu name). */
   distQ: string;
   auditLoading: boolean;
@@ -456,6 +486,8 @@ interface State {
   numTab: NumTab;
   numQ: string;
   numType: string;
+  /** Important numbers (village tab): one district's numbers only, or '' for all (as in the app). */
+  numDistrict: string;
   ctypes: ContactTypeRef[];
   ctypesAdmin: AdminContactType[];
   nf: NumberForm | null;
@@ -466,6 +498,7 @@ interface State {
   settings: SettingsState;
   modal: ModalSpec | null;
   modalText: string;
+  modalText2: string;
   modalSel: string;
   modalGen: string;
   toasts: Toast[];
@@ -473,7 +506,7 @@ interface State {
 }
 
 /** The forms Escape closes, top first. */
-const FORMS = ["tf", "nf", "sf", "af", "rq"] as const;
+const FORMS = ["tf", "nf", "sf", "af", "rq", "cf"] as const;
 /** The forms whose Telugu name is suggested from the English one. */
 type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf";
 
@@ -562,14 +595,14 @@ export default class Component extends React.Component<Props, State> {
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
     rq: null, rqAssignees: [], uf: {role: '', district: '', status: '', q: ''},
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
-    numSel: [], adSel: [], bulk: '',
+    numSel: [], adSel: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
-    audit: [], auditCount: 0, auditPage: 1, auditPages: 1, auditQ: '', distQ: '', auditLoading: false,
+    audit: [], auditCount: 0, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
-    nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
+    nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
     settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},
-    modal: null, modalText: '', modalSel: '', modalGen: '', toasts: [], imp: null,
+    modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', toasts: [], imp: null,
   };
 
   private toastTimers: Timer[] = [];
@@ -736,17 +769,17 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private goPage(p: PageKey) {
-    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, af: null});
+    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, af: null, cf: null});
     if (this.scrollEl) this.scrollEl.scrollTop = 0;
     this.loadPage(p);
   }
 
   private ask(m: ModalSpec) {
-    this.setState({modal: m, modalText: m.preset || '', modalSel: m.sel || (m.options && m.options.length ? m.options[0].id : ''), modalGen: ''});
+    this.setState({modal: m, modalText: m.preset || '', modalText2: m.preset2 || '', modalSel: m.sel || (m.options && m.options.length ? m.options[0].id : ''), modalGen: ''});
   }
 
   private closeModal() {
-    this.setState({modal: null, modalText: '', modalSel: '', modalGen: ''});
+    this.setState({modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: ''});
   }
 
   // ---- permissions (from GET /me/; the server enforces every one) ----
@@ -1081,7 +1114,7 @@ export default class Component extends React.Component<Props, State> {
 
   private loadAudit(page: number) {
     this.setState({auditLoading: true});
-    this.api.get<Paged<AuditEntry>>('/audit/', {q: this.state.auditQ, page, page_size: Component.PAGE})
+    this.api.get<Paged<AuditEntry>>('/audit/', {q: this.state.auditQ, type: this.state.auditType, page, page_size: Component.PAGE})
       .then((d) => this.setState({audit: d.results, auditCount: d.count, auditPage: page, auditPages: Math.max(1, Math.ceil(d.count / Component.PAGE)), auditLoading: false}))
       .catch((e: unknown) => {
         this.setState({auditLoading: false});
@@ -1455,7 +1488,7 @@ export default class Component extends React.Component<Props, State> {
   private loadNumbers(page: number) {
     const s = this.state;
     this.setState({numLoading: true});
-    this.api.get<Paged<AdminContact>>('/admin/contacts/', {section: s.numTab, type: s.numType, q: s.numQ, page, page_size: Component.PAGE})
+    this.api.get<Paged<AdminContact>>('/admin/contacts/', {section: s.numTab, type: s.numType, q: s.numQ, ...(s.numTab === 'AREA' && s.numDistrict ? {level: 'DISTRICT', area_id: s.numDistrict} : {}), page, page_size: Component.PAGE})
       .then((d) => this.setState({nums: d.results || [], numCount: d.count || 0, numPage: page, numPages: Math.max(1, Math.ceil((d.count || 0) / Component.PAGE)), numLoading: false}))
       .catch((e: unknown) => {
         this.setState({numLoading: false, nums: [], numCount: 0});
@@ -1708,6 +1741,101 @@ export default class Component extends React.Component<Props, State> {
       const templates = Array.isArray(d) ? d : (d.results || []);
       this.setState((s) => ({settings: {...s.settings, templates}}));
     }).catch(() => {});
+  }
+
+  // ---- new post (the app's Compose) ----
+  private static readonly CF_MAX_PHOTOS = 5;
+  private static readonly CF_MAX_MB = 10;
+
+  private openCompose() {
+    const cats = this.state.categories.filter((c) => c.is_active);
+    this.setState({cf: {cat: cats[0]?.key || '', lang: 'te', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
+  }
+
+  private closeCompose() {
+    const f = this.state.cf;
+    if (f && f.saving) return;
+    f?.previews.forEach((u) => URL.revokeObjectURL(u));
+    this.setState({cf: null});
+  }
+
+  private cfErrors(f: ComposeForm): Partial<Record<'cat' | 'title' | 'body', string>> {
+    const e: Partial<Record<'cat' | 'title' | 'body', string>> = {};
+    if (!f.cat) e.cat = 'Choose a category.';
+    if (!f.title.trim()) e.title = 'Write a title.';
+    if (!f.body.trim()) e.body = 'Write the message.';
+    return e;
+  }
+
+  private onCF(e: FieldChange) {
+    const {name, value} = e.target;
+    this.setState((st) => {
+      if (!st.cf) return null;
+      const p: Partial<ComposeForm> = name === 'd' ? {d: value, m: '', v: ''} : name === 'm' ? {m: value, v: ''} : {[name]: value};
+      return {cf: {...st.cf, ...p}};
+    });
+  }
+
+  private pickCFPhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = this.state.cf;
+    const picked = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!f || !picked.length) return;
+    const room = Component.CF_MAX_PHOTOS - f.files.length;
+    const ok = picked.filter((x) => /^image\/(jpeg|png|webp)$/.test(x.type) && x.size <= Component.CF_MAX_MB * 1024 * 1024).slice(0, Math.max(0, room));
+    const skipped = picked.length - ok.length;
+    const photoErr = skipped ? (room < picked.length ? 'Up to ' + Component.CF_MAX_PHOTOS + ' photos. ' : '') + 'Only JPG, PNG or WebP photos up to ' + Component.CF_MAX_MB + ' MB are added.' : '';
+    this.setState({cf: {...f, files: [...f.files, ...ok], previews: [...f.previews, ...ok.map((x) => URL.createObjectURL(x))], photoErr}});
+  }
+
+  private removeCFPhoto(i: number) {
+    const f = this.state.cf;
+    if (!f || f.saving) return;
+    URL.revokeObjectURL(f.previews[i]);
+    this.setState({cf: {...f, files: f.files.filter((_, k) => k !== i), previews: f.previews.filter((_, k) => k !== i), photoErr: ''}});
+  }
+
+  private saveCompose() {
+    const f = this.state.cf;
+    if (!f || f.saving) return;
+    if (Object.keys(this.cfErrors(f)).length) {
+      this.setState({cf: {...f, tried: true}});
+      return;
+    }
+    const st = this.state.stateRow;
+    const target = f.v ? {level: 'VILLAGE', id: Number(f.v)} : f.m ? {level: 'MANDAL', id: Number(f.m)} : f.d ? {level: 'DISTRICT', id: Number(f.d)} : st ? {level: 'STATE', id: st.id} : null;
+    if (!target) {
+      this.toast('Areas are still loading. Try again in a moment.', '#b3261e');
+      return;
+    }
+    const setF = (p: Partial<ComposeForm>) => this.setState((x) => ({cf: x.cf && {...x.cf, ...p}}));
+    const photos = f.files.length;
+    setF({saving: true, step: 'Saving…'});
+    const created: Promise<Post> = f.postId
+      ? Promise.resolve({id: f.postId} as Post)
+      : this.api.post<Post>('/posts/', {category: f.cat, language: f.lang, title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !photos});
+    created.then(async (p) => {
+      if (!photos) return p;
+      setF({postId: p.id});
+      for (let i = this.state.cf?.uploaded || 0; i < photos; i++) {
+        setF({step: 'Uploading photo ' + (i + 1) + ' of ' + photos + '…'});
+        const form = new FormData();
+        form.append('kind', 'image');
+        form.append('file', f.files[i]);
+        await this.api.upload('/posts/' + p.id + '/media/', form);
+        setF({uploaded: i + 1});
+      }
+      setF({step: 'Publishing…'});
+      return this.api.post<Post>('/posts/' + p.id + '/submit/');
+    }).then((p) => {
+      f.previews.forEach((u) => URL.revokeObjectURL(u));
+      this.setState({cf: null});
+      this.toast(p && p.status === 'PUBLISHED' ? 'Post published' : 'Post sent for review');
+      if (this.state.page === 'posts') this.loadPosts(1);
+    }).catch((e: unknown) => {
+      setF({saving: false, step: ''});
+      this.fail(e);
+    });
   }
 
   // ---- notifications (the bell) ----
@@ -1997,11 +2125,13 @@ export default class Component extends React.Component<Props, State> {
     const me = this.state.me;
     const g = (me?.groups || []).map((x) => x.name || x.label || x.key || x).join(', ') || 'Super Admin';
     this.setState({menuOpen: false});
-    this.ask({title: 'My profile', body: 'Signed in as ' + (me?.username || '') + ' · ' + g + '. You can change the name shown in the console and in the audit log.', hasInput: true, noGen: true, inputLabel: 'Name', inputPh: 'Your full name', preset: me?.name || '', confirmLabel: 'Save', bg: '#0D3B7A', onConfirm: (t) => {
+    // Name and Telugu name, as on the app's profile (PATCH /me/).
+    this.ask({title: 'My profile', body: 'Signed in as ' + (me?.username || '') + ' · ' + g + '. Your name shows in the console, the app and the audit log.', hasInput: true, noGen: true, inputLabel: 'Name', inputPh: 'Your name', preset: me?.name || '', input2Label: 'Name in Telugu', input2Ph: 'తెలుగులో పేరు', preset2: me?.name_te || '', confirmLabel: 'Save', onConfirm: (t, _sel, _gen, t2) => {
       const name = (t || '').trim();
-      if (!name || name === me?.name) return;
-      this.api.patch<Partial<Me> | null>('/me/', {name}).then((d) => {
-        this.setState((s) => ({me: s.me && {...s.me, ...(d || {}), name}}));
+      const nameTe = (t2 || '').trim();
+      if (!name || (name === me?.name && nameTe === (me?.name_te || ''))) return;
+      this.api.patch<Partial<Me> | null>('/me/', {name, name_te: nameTe}).then((d) => {
+        this.setState((s) => ({me: s.me && {...s.me, ...(d || {}), name, name_te: nameTe}}));
         this.toast('Profile saved');
       }).catch((e: unknown) => this.fail(e));
     }});
@@ -2236,7 +2366,7 @@ export default class Component extends React.Component<Props, State> {
     if (s.page !== 'audit') return this.exportReport('posts-by-area');
     if (s.exporting) return;
     this.setState({exporting: 'audit'});
-    this.api.download('/audit/export/', {q: s.auditQ, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => this.toast('Audit log exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
+    this.api.download('/audit/export/', {q: s.auditQ, type: s.auditType, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => this.toast('Audit log exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
   }
 
   private exportReport(name: string) {
@@ -2468,7 +2598,7 @@ export default class Component extends React.Component<Props, State> {
     // modal
     const m = s.modal;
     const cannot = !!(m && m.needsText && !s.modalText.trim());
-    const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
+    const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
       hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [], confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
     const nu = s.nu;
     const canNU = this.nuValid(nu);
@@ -2583,6 +2713,11 @@ export default class Component extends React.Component<Props, State> {
       postRows, postCount: s.postCount, postEmpty: !postRows.length, postEmptyText: s.postsLoading ? 'Loading…' : 'No posts match these filters.', postsPager: pager(s.postPage, s.postPages, (p) => this.loadPosts(p)), catOpts,
       repSummary, byArea, reviewTime, adminActivity, exporting: s.exporting, exportCsv: () => this.exportCsv(), exportByArea: () => this.exportReport('posts-by-area'), exportReviewTime: () => this.exportReport('review-time'), exportActivity: () => this.exportReport('admin-activity'),
       auditQ: s.auditQ,
+      // Same tabs as the app's Audit screen.
+      auditTabs: [['', 'All'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Logins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({
+        label, on: s.auditType === id, color: s.auditType === id ? '#0D3B7A' : '#6b7a8c', line: s.auditType === id ? '#0D3B7A' : 'transparent',
+        go: () => this.setState({auditType: id}, () => this.loadAudit(1)),
+      })),
       onAuditQ: (e: FieldChange) => {
         this.setState({auditQ: e.target.value});
         clearTimeout(this.auditTimer);
@@ -2666,6 +2801,26 @@ export default class Component extends React.Component<Props, State> {
           where: v && m ? v.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village',
           dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : []};
       })() : null,
+      canCompose: this.can('posts.create_post'), openCompose: () => this.openCompose(),
+      cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFPhotos(e), saveCF: () => this.saveCompose(),
+      cf: s.cf ? (() => {
+        const f = s.cf;
+        const err = f.tried ? this.cfErrors(f) : {};
+        const d = s.geo.find((x) => String(x.id) === f.d), m = d && d.mandals.find((x) => String(x.id) === f.m), vl = m && m.villages.find((x) => String(x.id) === f.v);
+        return {
+          cat: f.cat, lang: f.lang, title: f.title, body: f.body, d: f.d, m: f.m, v: f.v, urgent: f.urgent, saving: f.saving,
+          catOpts: s.categories.filter((c) => c.is_active).map((c) => ({id: c.key, label: (c.name_en || c.key) + (c.name_te ? ' · ' + c.name_te : '')})),
+          errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
+          titleCount: f.title.length + ' / 150', bodyCount: f.body.length + ' / 5000',
+          photos: f.previews.map((src, i) => ({src, remove: () => this.removeCFPhoto(i)})),
+          canAddPhoto: f.files.length < Component.CF_MAX_PHOTOS && !f.saving, photoCount: f.files.length + ' of ' + Component.CF_MAX_PHOTOS, photoErr: f.photoErr,
+          toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
+          showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
+          where: vl && m ? vl.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village (everyone)',
+          dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [],
+          saveLabel: f.saving ? f.step || 'Saving…' : f.postId ? 'Retry' : 'Publish post',
+        };
+      })() : null,
       // Services page
       ...(() => {
         const b = s.page === 'bills', c = this.cat(b), L = s[c.l];
@@ -2734,7 +2889,8 @@ export default class Component extends React.Component<Props, State> {
         this.numTimer = setTimeout(() => this.loadNumbers(1), 300);
       },
       numType: s.numType, numTypeOpts: [{id: '', label: 'All types'}, ...s.ctypes.filter((x) => x.section === s.numTab).map((x) => ({id: x.key, label: x.name}))], onNumType: (e: FieldChange) => this.setState({numType: e.target.value}, () => this.loadNumbers(1)),
-      numCount: s.numCount + (s.numCount === 1 ? ' number' : ' numbers'), numEmpty: !numRows.length, numEmptyText: s.numLoading ? 'Loading…' : (s.numQ || s.numType ? 'No numbers match.' : 'No numbers yet. Add one, or import a CSV file.'), numPager: pager(s.numPage, s.numPages, (p) => this.loadNumbers(p)), addNumber: () => this.openNumber(null), importNumbers: () => this.importNumbers(), addType: () => this.addType(),
+      numAreaFilter: s.numTab === 'AREA' && s.geo.length > 1, numDistrict: s.numDistrict, numDistrictOpts: [{id: '', label: 'All districts'}, ...districtOpts], onNumDistrict: (e: FieldChange) => this.setState({numDistrict: e.target.value}, () => this.loadNumbers(1)),
+      numCount: s.numCount + (s.numCount === 1 ? ' number' : ' numbers'), numEmpty: !numRows.length, numEmptyText: s.numLoading ? 'Loading…' : (s.numQ || s.numType || s.numDistrict ? 'No numbers match.' : 'No numbers yet. Add one, or import a CSV file.'), numPager: pager(s.numPage, s.numPages, (p) => this.loadNumbers(p)), addNumber: () => this.openNumber(null), importNumbers: () => this.importNumbers(), addType: () => this.addType(),
       tfShow: !!s.tf, tf, tfErr, tfSaveLabel: s.tf && s.tf.saving ? (s.tf.id ? 'Saving…' : 'Adding…') : (s.tf && s.tf.id ? 'Save' : 'Add type'), tfTitle: s.tf && s.tf.id ? 'Edit contact type' : 'Add contact type', tfEditing: !!(s.tf && s.tf.id), tfSectionLabel: s.tf && s.tf.section === 'HELPLINE' ? 'Government helplines' : 'For villages', closeTF: () => this.setState({tf: null}), saveTF: () => this.saveType(),
       onTF: (e: FieldChange) => {
         const {name, value} = e.target;
@@ -2771,12 +2927,12 @@ export default class Component extends React.Component<Props, State> {
         this.api.patch('/admin/settings/', {citizen_posts_per_day: n}).then(() => this.toast(n ? 'Settings saved · ' + n + ' citizen posts per phone a day' : 'Settings saved · no daily limit for citizen posts')).catch((e: unknown) => this.fail(e));
       },
       panel, sp, su, closePanel: () => this.setState({panel: null}),
-      modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
+      modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
       confirmModal: () => {
         if (!m || cannot) return;
-        const t = s.modalText, sel = s.modalSel, gen = s.modalGen;
+        const t = s.modalText, sel = s.modalSel, gen = s.modalGen, t2 = s.modalText2;
         this.closeModal();
-        m.onConfirm(t, sel, gen);
+        m.onConfirm(t, sel, gen, t2);
       },
       genModal: (e?: React.MouseEvent) => {
         e?.preventDefault();
@@ -2851,6 +3007,7 @@ export default class Component extends React.Component<Props, State> {
           {v.rqShow ? <RequestPanel v={v} /> : null}
           {v.sfShow ? <ServiceFormPanel v={v} /> : null}
           {v.afShow ? <AdFormPanel v={v} /> : null}
+          {v.cfShow ? <ComposeFormPanel v={v} /> : null}
           {v.nfShow ? <NumberFormPanel v={v} /> : null}
           {v.tfShow ? <TypeFormPanel v={v} /> : null}
           {" "}
