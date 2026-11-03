@@ -52,11 +52,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 /* Scroll reveal, both ways: --from is +28px below the fold (scrolling down) or -28px above it (scrolling back up). */
 .gc-reveal{opacity:0;transform:translateY(var(--from,28px));transition:opacity .6s ease,transform .7s var(--ease-out);transition-delay:var(--d,0ms)}
 .gc-reveal.is-in{opacity:1;transform:none}
-/* New in the app (a day in the village): dots fill and cards lift as each moment comes into view. */
+/* New in the app (a day in the village): as each moment comes into view its dot fills, then the rail runs on to the next. */
 .gc-tl-dot{transition:background-color .4s ease .15s,transform .4s var(--ease-out) .15s}
 .gc-moment.is-in .gc-tl-dot{background:currentColor!important;transform:scale(1.15)}
-.gc-moment-card{transition:box-shadow .3s ease,transform .3s var(--ease-out)}
-@media (hover:hover){.gc-moment:hover .gc-moment-card{transform:translateY(-3px);box-shadow:0 18px 36px -22px rgba(10,37,80,.4)}}
+.gc-seg{transform:scaleY(0);transform-origin:50% 0;transition:transform .8s var(--ease-out) .35s}
+.gc-moment.is-in .gc-seg{transform:none}
+/* Header: when the page scrolls, the bar becomes a floating card in one step (same height, so nothing below moves) and settles in with transform only. */
+@keyframes gc-float{from{opacity:.7;transform:translateY(-6px) scaleX(1.02)}}
+.gc-float{animation:gc-float .35s var(--ease-out)}
+.gc-draw{clip-path:inset(0 0 100% 0);transition:clip-path .8s var(--ease-out) .35s}
+.gc-moment.is-in .gc-draw{clip-path:inset(0)}
+/* How it works: each level row lifts onto white on hover, its badge grows a touch. */
+.gc-level.gc-reveal{transition:opacity .6s ease var(--d,0ms),transform .7s var(--ease-out) var(--d,0ms),background-color .25s ease,box-shadow .25s ease}
+.gc-lv-dot{transition:transform .3s var(--ease-out),box-shadow .25s ease}
+@media (hover:hover){.gc-level:hover{background:#fff;box-shadow:0 18px 36px -28px rgba(10,37,80,.45)}.gc-level:hover .gc-lv-dot{transform:scale(1.08);box-shadow:0 0 0 5px #fff!important}}
 .gc-lift.gc-reveal.is-in{transition:opacity .6s ease var(--d,0ms),transform .3s var(--ease-out),box-shadow .3s ease}
 @keyframes gc-pulse{0%{box-shadow:0 0 0 0 rgba(143,224,160,.6)}100%{box-shadow:0 0 0 10px rgba(143,224,160,0)}}
 .gc-live{animation:gc-pulse 1.8s ease-out infinite}
@@ -64,18 +73,14 @@ html{scroll-behavior:smooth}
 /* Hero: the word slides up as it changes, the ring turns, the ticker scrolls (pauses on hover). */
 @keyframes gc-word{from{opacity:0;transform:translateY(60%)}to{opacity:1;transform:none}}
 .gc-word{animation:gc-word .55s var(--ease-out)}
-/* Listen button: grows a little on hover; while reading aloud, yellow rings pulse out from it. */
-.gc-speak{transition:transform .25s var(--ease-out),background-color .2s ease,color .2s ease}
-@media (hover:hover){.gc-speak:hover{transform:scale(1.07)}}
-@keyframes gc-ring{0%{box-shadow:0 0 0 0 rgba(242,221,61,.7),0 12px 24px -10px rgba(10,37,80,.4)}100%{box-shadow:0 0 0 22px rgba(242,221,61,0),0 12px 24px -10px rgba(10,37,80,.4)}}
-.gc-speak.is-on{animation:gc-ring 1.4s ease-out infinite}
 @keyframes gc-spin{to{transform:rotate(360deg)}}
 .gc-spin{animation:gc-spin 40s linear infinite}
 @keyframes gc-marquee{to{transform:translateX(-50%)}}
 .gc-ticker-track{animation:gc-marquee 36s linear infinite}
 .gc-ticker:hover .gc-ticker-track{animation-play-state:paused}
 /* Reduced motion: keep the gentle fades and colour changes, drop movement, parallax and pulsing. */
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in{transform:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in,.gc-seg{transform:none!important}.gc-draw{clip-path:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-level:hover .gc-lv-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word,.gc-float{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
+@media (max-width:600px){.gc-foot-nav{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.gc-dl-head{flex-direction:column;align-items:flex-start!important;gap:14px!important}.gc-dl-actions{width:100%;align-items:stretch!important}.gc-dl-btns{display:grid!important;grid-template-columns:1fr;gap:10px!important}.gc-dl-btns>button{width:100%}}
 html,body{height:100%;margin:0}#__next{height:100%}
 /* The page is built ahead of time at the desktop width; it shows once the browser has laid it out at its own width. */
 html:not(.gc-ready) .gc-site{visibility:hidden}

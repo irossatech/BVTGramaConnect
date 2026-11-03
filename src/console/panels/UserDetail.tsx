@@ -25,7 +25,7 @@ export default function UserDetail({ v }: { v: View }) {
       </div>
       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
         <span style={{fontWeight: "700", color: "#0A2550"}}>Roles</span>
-        {v.su?.canAddRole ? <button onClick={v.su?.addRole} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>+ Add role</button> : null}
+        {v.su?.canAddRole ? <button onClick={v.su?.addRole} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add role</button> : null}
       </div>
       {list(v.su?.roles).map((_r, _i1) => (
         <React.Fragment key={_i1}>

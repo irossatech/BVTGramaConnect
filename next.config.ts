@@ -20,11 +20,13 @@ export default function nextConfig(phase: string): NextConfig {
     ...(dev ? { pageExtensions: ["tsx", "ts", "dev.ts"] } : { output: "export" }),
     distDir: dev ? ".next" : "dist", // keep `npm run dev` files out of dist/
     trailingSlash: true,
+    devIndicators: false, // no Next.js "N" badge over the page in `npm run dev` (it never ships in the build)
     reactStrictMode: false, // the ported logic classes run componentDidMount once, as in the prototypes
     images: { unoptimized: true },
     env: {
       GC_API_BASE: process.env.GC_API_BASE || "/api/v1",
       GC_SITE_URL: (process.env.GC_SITE_URL || "https://dev.gramaconnect.com").replace(/\/+$/, ""),
+      GC_ANDROID_APK_URL: process.env.GC_ANDROID_APK_URL || "",
     },
   };
 }

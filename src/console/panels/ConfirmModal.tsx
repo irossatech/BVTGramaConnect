@@ -8,7 +8,7 @@ export default function ConfirmModal({ v }: { v: View }) {
     <>
       {" "}
       <div style={{position: "fixed", inset: "0", background: "rgba(10,37,80,.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: "60"}}>
-        <div style={{width: "460px", background: "#fff", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column", gap: "14px", boxShadow: "0 20px 60px rgba(0,0,0,.25)", animation: "sa-fade .15s ease-out"}}>
+        <div style={{width: "min(460px, calc(100vw - 32px))", background: "#fff", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column", gap: "14px", boxShadow: "0 20px 60px rgba(0,0,0,.25)", animation: "sa-fade .15s ease-out"}}>
           <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "19px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.title)}</div>
           <div style={{fontSize: "14px", color: "#3b4a5c", lineHeight: "1.55"}}>{I(v.modal?.body)}</div>
           {v.modal?.hasSelect ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
@@ -16,7 +16,7 @@ export default function ConfirmModal({ v }: { v: View }) {
               <select value={val(v.modalSel, "")} onChange={v.onModalSel} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
                 {list(v.modal?.options).map((_o, _i1) => (
                   <React.Fragment key={_i1}>
-                    <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                    <option value={val(_o?.id, "")}>{_o?.label}</option>
                   </React.Fragment>
                 ))}
               </select>

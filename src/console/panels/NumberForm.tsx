@@ -20,7 +20,7 @@ export default function NumberForm({ v }: { v: View }) {
             <select name="type" value={val(v.nf?.type, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
               {list(v.nfTypes).map((_o, _i1) => (
                 <React.Fragment key={_i1}>
-                  <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                  <option value={val(_o?.id, "")}>{_o?.label}</option>
                 </React.Fragment>
               ))}
             </select>
@@ -55,7 +55,7 @@ export default function NumberForm({ v }: { v: View }) {
               <select name="level" value={val(v.nf?.level, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
                 {list(v.nfLevels).map((_o, _i1) => (
                   <React.Fragment key={_i1}>
-                    <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                    <option value={val(_o?.id, "")}>{_o?.label}</option>
                   </React.Fragment>
                 ))}
               </select>
@@ -65,7 +65,7 @@ export default function NumberForm({ v }: { v: View }) {
               <select name="area" value={val(v.nf?.area, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
                 {list(v.nfAreas).map((_o, _i1) => (
                   <React.Fragment key={_i1}>
-                    <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                    <option value={val(_o?.id, "")}>{_o?.label}</option>
                   </React.Fragment>
                 ))}
               </select>

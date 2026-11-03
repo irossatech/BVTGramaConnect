@@ -7,7 +7,7 @@ import type { View } from "../Console";
 export default function Settings({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "start"}}>
+      <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "start"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
           <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Post categories</span>
           {list(v.catRows).map((_c, _i1) => (
@@ -64,9 +64,10 @@ export default function Settings({ v }: { v: View }) {
       </div>
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
         <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Notification templates</span>
+        {!list(v.templates).length ? <p style={{margin: "0", fontSize: "13px", lineHeight: "1.5", color: "#6b7a8c"}}>No templates yet. The texts for push notifications appear here once the server has them, and you can edit them here.</p> : null}
         {list(v.templates).map((_tp, _i1) => (
           <React.Fragment key={_i1}>
-            <div style={{display: "grid", gridTemplateColumns: "200px 1fr 1fr auto", gap: "16px", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f3f5f8"}}>
+            <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "200px 1fr 1fr auto", gap: "16px", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f3f5f8"}}>
               <span>
                 <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_tp?.name)}</span>
                 <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_tp?.channel)}</span>

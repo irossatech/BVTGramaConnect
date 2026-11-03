@@ -21,9 +21,9 @@ export const SelBar = ({sel, removeLabel}: {sel?: SelView; removeLabel: string})
 export function Pager({ p }: { p: View["usersPager"] }) {
   return (
     <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#6b7a8c"}}>
-        <button onClick={p?.prev} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.prevOpacity ?? ""}`)}>‹ Prev</button>
+        <button onClick={p?.prev} disabled={p?.prevOpacity !== 1} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.prevOpacity ?? ""}`)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "2px"}}><path d="M15 6l-6 6 6 6" /></svg>Prev</button>
         <span>{"Page "}{I(p?.page)}{" of "}{I(p?.pages)}</span>
-        <button onClick={p?.next} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.nextOpacity ?? ""}`)}>Next ›</button>
+        <button onClick={p?.next} disabled={p?.nextOpacity !== 1} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.nextOpacity ?? ""}`)}>Next<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginLeft: "2px"}}><path d="M9 6l6 6-6 6" /></svg></button>
       </div>
   );
 }
@@ -35,7 +35,7 @@ export function DistrictOptions({ v }: { v: View }) {
       <option value="">All districts</option>
       {list(v.districtOpts).map((_o, _i1) => (
         <React.Fragment key={_i1}>
-          <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+          <option value={val(_o?.id, "")}>{_o?.label}</option>
         </React.Fragment>
       ))}
     </>

@@ -15,9 +15,9 @@ export default function Numbers({ v }: { v: View }) {
         ))}
       </div>
       {v.isTypesTab ? <>
-        <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+        <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
           <span style={{fontSize: "13px", color: "#6b7a8c"}}>Types group the numbers citizens see. Switched-off types are hidden in the app; their numbers stay.</span>
-          <button onClick={v.addType} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add type</button>
+          <button onClick={v.addType} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add type</button>
         </div>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
           <table style={{width: "100%", fontSize: "13px"}}>
@@ -60,21 +60,21 @@ export default function Numbers({ v }: { v: View }) {
           </table>
         </div>
       </> : <>
-        <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
-          <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "360px", color: "#6b7a8c"}}>
+        <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+          <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "min(360px, 100%)", color: "#6b7a8c"}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <input value={val(v.numQ, "")} onChange={v.onNumQ} placeholder="Search name or phone…" style={{flex: "1", border: "0", outline: "none", fontSize: "13px", background: "transparent"}} />
           </div>
           <select value={val(v.numType, "")} onChange={v.onNumType} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
             {list(v.numTypeOpts).map((_o, _i1) => (
               <React.Fragment key={_i1}>
-                <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                <option value={val(_o?.id, "")}>{_o?.label}</option>
               </React.Fragment>
             ))}
           </select>
           <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.numCount)}</span>
           <button onClick={v.importNumbers} style={{marginLeft: "auto", height: "40px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
-          <button onClick={v.addNumber} style={{height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add number</button>
+          <button onClick={v.addNumber} style={{height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add number</button>
         </div>
         <SelBar sel={v.numSel} removeLabel="Remove selected" />
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>

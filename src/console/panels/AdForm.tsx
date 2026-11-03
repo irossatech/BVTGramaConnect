@@ -1,4 +1,4 @@
-// Add or edit an ad.
+// Add or edit an ad: one slot takes a picture or a video banner.
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -15,17 +15,28 @@ export default function AdForm({ v }: { v: View }) {
         </div>
         <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px"}}>
           <div style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Banner image <span style={{color: "#b3261e"}}>*</span></span>
-            <button onClick={v.pickAdImage} style={css(`aspect-ratio:3/2;width:100%;border-radius:12px;overflow:hidden;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;background: ${v.af?.preview ? "#0A2550" : "#eef4fb"};border: ${v.af?.preview ? "0" : "1.5px dashed " + (v.af?.errImage ? "#b3261e" : "#9db8d9")}`)}>
-              {v.af?.preview ? <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={v.af?.preview} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={v.af?.preview} alt="Banner preview" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span> : <>
-                <span style={{fontWeight: "700", color: "#0D3B7A", fontSize: "14px"}}>Choose an image</span>
-                <span style={{fontSize: "12px", color: "#3b4a5c"}}>Wide picture, 3:2 (e.g. 1500 × 1000), JPG or PNG, up to 5 MB</span>
-              </>}
-            </button>
-            {v.af?.preview ? <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-                <span style={{flex: "1", fontSize: "12px", color: "#6b7a8c"}}>This is how it looks on Home. The whole picture is shown, nothing is cut off; a wide 3:2 picture fills the banner best.</span>
-                <button onClick={v.pickAdImage} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Change image</button>
-              </div> : null}
+            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Banner <span style={{color: "#b3261e"}}>*</span></span>
+            {v.af?.isVideo && v.af?.vpreview ? <>
+                <span style={{position: "relative", display: "block"}}>
+                  <video src={v.af?.vpreview} poster={v.af?.poster || undefined} controls={true} preload="metadata" aria-label="Banner video preview" style={{width: "100%", aspectRatio: "3/2", borderRadius: "12px", background: "#0A2550", objectFit: "contain", display: "block"}} />
+                  {v.af?.durLabel ? <span style={{position: "absolute", left: "10px", top: "10px", padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700", background: "rgba(0,0,0,.6)", color: "#fff"}}>{I(v.af?.durLabel)}</span> : null}
+                </span>
+                <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                  <span style={{flex: "1", fontSize: "12px", color: "#6b7a8c"}}>On Home the video plays in the banner without sound, with the title and Know more on it; people can turn the sound on. A wide 3:2 video fits best.</span>
+                  <button onClick={v.pickAdMedia} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Change</button>
+                </div>
+              </> : !v.af?.isVideo && v.af?.preview ? <>
+                <button onClick={v.pickAdMedia} aria-label="Change banner" style={{aspectRatio: "3/2", width: "100%", borderRadius: "12px", overflow: "hidden", cursor: "pointer", padding: "0", display: "flex", background: "#0A2550", border: "0"}}>
+                  <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={v.af?.preview} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={v.af?.preview} alt="Banner preview" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span>
+                </button>
+                <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                  <span style={{flex: "1", fontSize: "12px", color: "#6b7a8c"}}>This is how it looks on Home. The whole picture is shown, nothing is cut off; a wide 3:2 picture fills the banner best.</span>
+                  <button onClick={v.pickAdMedia} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Change</button>
+                </div>
+              </> : <button onClick={v.pickAdMedia} disabled={!!v.af?.vchecking} style={css(`aspect-ratio:3/2;width:100%;border-radius:12px;overflow:hidden;cursor:pointer;padding:0 24px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;background:#eef4fb;border: 1.5px dashed ${v.af?.errImage ? "#b3261e" : "#9db8d9"}`)}>
+                <span style={{fontWeight: "700", color: "#0D3B7A", fontSize: "14px"}}>Choose a picture or video</span>
+                <span aria-live="polite" style={{fontSize: "12px", color: "#3b4a5c", lineHeight: "1.4"}}>{I(v.af?.mediaHint)}</span>
+              </button>}
             {v.af?.errImage ? <span style={{fontSize: "12px", fontWeight: "700", color: "#b3261e"}}>{I(v.af?.errImage)}</span> : null}
           </div>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>

@@ -36,7 +36,7 @@ import { decodeUtf8, planParts, fileLine, type CsvPart } from "./csv-parts";
 import type {
   Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError,
   ContactImportResult, ContactMessage, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
-  ListOrPage, LoginResponse, Me, Media, NotificationTemplate, Paged, Post, PostCitizen, PostEvent, PostsPage,
+  ConsoleNotification, ListOrPage, LoginResponse, Me, Media, NotificationPage, NotificationTemplate, Paged, Post, PostCitizen, PostEvent, PostsPage,
   ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest,
   ServiceRequestsPage, Settings, TemporaryPassword, User, UserResponse,
 } from "./types";
@@ -235,8 +235,18 @@ interface AdForm {
   id: number | null;
   title: string;
   link: string;
+  /** 'image' or 'video': what the banner shows. */
+  kind: 'image' | 'video';
   file: File | null;
   preview: string;
+  /** A video picked here, its object URL (or the server's file), its poster and length in seconds. */
+  vfile: File | null;
+  vpreview: string;
+  poster: string;
+  dur: number;
+  vchecking: boolean;
+  /** Why the picked video was refused ('' = fine). */
+  verr: string;
   d: string;
   m: string;
   v: string;
@@ -357,6 +367,18 @@ interface State {
   cpVoluntary: boolean;
   showPw: Record<string, boolean>;
   menuOpen: boolean;
+  /** The bell's dropdown: this official's own notifications (newest first). */
+  /** The CSV export running now (its report name, or "audit"): its button says Exporting… and ignores clicks. */
+  exporting: string | null;
+  notifOpen: boolean;
+  notifs: ConsoleNotification[];
+  notifUnread: number;
+  /** Cursor for the next page, or null on the last one. */
+  notifNext: string | null;
+  notifLoading: boolean;
+  notifError: boolean;
+  /** Phones and tablets: the side bar slides in over the page. */
+  navOpen: boolean;
   gsearch: string;
   me: Me | null;
   geo: GeoDistrictRow[];
@@ -416,6 +438,8 @@ interface State {
   auditPage: number;
   auditPages: number;
   auditQ: string;
+  /** Dashboard: filter for the "Pending by district" list (English or Telugu name). */
+  distQ: string;
   auditLoading: boolean;
   contacts: ContactMessage[];
   contactCount: number;
@@ -531,7 +555,7 @@ export default class Component extends React.Component<Props, State> {
   private static readonly LOGIN_ERR: Readonly<Record<string, string>> = {invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
   state: State = {
-    screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, gsearch: '', me: null,
+    screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, navOpen: false, exporting: null, notifOpen: false, notifs: [], notifUnread: 0, notifNext: null, notifLoading: false, notifError: false, gsearch: '', me: null,
     geo: [], stateRow: null, expanded: {}, geoForm: null,
     users: [], userCount: 0, userPage: 1, userPages: 1, usersLoading: false,
     reqs: [], reqCount: 0, reqPage: 1, reqPages: 1, reqLoading: false, reqFilter: 'NEW', svcView: 'requests', ads: [], adsLoading: false, adsUnavailable: false, af: null,
@@ -540,7 +564,7 @@ export default class Component extends React.Component<Props, State> {
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
     numSel: [], adSel: [], bulk: '',
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
-    audit: [], auditCount: 0, auditPage: 1, auditPages: 1, auditQ: '', auditLoading: false,
+    audit: [], auditCount: 0, auditPage: 1, auditPages: 1, auditQ: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
@@ -553,6 +577,8 @@ export default class Component extends React.Component<Props, State> {
   private numTimer: Timer | undefined;
   private userTimer: Timer | undefined;
   private auditTimer: Timer | undefined;
+  /** Refreshes the bell every minute while the console is open. */
+  private notifTimer: ReturnType<typeof setInterval> | undefined;
   private searchTimer: Timer | undefined;
   private reqTimer: Timer | undefined;
   private teTimer: Timer | undefined;
@@ -578,7 +604,9 @@ export default class Component extends React.Component<Props, State> {
     if (e.key !== 'Escape') return;
     const s = this.state;
     const form = FORMS.find((k) => s[k]);
-    const close = s.modal ? () => this.closeModal()
+    const close = s.notifOpen ? () => this.setState({notifOpen: false})
+      : s.menuOpen ? () => this.setState({menuOpen: false})
+      : s.modal ? () => this.closeModal()
       : form ? () => this.setState(one(form, null))
       : s.drawerOpen ? () => this.setState({drawerOpen: false})
       : s.panel ? () => this.setState({panel: null})
@@ -676,6 +704,7 @@ export default class Component extends React.Component<Props, State> {
     clearTimeout(this.searchTimer);
     clearTimeout(this.reqTimer);
     clearTimeout(this.teTimer);
+    clearInterval(this.notifTimer);
   }
 
   private toast(text: string, dot?: string) {
@@ -707,7 +736,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private goPage(p: PageKey) {
-    this.setState({page: p, menuOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, af: null});
+    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, af: null});
     if (this.scrollEl) this.scrollEl.scrollTop = 0;
     this.loadPage(p);
   }
@@ -861,6 +890,12 @@ export default class Component extends React.Component<Props, State> {
     this.loadGeo();
     this.loadCategories();
     this.loadPage(page);
+    this.loadNotifs();
+    clearInterval(this.notifTimer);
+    this.notifTimer = setInterval(() => {
+      // Only while signed in, the tab is visible and the list is closed (an open list is not reshuffled under the cursor).
+      if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') this.loadNotifs();
+    }, 60000);
   }
 
   private afterLogin(me: Me, quiet?: boolean) {
@@ -1238,34 +1273,58 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private openAd(a: Ad | null) {
+    const media = {vfile: null, vchecking: false, verr: '', file: null};
+    // A video ad's image is its poster, not a picture to keep: switching it to a picture asks for one.
     this.setState({af: a
-      ? {id: a.id, title: a.title, link: a.link || '', file: null, preview: a.image, ...this.adArea(a.area), start: a.starts_on || '', end: a.ends_on || '', active: !!a.is_active, tried: false, saving: false}
-      : {id: null, title: '', link: '', file: null, preview: '', d: '', m: '', v: '', start: this.today(), end: '', active: true, tried: false, saving: false}});
+      ? {id: a.id, title: a.title, link: a.link || '', ...media, kind: a.video ? 'video' : 'image', preview: a.video ? '' : a.image, vpreview: a.video || '', poster: a.video ? a.image : '', dur: a.duration_s || 0, ...this.adArea(a.area), start: a.starts_on || '', end: a.ends_on || '', active: !!a.is_active, tried: false, saving: false}
+      : {id: null, title: '', link: '', ...media, kind: 'image', preview: '', vpreview: '', poster: '', dur: 0, d: '', m: '', v: '', start: this.today(), end: '', active: true, tried: false, saving: false}});
   }
 
   private adErrors(f: AdForm) {
     const e: AdErrors = {};
     if (!f.title.trim()) e.title = 'Enter a name for the ad.';
-    if (!f.preview) e.image = 'Choose a banner image.';
+    if (f.kind === 'image' ? !f.preview : !f.vpreview) e.image = 'Choose a picture or video for the banner.';
     const l = f.link.trim();
     if (l && !/^https?:\/\/[^\s/]+\.[^\s]+$/.test(l)) e.link = 'Enter a full link starting with https://';
     if (f.start && f.end && f.end < f.start) e.end = 'The end date must be on or after the start date.';
     return e;
   }
 
-  private pickAdImage() {
+  // Same limit as the app (kAdVideoMaxMb); any length. The server checks again (ADS_VIDEO_MAX_MB).
+  private static readonly AD_VIDEO_MAX_MB = 60;
+
+  // One picker for both: a picture is used as it is, a video is checked for size and length first.
+  private pickAdMedia() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/jpeg,image/png,image/webp';
+    input.accept = 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime';
     input.onchange = () => {
       const file = input.files && input.files[0];
       if (!file) return;
-      if (file.size > 5 * 1024 * 1024) {
-        this.toast('The image is larger than 5 MB');
-        return;
+      const setF = (p: Partial<AdForm>) => this.setState((st) => ({af: st.af && {...st.af, ...p}}));
+      if (file.type.startsWith('image/')) {
+        if (file.size > 5 * 1024 * 1024) return setF({verr: 'The picture is larger than 5 MB.'});
+        return setF({kind: 'image', file, preview: URL.createObjectURL(file), verr: ''});
       }
+      if (!file.type.startsWith('video/')) return setF({verr: 'Choose a picture (JPG, PNG) or a video (MP4, MOV).'});
+      if (file.size > Component.AD_VIDEO_MAX_MB * 1024 * 1024) return setF({verr: 'The video is larger than ' + Component.AD_VIDEO_MAX_MB + ' MB.'});
+      // Read its length from the file before accepting it.
       const url = URL.createObjectURL(file);
-      this.setState((st) => ({af: st.af && {...st.af, file, preview: url}}));
+      const probe = document.createElement('video');
+      probe.preload = 'metadata';
+      setF({vchecking: true, verr: ''});
+      probe.onloadedmetadata = () => {
+        const secs = probe.duration;
+        if (!isFinite(secs) || secs <= 0) {
+          URL.revokeObjectURL(url);
+          setF({vchecking: false, verr: 'This video could not be read. Try an MP4 file.'});
+        } else setF({kind: 'video', vchecking: false, vfile: file, vpreview: url, poster: '', dur: Math.round(secs)});
+      };
+      probe.onerror = () => {
+        URL.revokeObjectURL(url);
+        setF({vchecking: false, verr: 'This video could not be read. Try an MP4 file.'});
+      };
+      probe.src = url;
     };
     input.click();
   }
@@ -1280,21 +1339,37 @@ export default class Component extends React.Component<Props, State> {
     const st = this.state.stateRow;
     const area = f.v ? ['VILLAGE', f.v] : f.m ? ['MANDAL', f.m] : f.d ? ['DISTRICT', f.d] : ['STATE', st && st.id];
     const fields = {title: f.title.trim(), link: f.link.trim(), area_level: String(area[0]), area_id: String(area[1]), starts_on: f.start || '', ends_on: f.end || '', is_active: String(f.active)};
+    // A new video replaces the picture (the server cuts its poster); a new picture replaces the video.
+    const vfile = f.kind === 'video' ? f.vfile : null, file = f.kind === 'image' ? f.file : null;
     let req: Promise<unknown>;
-    if (f.file) {
+    if (vfile || file) {
       const fd = new FormData();
       Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
-      fd.append('image', f.file);
+      if (vfile) {
+        fd.append('video', vfile);
+        fd.append('duration_s', String(f.dur));
+      } else if (file) fd.append('image', file);
       req = f.id ? this.api.upload('/admin/ads/' + f.id + '/', fd, undefined, 'PATCH') : this.api.upload('/admin/ads/', fd);
     } else req = this.api.patch('/admin/ads/' + f.id + '/', {...fields, area_id: Number(area[1]), starts_on: f.start || null, ends_on: f.end || null, is_active: f.active});
+    const notYet = 'Video banners are not on the server yet. Use a picture for now; videos will work once the server is updated.';
+    const stay = () => this.setState((x) => ({af: x.af && {...x.af, saving: false}}));
     this.setState({af: {...f, saving: true}});
-    req.then(() => {
+    req.then((r) => {
+      // An older server saves the details but ignores the video: say so and keep the form open.
+      if (vfile && !(r as Ad | null)?.video) {
+        stay();
+        this.toast(notYet);
+        this.loadAds();
+        return;
+      }
       this.setState({af: null});
       this.toast((f.id ? 'Ad saved · ' : 'Ad published · ') + fields.title);
       this.loadAds();
     }).catch((e: unknown) => {
-      this.setState((x) => ({af: x.af && {...x.af, saving: false}}));
-      this.fail(e);
+      stay();
+      // An older server asks for a picture on a new video ad.
+      if (vfile && e instanceof ApiError && e.body.fields && 'image' in e.body.fields) this.toast(notYet);
+      else this.fail(e);
     });
   }
 
@@ -1633,6 +1708,63 @@ export default class Component extends React.Component<Props, State> {
       const templates = Array.isArray(d) ? d : (d.results || []);
       this.setState((s) => ({settings: {...s.settings, templates}}));
     }).catch(() => {});
+  }
+
+  // ---- notifications (the bell) ----
+  private loadNotifs(more?: boolean) {
+    const cursor = more ? this.state.notifNext : null;
+    if (more && !cursor) return;
+    this.setState({notifLoading: true, notifError: false});
+    this.api.get<NotificationPage>('/notifications/', cursor ? {cursor} : undefined).then((d) => {
+      let next: string | null = null;
+      try {
+        next = d.next ? new URL(d.next, window.location.href).searchParams.get('cursor') : null;
+      } catch {
+        next = null;
+      }
+      this.setState((s) => ({notifs: more ? [...s.notifs, ...(d.results || [])] : (d.results || []), notifUnread: d.unread_count ?? 0, notifNext: next, notifLoading: false}));
+    }).catch(() => this.setState({notifLoading: false, notifError: true}));
+  }
+
+  private toggleNotifs() {
+    const open = !this.state.notifOpen;
+    this.setState({notifOpen: open, menuOpen: false});
+    if (open) this.loadNotifs();
+  }
+
+  // Open what the notification is about (its post or service request) and mark it read.
+  private openNotif(n: ConsoleNotification) {
+    if (!n.read_at) {
+      const now = new Date().toISOString();
+      this.setState((s) => ({notifs: s.notifs.map((x) => x.id === n.id ? {...x, read_at: now} : x), notifUnread: Math.max(0, s.notifUnread - 1)}));
+      this.api.post('/notifications/' + n.id + '/read/').catch(() => {});
+    }
+    this.setState({notifOpen: false});
+    if (n.post_id) {
+      this.api.get<Post>('/posts/' + n.post_id + '/').then((p) => this.openPost(this.adaptPost(p))).catch((e: unknown) => this.fail(e));
+    } else if (n.service_request_id) {
+      this.api.get<ServiceRequest>('/service-requests/' + n.service_request_id + '/').then((r) => this.openRequest(r)).catch((e: unknown) => this.fail(e));
+    }
+  }
+
+  private readAllNotifs() {
+    const now = new Date().toISOString();
+    this.setState((s) => ({notifs: s.notifs.map((x) => x.read_at ? x : {...x, read_at: now}), notifUnread: 0}));
+    this.api.post('/notifications/read-all/').catch((e: unknown) => {
+      this.fail(e);
+      this.loadNotifs();
+    });
+  }
+
+  /** "Just now", "5 min ago", "3 h ago", "2 d ago", then the date. */
+  private ago(iso: string) {
+    const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (isNaN(min)) return '';
+    if (min < 1) return 'Just now';
+    if (min < 60) return min + ' min ago';
+    if (min < 24 * 60) return Math.floor(min / 60) + ' h ago';
+    if (min < 7 * 24 * 60) return Math.floor(min / (24 * 60)) + ' d ago';
+    return this.fmt(iso, false);
   }
 
   private openPost(p: PostRow) {
@@ -2101,13 +2233,17 @@ export default class Component extends React.Component<Props, State> {
   private exportCsv() {
     const s = this.state;
     const stamp = new Date().toISOString().slice(0, 10);
-    if (s.page === 'audit') this.api.download('/audit/export/', {q: s.auditQ}, 'grama-audit-' + stamp + '.csv').then(() => this.toast('Audit log exported')).catch((e: unknown) => this.fail(e));
-    else this.exportReport('posts-by-area');
+    if (s.page !== 'audit') return this.exportReport('posts-by-area');
+    if (s.exporting) return;
+    this.setState({exporting: 'audit'});
+    this.api.download('/audit/export/', {q: s.auditQ, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => this.toast('Audit log exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
   }
 
   private exportReport(name: string) {
     const stamp = new Date().toISOString().slice(0, 10);
-    this.api.download('/admin/reports/' + name + '/export/', {format: 'csv'}, 'grama-' + name + '-' + stamp + '.csv').then(() => this.toast('Report exported')).catch((e: unknown) => this.fail(e));
+    if (this.state.exporting) return;
+    this.setState({exporting: name});
+    this.api.download('/admin/reports/' + name + '/export/', {format: 'csv'}, 'grama-' + name + '-' + stamp + '.csv').then(() => this.toast('Report exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
   }
 
   renderVals() {
@@ -2119,8 +2255,18 @@ export default class Component extends React.Component<Props, State> {
     const pendingN = s.pendingCount;
     const navItems = C.PAGES.filter((k) => this.navOk(k)).map((k) => {
       const on = s.page === k;
-      return {label: titles[k].split(' ·')[0], d: C.ICON[k], color: on ? '#fff' : 'rgba(255,255,255,.78)', bg: on ? '#0D3B7A' : 'transparent', hasCount: k === 'posts' && pendingN > 0, count: pendingN, go: () => this.goPage(k)};
+      // The side bar says just "Posts" next to its pending count; the page title keeps "Posts & Moderation".
+      return {label: k === 'posts' ? 'Posts' : titles[k].split(' ·')[0], d: C.ICON[k], color: on ? '#fff' : 'rgba(255,255,255,.78)', bg: on ? '#0D3B7A' : 'transparent', on, hasCount: k === 'posts' && pendingN > 0, count: pendingN, go: () => this.goPage(k)};
     });
+    // The side bar in four short groups (same pages, same order inside a group); a group this user cannot open is left out.
+    const NAV_GROUPS: readonly {label: string; keys: readonly PageKey[]}[] = [
+      {label: '', keys: ['dashboard', 'reports']},
+      {label: 'Content', keys: ['posts', 'ads']},
+      {label: 'Citizens', keys: ['requests', 'bills', 'contact', 'numbers']},
+      {label: 'Admin', keys: ['users', 'geography', 'audit', 'settings']},
+    ];
+    const navKeys = C.PAGES.filter((k) => this.navOk(k));
+    const navGroups = NAV_GROUPS.map((g) => ({label: g.label, items: g.keys.filter((k) => navKeys.includes(k)).map((k) => navItems[navKeys.indexOf(k)])})).filter((g) => g.items.length);
     const hist = (h: ReviewAction) => {
       const rk = C.RK[h.actor?.role ?? ''] || 'system';
       const label = h.action === 'REVERSE'
@@ -2176,7 +2322,9 @@ export default class Component extends React.Component<Props, State> {
     const ppd = D ? D.posts_per_day : [];
     const max = Math.max(1, ...ppd.map((c) => c.submitted));
     const chart = ppd.map((c) => ({h1: Math.round(c.submitted / max * 100) + '%', h2: Math.round(c.published / max * 100) + '%', day: dayLabel(c.date), tip: dayLabel(c.date) + ': ' + c.submitted + ' submitted, ' + c.published + ' published'}));
-    const pendingByDistrict = (D ? D.pending_by_district : []).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
+    // Every district, most pending first; the search box filters by English or Telugu name.
+    const dq = s.distQ.trim().toLowerCase();
+    const pendingByDistrict = (D ? D.pending_by_district : []).filter((r) => !dq || r.district.name.toLowerCase().includes(dq) || (r.name_te || '').includes(s.distQ.trim())).sort((a, b) => b.pending - a.pending).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
       go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => this.loadPosts(1)); }}));
     const auditRow = (a: AuditEntry) => {
       const rk = C.RK[a.actor?.role ?? ''] || (a.actor && a.actor.role === 'SYSTEM' ? 'system' : 'super');
@@ -2214,7 +2362,8 @@ export default class Component extends React.Component<Props, State> {
     const geoCoordsOk = !!gf && gf.isVillage && !this.geoErrs({...gf, id: gf.id || 1}).coords && !!String(gf.lat || '').trim();
     // users
     const uf = s.uf;
-    const userRows = s.users.map((u) => ({name: u.name, te: u.te, mobile: u.mobile ? '+91 ' + u.mobile : (u.email || '—'), roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
+    // Second line under the name: the Telugu name, else the login username (never the English name twice).
+    const userRows = s.users.map((u) => ({name: u.name, te: u.nameTe || u.username, mobile: u.mobile ? '+91 ' + u.mobile : (u.email || '—'), roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
       statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
       canReassign: !!u.raId && this.userCan(u, 'reassign'), canToggle: this.userCan(u, u.active ? 'block' : 'unblock'), view: () => this.openUser(u), reassign: () => this.reassignUser(u), toggle: () => this.toggleUser(u)}));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
@@ -2233,7 +2382,8 @@ export default class Component extends React.Component<Props, State> {
     // reports
     const RP = s.reports;
     const byArea: {name: string; indent: string; weight: number; total: number; pub: number; pend: number; rej: number}[] = [];
-    RP.byArea.forEach((d) => {
+    // Busiest districts first (ties keep the server's A-Z order); each district's mandals stay under it.
+    [...RP.byArea].sort((a, b) => b.total - a.total).forEach((d) => {
       byArea.push({name: d.district.name, indent: '0px', weight: 700, total: d.total, pub: d.published, pend: d.pending, rej: d.rejected});
       d.mandals.forEach((m) => byArea.push({name: m.mandal.name, indent: '20px', weight: 500, total: m.total, pub: m.published, pend: m.pending, rej: m.rejected}));
     });
@@ -2334,7 +2484,21 @@ export default class Component extends React.Component<Props, State> {
     const rq = s.rq;
     const tf: Partial<TypeForm> = s.tf || {};
     const tfErr: Partial<{en: string; te: string}> = s.tf && s.tf.tried ? this.tfErrs(s.tf) : {};
-    return {screen: s.screen, is, pg, pageTitle: titles[s.page], navItems, menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
+    // The bell: one row per notification, coloured by what it is about.
+    const NK: Record<string, {label: string; color: string; bg: string; d: string}> = {POST_PUBLISHED: {label: 'Published', color: '#1F8A3B', bg: '#e4f4df', d: 'M20 6L9 17l-5-5'},
+      POST_RECHECK: {label: 'Needs changes', color: '#8f4bb4', bg: '#f1e6f7', d: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'},
+      POST_DISCARDED: {label: 'Discarded', color: '#b3261e', bg: '#fde8e6', d: 'M18 6L6 18M6 6l12 12'},
+      POST_UNPUBLISHED: {label: 'Taken down', color: '#b3261e', bg: '#fde8e6', d: 'M12 5v14M5 12l7 7 7-7'},
+      REVIEW_PENDING: {label: 'To review', color: '#b35a0e', bg: '#fff0dc', d: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'},
+      ESCALATION: {label: 'Escalated', color: '#b3261e', bg: '#fde8e6', d: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'},
+      ACCOUNT: {label: 'Account', color: '#0D3B7A', bg: '#e3f0fb', d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'},
+      SERVICE_REQUEST: {label: 'Service request', color: '#07818e', bg: '#dff3f4', d: 'M9 12h6M9 16h4M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'}};
+    const bell = {label: '', color: '#3b4a5c', bg: '#eef2f6', d: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0'};
+    const notifRows = s.notifs.map((n) => {
+      const k = NK[n.kind] || bell;
+      return {id: n.id, title: n.title, body: n.body, time: this.ago(n.created_at), unread: !n.read_at, label: k.label, color: k.color, bg: k.bg, d: k.d, linked: !!(n.post_id || n.service_request_id), open: () => this.openNotif(n)};
+    });
+    return {screen: s.screen, is, pg, pageTitle: titles[s.page], navGroups, navOpen: s.navOpen, toggleNav: () => this.setState((st) => ({navOpen: !st.navOpen})), notifOpen: s.notifOpen, notifRows, notifUnread: s.notifUnread, notifBadge: s.notifUnread > 99 ? '99+' : String(s.notifUnread), notifLoading: s.notifLoading, notifError: s.notifError, notifEmpty: !s.notifs.length && !s.notifLoading && !s.notifError, notifHasMore: !!s.notifNext, notifMore: () => this.loadNotifs(true), notifRetry: () => this.loadNotifs(), toggleNotifs: () => this.toggleNotifs(), closeNotifs: () => this.setState({notifOpen: false}), readAllNotifs: () => this.readAllNotifs(), menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen, notifOpen: false})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
       meName: me.name, meInitial: (me.name || '?')[0], stateName: s.stateRow ? s.stateRow.name_en : '', stateTe: s.stateRow ? s.stateRow.name_te : '',
       logout: () => this.logout(),
       frameW: '100%', frameH: '100vh', scrollRef: (el: HTMLDivElement | null) => { this.scrollEl = el; },
@@ -2367,7 +2531,7 @@ export default class Component extends React.Component<Props, State> {
         clearTimeout(this.searchTimer);
         this.searchTimer = setTimeout(() => this.loadPosts(1), 300);
       },
-      kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, recent, noDistricts: !s.geo.length,
+      kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, distQ: s.distQ, onDistQ: (e: FieldChange) => this.setState({distQ: e.target.value}), distEmptyText: s.distQ.trim() ? 'No district matches “' + s.distQ.trim() + '”.' : 'Nothing waiting for review.', recent, noDistricts: !s.geo.length,
       tree, addDistrict: () => this.setState({geoForm: {kind: 'district', id: null, parentId: null, parentName: null, parent: s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh', name: '', te: '', lgd: '', lat: '', lng: '', pin: '', isVillage: false}}), importCsv: () => this.importCsv(),
       geoForm, geoFormShow: !!gf, geoFormEmpty: !gf, geoFormTitle: gf ? ((gf.id ? 'Edit ' : 'Add ') + gf.kind) : 'Details', geoSaveLabel: gf && gf.id ? 'Save changes' : 'Add', geoNamePh: gf ? {district: 'e.g. Bapatla', mandal: 'e.g. Ponnur', village: 'e.g. Kothapalem'}[gf.kind] : '',
       cannotSaveGeo: false, saveGeoOpacity: 1, geoErr, geoCoordsRequired: !!(gf && gf.isVillage && !gf.id), onGeoWhere: (e: FieldChange) => this.onGeoWhere(e.target.value),
@@ -2417,7 +2581,7 @@ export default class Component extends React.Component<Props, State> {
         this.setState((st) => ({pf: {...st.pf, [name]: value}}), () => this.loadPosts(1));
       },
       postRows, postCount: s.postCount, postEmpty: !postRows.length, postEmptyText: s.postsLoading ? 'Loading…' : 'No posts match these filters.', postsPager: pager(s.postPage, s.postPages, (p) => this.loadPosts(p)), catOpts,
-      repSummary, byArea, reviewTime, adminActivity, exportCsv: () => this.exportCsv(), exportByArea: () => this.exportReport('posts-by-area'), exportReviewTime: () => this.exportReport('review-time'), exportActivity: () => this.exportReport('admin-activity'),
+      repSummary, byArea, reviewTime, adminActivity, exporting: s.exporting, exportCsv: () => this.exportCsv(), exportByArea: () => this.exportReport('posts-by-area'), exportReviewTime: () => this.exportReport('review-time'), exportActivity: () => this.exportReport('admin-activity'),
       auditQ: s.auditQ,
       onAuditQ: (e: FieldChange) => {
         this.setState({auditQ: e.target.value});
@@ -2462,10 +2626,10 @@ export default class Component extends React.Component<Props, State> {
         const k = this.adStatus(a);
         const S = C.AD_STATUS[k];
         const ar = a.area;
-        return {sel: s.adSel.includes(a.id), toggleSel: () => this.toggleSel('adSel', a.id), title: a.title, image: a.image, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
+        return {sel: s.adSel.includes(a.id), toggleSel: () => this.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
           dates: [a.starts_on ? 'From ' + this.dayLabel(a.starts_on) : '', a.ends_on ? 'till ' + this.dayLabel(a.ends_on) : 'no end date'].filter(Boolean).join(' '), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => this.toggleAd(a), open: () => this.openAd(a)};
       }),
-      afShow: !!af, closeAF: () => this.setState({af: null}), pickAdImage: () => this.pickAdImage(), saveAF: () => this.saveAd(),
+      afShow: !!af, closeAF: () => this.setState({af: null}), pickAdMedia: () => this.pickAdMedia(), saveAF: () => this.saveAd(),
       onAF: (e: FieldChange) => {
         const t = e.target;
         const name = t.name;
@@ -2492,7 +2656,11 @@ export default class Component extends React.Component<Props, State> {
             const ad = s.ads.find((a) => a.id === f.id);
             if (ad) this.deleteAd(ad);
           },
-          errTitle: err.title || '', errImage: err.image || '', errLink: err.link || '', errEnd: err.end || '',
+          // A refused file says why at once; a missing banner only after "Publish".
+          errTitle: err.title || '', errImage: f.verr || err.image || '', errLink: err.link || '', errEnd: err.end || '',
+          isVideo: f.kind === 'video',
+          mediaHint: f.vchecking ? 'Checking video length…' : 'A wide 3:2 picture (JPG or PNG, up to 5 MB), or a video of any length (MP4 or MOV, up to ' + Component.AD_VIDEO_MAX_MB + ' MB)',
+          durLabel: f.dur ? Math.floor(f.dur / 60) + ':' + String(f.dur % 60).padStart(2, '0') : '',
           toggleActive: () => this.setState((x) => x.af ? {af: {...x.af, active: !x.af.active}} : null),
           showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
           where: v && m ? v.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village',
@@ -2634,12 +2802,13 @@ export default class Component extends React.Component<Props, State> {
         {" "}
         {v.is?.app ? <>
           {" "}
-          <div style={{display: "grid", gridTemplateColumns: "248px minmax(0, 1fr)", height: "100vh", overflow: "hidden"}}>
+          <div className={"sa-shell" + (v.navOpen ? " is-open" : "")} style={{display: "grid", gridTemplateColumns: "248px minmax(0, 1fr)", height: "100dvh", overflow: "hidden"}}>
             <Sidebar v={v} />
+            <button className="sa-scrim" aria-label="Close menu" tabIndex={v.navOpen ? 0 : -1} onClick={v.toggleNav} />
             <main style={{display: "flex", flexDirection: "column", minWidth: "0", minHeight: "0"}}>
               <TopBar v={v} />
               <div ref={v.scrollRef} style={{flex: "1", minHeight: "0", overflowY: "auto"}}>
-              <div style={{padding: "24px 28px 40px", display: "flex", flexDirection: "column", gap: "20px", animation: "sa-fade .2s ease-out"}}>
+              <div className="sa-content" style={{padding: "24px 28px 40px", display: "flex", flexDirection: "column", gap: "20px", animation: "sa-fade .2s ease-out"}}>
                 {/* DASHBOARD */}
                 {v.pg?.dashboard ? <DashboardScreen v={v} /> : null}
                 {/* GEOGRAPHY */}

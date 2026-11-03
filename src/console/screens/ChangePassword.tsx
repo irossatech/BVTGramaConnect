@@ -27,7 +27,7 @@ export default function ChangePassword({ v }: { v: View }) {
             </button>
           </span>
         </label>
-        <button onClick={v.changePassword} disabled={v.cannotChange} style={css(`height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: ${v.changeOpacity ?? ""}`)}>{"Save & continue ›"}</button>
+        <button onClick={v.changePassword} disabled={v.cannotChange} style={css(`height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: ${v.changeOpacity ?? ""}`)}>Save and continue</button>
         <div style={{display: "flex", justifyContent: "space-between"}}>
           <button onClick={v.cpBack} style={{background: "none", border: "0", color: "#6b7a8c", fontWeight: "700", cursor: "pointer"}}>{I(v.cpBackLabel)}</button>
         </div>

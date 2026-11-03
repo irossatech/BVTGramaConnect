@@ -5,7 +5,7 @@ import type { View } from "../Console";
 export default function Services({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>{I(v.catSub)}</span>
         <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.svcShownLabel)}</span>
         <button onClick={v.newService} disabled={v.svcsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;opacity: ${v.svcsUnavailable ? .5 : 1}`)}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>{I(v.catNew)}</button>

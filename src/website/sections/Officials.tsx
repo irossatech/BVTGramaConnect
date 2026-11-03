@@ -4,13 +4,12 @@ import type { View } from "../Site";
 import { ui } from "../ui/theme";
 
 export default function Officials({ v }: { v: View }) {
-  const { ink, blue, muted, display, fs, wrap, h1, kicker, lead, pill } = ui(v);
+  const { ink, blue, muted, display, fs, wrap, h1, lead, pill } = ui(v);
   return (
     <>
     <section style={{padding: "clamp(48px,7vw,96px) 0 clamp(32px,5vw,64px)"}}>
       <div style={{...wrap, display: "flex", flexWrap: "wrap", gap: "clamp(28px,4vw,56px)", alignItems: "center", animation: "mk-fade .25s ease-out"}}>
         <div style={{flex: "1 1 420px", display: "flex", flexDirection: "column", gap: "16px"}}>
-          <div style={kicker}>{I(v.t?.nav_officials)}</div>
           <h1 style={h1}>{I(v.t?.offTitle)}</h1>
           <p style={lead}>{I(v.t?.offSub)}</p>
         </div>

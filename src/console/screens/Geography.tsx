@@ -5,14 +5,14 @@ import type { View } from "../Console";
 
 export default function Geography({ v }: { v: View }) {
   return (
-    <div style={{display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 360px)", gap: "20px", alignItems: "start"}}>
+    <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 360px)", gap: "20px", alignItems: "start"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "16px 20px", minWidth: "0"}}>
           {" "}
           <div style={{display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "space-between", alignItems: "center", paddingBottom: "12px", borderBottom: "1px solid #eef2f6"}}>
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>State → District → Mandal → Village</span>
             <span style={{display: "flex", gap: "8px"}}>
               <button onClick={v.importCsv} style={{height: "36px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
-              <button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add district</button>
+              <button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add district</button>
             </span>
           </div>
           {" "}
@@ -22,11 +22,11 @@ export default function Geography({ v }: { v: View }) {
             <span style={{fontWeight: "500", color: "#6b7a8c"}}>{I(v.stateTe)}</span>
           </div>
           {" "}
-          {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>+ Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
+          {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
           {list(v.tree).map((_n, _i1) => (
             <React.Fragment key={_i1}>
               {" "}
-              <div style={css(`display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid #f3f5f8;padding-right:8px;padding-left: ${_n?.indent ?? ""};background: ${_n?.rowBg ?? ""};opacity: ${_n?.opacity ?? ""}`)}>
+              <div className="sa-geo-row" style={css(`display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid #f3f5f8;padding-right:8px;padding-left: ${_n?.indent ?? ""};background: ${_n?.rowBg ?? ""};opacity: ${_n?.opacity ?? ""}`)}>
                 <button onClick={_n?.toggle} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#6b7a8c;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={_n?.chev} /></svg>
                 </button>
@@ -37,16 +37,18 @@ export default function Geography({ v }: { v: View }) {
                   {_n?.inactive ? <span style={{padding: "2px 8px", borderRadius: "999px", background: "#eef2f6", color: "#3b4a5c", fontSize: "11px", fontWeight: "700"}}>Inactive</span> : null}
                   <span style={{marginLeft: "auto", fontSize: "12px", color: "#6b7a8c", whiteSpace: "nowrap", flexShrink: "0"}}>{I(_n?.meta)}</span>
                 </button>
+                <span className="sa-geo-acts" style={{display: "flex", gap: "8px", flexShrink: "0"}}>
                 {_n?.canAdd ? <button onClick={_n?.add} style={{flexShrink: "0", whiteSpace: "nowrap", height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{"+ "}{I(_n?.childKind)}</button> : null}
                 <button onClick={_n?.select} style={{flexShrink: "0", height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Edit</button>
                 <button onClick={_n?.deact} style={css(`flex-shrink:0;white-space:nowrap;height:30px;padding:0 10px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;font-weight:700;cursor:pointer;font-size:12px;color: ${_n?.deactColor ?? ""}`)}>{I(_n?.deactLabel)}</button>
+                </span>
               </div>
               {" "}
             </React.Fragment>
           ))}
           {" "}
         </div>
-        <div style={{position: "sticky", top: "20px", minWidth: "0", maxHeight: "calc(100vh - 104px)", overflowY: "auto", overscrollBehavior: "contain", borderRadius: "14px"}}>
+        <div className={"sa-geo-form" + (v.geoFormShow ? " is-open" : "")} onClick={(e) => { if (e.target === e.currentTarget) v.cancelGeo(); }} style={{position: "sticky", top: "20px", minWidth: "0", maxHeight: "calc(100vh - 104px)", overflowY: "auto", overscrollBehavior: "contain", borderRadius: "14px"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "14px", minWidth: "0"}}>
           <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>{I(v.geoFormTitle)}</div>
           {v.geoFormEmpty ? <div style={{color: "#6b7a8c", fontSize: "13px", lineHeight: "1.6"}}>Select a district, mandal or village on the left to edit it, or use the + buttons to add a new entry under its parent.</div> : null}
@@ -87,7 +89,7 @@ export default function Geography({ v }: { v: View }) {
                   {v.geoFindUrl ? <a href={v.geoFindUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A"}}>Find on Google Maps ↗</a> : <span style={{color: "#6b7a8c", fontWeight: "400"}}>Enter the name to search for it on Google Maps.</span>}
                   <button type="button" onClick={v.toggleGeoManual} aria-expanded={v.geoManual} style={{border: "0", background: "none", padding: "0", color: "#0D3B7A", fontWeight: "700", fontSize: "13px", cursor: "pointer"}}>{v.geoManual ? "Hide number boxes" : "Enter numbers manually"}</button>
                 </span>
-                {v.geoManual ? <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px"}}>
+                {v.geoManual ? <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px"}}>
                     <label style={{display: "flex", flexDirection: "column", gap: "6px", minWidth: "0"}}>
                       <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Latitude</span>
                       <input name="lat" inputMode="decimal" maxLength={11} value={val(v.geoForm?.lat, "")} onChange={v.onGeoField} placeholder="16.2345" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.coords ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />

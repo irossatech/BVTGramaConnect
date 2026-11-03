@@ -21,5 +21,4 @@ Open work as of 2026-10-21, most urgent first. Items marked "sign-off" change wh
 
 Inherited from the console prototype, change only with the owner's sign-off:
 - Fixed 1440 px canvas; narrower windows clip it.
-- The bell opens the audit log; there is no notifications list in the console.
 - The post panel shows no author mobile number; the API does not return it.

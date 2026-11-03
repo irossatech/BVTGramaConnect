@@ -11,6 +11,7 @@ body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Noto Sans Telugu",sa
 a{color:#0D3B7A}a:hover{color:#0A2550}
 input,textarea,select,button{font-family:inherit}
 table{border-collapse:collapse}
+/* Scrollbars stay hidden; lists and tables still scroll by wheel, trackpad, touch and keyboard. */
 *{scrollbar-width:none}*::-webkit-scrollbar{display:none}
 @keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 /* Micro-interactions: quick press feedback on buttons, a soft hover on table rows, smooth field focus. Inline styles still win. */
@@ -19,9 +20,59 @@ button{transition:transform .12s var(--ease-out),background-color .15s ease,bord
 button:not(:disabled):active{transform:scale(.97)}
 input,select,textarea{transition:border-color .15s ease,box-shadow .15s ease}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(13,59,122,.12)}
+/* Keyboard focus is always visible; disabled buttons say so. */
+button:focus-visible,a:focus-visible{outline:2px solid #0D3B7A;outline-offset:2px}
+.sa-side button:focus-visible{outline-color:#fff}
+button:disabled{cursor:not-allowed!important}
+/* Side bar: a soft hover on the pages you are not on. */
+@media (hover:hover){.sa-navb:not([aria-current]):hover{background:rgba(255,255,255,.07)!important;color:#fff!important}}
 tbody tr{transition:background-color .12s ease}
 @media (hover:hover){tbody tr:hover{background-color:#f5f8fc}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Tables at every width: pills (role, category, status), headers, dates and numbers stay on one line;
+   names and titles may wrap. A table wider than its card scrolls inside the card. */
+.sa-content td span[style*="999px"]{white-space:nowrap;display:inline-block}
+.sa-content th{white-space:nowrap}
+.sa-content td[style*="tabular-nums"]{white-space:nowrap}
+.sa-content div:has(> table){overflow-x:auto!important;overscroll-behavior-x:contain}
+/* Phones and tablets: the side bar becomes a drawer behind the menu button, splits stack, wide tables scroll sideways. */
+.sa-scrim{display:none}
+@media (max-width:900px){
+.sa-shell{grid-template-columns:minmax(0,1fr)!important}
+.sa-side{position:fixed;top:0;bottom:0;left:0;width:min(280px,85vw);z-index:70;transform:translateX(-100%);visibility:hidden;transition:transform .25s var(--ease-out),visibility 0s .25s}
+.sa-shell.is-open .sa-side{transform:none;visibility:visible;transition:transform .25s var(--ease-out);box-shadow:10px 0 40px rgba(0,0,0,.25)}
+.sa-shell.is-open .sa-scrim{display:block;position:fixed;inset:0;z-index:65;border:0;background:rgba(10,37,80,.45);animation:sa-fade .15s ease-out}
+.sa-burger{display:flex!important}
+.sa-top{padding:0 12px!important;gap:8px!important}
+.sa-title{font-size:17px!important}
+.sa-search{width:auto!important;flex:0 1 200px;min-width:0}
+.sa-content{padding:16px 16px 32px!important;gap:16px!important}
+.sa-content div:has(> table){overflow-x:auto!important;overscroll-behavior-x:contain;background:linear-gradient(to left,#fff 30%,rgba(255,255,255,0)) right/24px 100% no-repeat local,radial-gradient(farthest-side at 100% 50%,rgba(10,37,80,.18),transparent) right/12px 100% no-repeat scroll,#fff!important}
+.sa-content table{width:max-content!important;min-width:100%!important}
+.sa-content th,.sa-content td{white-space:nowrap}
+.sa-content td.sa-c-full{white-space:normal;min-width:240px;max-width:320px}
+.sa-cols{grid-template-columns:minmax(0,1fr)!important}
+.sa-cols>div:first-child:has(> img){display:none}
+}
+/* Notifications: a soft hover on rows; on phones the list is a full-width sheet under the top bar. */
+@media (hover:hover){.sa-notif-row:hover{background:#eef4fb!important}}
+@media (max-width:600px){.sa-notif{position:fixed!important;top:64px!important;left:8px!important;right:8px!important;width:auto!important}}
+@media (max-width:600px){.sa-me,.sa-search{display:none!important}.sa-kpis>:last-child:nth-child(odd){grid-column:1/-1}}
+/* Phones: filters two per row, chart dates every other day, geography rows wrap. */
+@media (max-width:700px){
+.sa-bar>select,.sa-bar>input{flex:1 1 calc(50% - 6px);min-width:0!important;width:auto!important}
+.sa-chart{gap:4px!important}
+.sa-chart-days>div:nth-child(even){visibility:hidden}
+.sa-geo-row{flex-wrap:wrap;padding-top:4px;padding-bottom:8px}
+.sa-geo-row>button:nth-child(2){flex:1 1 calc(100% - 40px)!important}
+.sa-geo-acts{flex-basis:100%;flex-wrap:wrap;padding-left:36px}
+.sa-geo-row>button:nth-child(2)>span:nth-child(3){display:none}
+.sa-geo-row>button:nth-child(2)>span:nth-child(2){white-space:normal!important;overflow:visible!important}
+}
+@media (max-width:900px){
+.sa-geo-form{display:none}
+.sa-geo-form.is-open{display:block;position:fixed!important;inset:0;top:0!important;max-height:none!important;z-index:55;border-radius:0!important;background:rgba(10,37,80,.45);padding:16px;overflow-y:auto;animation:sa-fade .15s ease-out}
+}
 @keyframes sa-slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 `;
 

@@ -19,7 +19,7 @@ export default function PostDetail({ v }: { v: View }) {
         <div style={{fontSize: "14px", color: "#6b7a8c", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
       </div>
       <p style={{margin: "0", fontSize: "15px", lineHeight: "1.65", color: "#3b4a5c"}}>{I(v.sp?.bodyTe)}</p>
-      <p style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#6b7a8c", borderLeft: "3px solid #eef2f6", paddingLeft: "12px"}}>{I(v.sp?.bodyEn)}</p>
+      <p style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#6b7a8c", background: "#f7f9fb", borderRadius: "10px", padding: "10px 12px"}}>{I(v.sp?.bodyEn)}</p>
       {v.sp?.hasVideo ? <>
         {list(v.sp?.videos).map((_v, _i1) => (
           <React.Fragment key={_i1}>

@@ -5,3 +5,6 @@ node_modules/
 __pycache__/
 next-env.d.ts
 *.tsbuildinfo
+
+# The Android APK behind the website's "Direct download" link: copied in per release, never committed.
+public/downloads/

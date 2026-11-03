@@ -4,12 +4,11 @@ import type { View } from "../Site";
 import { ui } from "../ui/theme";
 
 export default function Faq({ v }: { v: View }) {
-  const { ink, muted, line, display, fs, wrap, h1, kicker, textBtn } = ui(v);
+  const { ink, muted, line, display, fs, wrap, h1, textBtn } = ui(v);
   return (
     <section style={{padding: "clamp(48px,7vw,96px) 0 clamp(56px,8vw,112px)"}}>
         <div style={{...wrap, maxWidth: "900px", display: "flex", flexDirection: "column", gap: "clamp(24px,4vw,48px)", animation: "mk-fade .25s ease-out"}}>
           <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
-            <div style={kicker}>FAQ</div>
             <h1 style={h1}>{I(v.t?.faqTitle)}</h1>
           </div>
           <div style={{borderBottom: "1px solid " + line}}>

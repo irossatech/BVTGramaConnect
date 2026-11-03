@@ -8,17 +8,17 @@ import { Pager, DistrictOptions } from "../ui/parts";
 export default function Posts({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3"}}>
+      <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto", overflowY: "hidden", flexShrink: "0"}}>
         {list(v.statusTabs).map((_s, _i1) => (
           <React.Fragment key={_i1}>
-            <button onClick={_s?.go} style={css(`height:44px;padding:0 16px;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:3px solid ${_s?.line ?? ""};color: ${_s?.color ?? ""};margin-bottom:-1px`)}>
+            <button onClick={_s?.go} style={css(`height:44px;padding:0 16px;flex-shrink:0;white-space:nowrap;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:3px solid ${_s?.line ?? ""};color: ${_s?.color ?? ""};margin-bottom:-1px`)}>
               {I(_s?.label)}
               <span style={css(`min-width:22px;padding:2px 7px;border-radius:999px;font-size:11px;font-family:'Rubik',sans-serif;background: ${_s?.cbg ?? ""};color: ${_s?.ccolor ?? ""}`)}>{I(_s?.count)}</span>
             </button>
           </React.Fragment>
         ))}
       </div>
-      <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <select name="source" value={val(v.pf?.source, "")} onChange={v.onPF} aria-label="Who posted" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "150px"}}>
           <option value="">All posts</option>
           <option value="official">Officials' posts</option>
@@ -31,7 +31,7 @@ export default function Posts({ v }: { v: View }) {
           <option value="">All categories</option>
           {list(v.catOpts).map((_c, _i1) => (
             <React.Fragment key={_i1}>
-              <option value={val(_c?.id, "")}>{I(_c?.label)}</option>
+              <option value={val(_c?.id, "")}>{_c?.label}</option>
             </React.Fragment>
           ))}
         </select>
@@ -70,7 +70,7 @@ export default function Posts({ v }: { v: View }) {
                   <td style={{padding: "10px 16px"}}>
                     <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_p?.st?.bg ?? ""};color: ${_p?.st?.color ?? ""}`)}>{I(_p?.st?.label)}</span>
                   </td>
-                  <td style={{padding: "10px 16px", color: "#6b7a8c", textAlign: "right"}}>›</td>
+                  <td style={{padding: "10px 16px", color: "#6b7a8c", textAlign: "right"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", display: "inline-block"}}><path d="M9 6l6 6-6 6" /></svg></td>
                 </tr>
               </React.Fragment>
             ))}

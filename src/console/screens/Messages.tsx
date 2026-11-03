@@ -7,15 +7,15 @@ import { Pager } from "../ui/parts";
 export default function Messages({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
-        <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "360px", color: "#6b7a8c"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+        <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "min(360px, 100%)", color: "#6b7a8c"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           <input value={val(v.contactQ, "")} onChange={v.onContactQ} placeholder="Search name, mobile, village, message…" style={{flex: "1", border: "0", outline: "none", fontSize: "13px", background: "transparent"}} />
         </div>
         <select value={val(v.contactFilter, "")} onChange={v.onContactFilter} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
           {list(v.contactFilters).map((_o, _i1) => (
             <React.Fragment key={_i1}>
-              <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+              <option value={val(_o?.id, "")}>{_o?.label}</option>
             </React.Fragment>
           ))}
         </select>
@@ -43,7 +43,7 @@ export default function Messages({ v }: { v: View }) {
                   <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</td>
                   <td style={{padding: "10px 16px", color: "#3b4a5c", whiteSpace: "nowrap"}}>{I(_c?.mobile)}</td>
                   <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.village)}</td>
-                  <td style={{padding: "10px 16px", color: "#17212e", lineHeight: "1.5"}}>{I(_c?.message)}</td>
+                  <td className="sa-c-full" style={{padding: "10px 16px", color: "#17212e", lineHeight: "1.5"}}>{I(_c?.message)}</td>
                   <td style={{padding: "10px 16px"}}>
                     <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.sbg ?? ""};color: ${_c?.scolor ?? ""}`)}>{I(_c?.status)}</span>
                   </td>

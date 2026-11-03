@@ -8,7 +8,7 @@ export default function Requests({ v }: { v: View }) {
   return (
     <>
       <span style={{fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>Requests citizens send from the app. Each goes to the Village Admin of their village; the Mandal and District Admins see it too.</span>
-      <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto"}}>
+      <div style={{display: "flex", gap: "4px", borderBottom: "1px solid #cfd8e3", overflowX: "auto", overflowY: "hidden"}}>
         {list(v.reqTabs).map((_s, _i1) => (
           <React.Fragment key={_i1}>
             <button onClick={_s?.go} style={css(`height:44px;padding:0 14px;border:0;background:none;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap;border-bottom:3px solid ${_s?.line ?? ""};color: ${_s?.color ?? ""};margin-bottom:-1px`)}>
@@ -18,7 +18,7 @@ export default function Requests({ v }: { v: View }) {
           </React.Fragment>
         ))}
       </div>
-      <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <input value={val(v.reqQ, "")} onChange={v.onReqQ} placeholder="Search name or phone" aria-label="Search service requests" style={{flex: "1", minWidth: "200px", maxWidth: "340px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px"}} />
         <span style={{fontSize: "13px", color: "#6b7a8c", marginLeft: "auto"}}>{I(v.reqCountLabel)}</span>
       </div>

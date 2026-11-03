@@ -399,12 +399,40 @@ export interface ServiceRequestsPage extends Paged<ServiceRequest> {
   status_counts?: Record<string, number>;
 }
 
+// ---- notifications: the signed-in official's own inbox ----
+
+/** GET /notifications/ (newest first, cursor pages of 20), POST /notifications/{id}/read/, POST /notifications/read-all/. */
+export interface ConsoleNotification {
+  id: string;
+  /** POST_PUBLISHED, POST_RECHECK, POST_DISCARDED, POST_UNPUBLISHED, REVIEW_PENDING, ESCALATION, ACCOUNT, SERVICE_REQUEST. */
+  kind: string;
+  title: string;
+  body: string;
+  post_id: string | null;
+  service_request_id: number | null;
+  area: { level: string; id: number } | null;
+  created_at: string;
+  read_at: string | null;
+}
+
+export interface NotificationPage {
+  results: ConsoleNotification[];
+  /** The next page's full URL (its ?cursor=), or null on the last page. */
+  next: string | null;
+  previous?: string | null;
+  unread_count?: number;
+}
+
 // ---- ads (section 17) ----
 
 export interface Ad {
   id: number;
   title: string;
+  /** A picture ad's picture; a video ad's poster (video-ads-backend-plan.md). */
   image: string;
+  /** A video ad's file; "" or missing for a picture ad. */
+  video?: string;
+  duration_s?: number | null;
   link?: string;
   area?: { level: AreaLevel; id: number; name: string } | null;
   starts_on: string | null;

@@ -7,7 +7,7 @@ import { Pager, DistrictOptions } from "../ui/parts";
 export default function Users({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <select name="role" value={val(v.uf?.role, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
           <option value="">All roles</option>
           <option value="district">District Admin</option>
@@ -19,9 +19,9 @@ export default function Users({ v }: { v: View }) {
           <DistrictOptions v={v} />
         </select>
         <select name="status" value={val(v.uf?.status, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "150px"}}><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select>
-        <input name="q" value={val(v.uf?.q, "")} onChange={v.onUF} placeholder="Search name or mobile" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", width: "220px"}} />
+        <input name="q" value={val(v.uf?.q, "")} onChange={v.onUF} placeholder="Search name or mobile" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", width: "min(220px, 100%)"}} />
         <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.userCount)}{" users"}</span>
-        {v.canAddUser ? <button onClick={v.openAddUser} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>+ Add User</button> : null}
+        {v.canAddUser ? <button onClick={v.openAddUser} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add User</button> : null}
       </div>
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
         {" "}
@@ -50,7 +50,7 @@ export default function Users({ v }: { v: View }) {
                       </span>
                     </div>
                   </td>
-                  <td style={{padding: "10px 16px", color: "#3b4a5c", fontVariantNumeric: "tabular-nums"}}>{I(_u?.mobile)}</td>
+                  <td style={{padding: "10px 16px", color: "#3b4a5c", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap"}}>{I(_u?.mobile)}</td>
                   <td style={{padding: "10px 16px"}}>
                     <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${_u?.rbg ?? ""};color: ${_u?.rcolor ?? ""}`)}>{I(_u?.roleLabel)}</span>
                   </td>
@@ -58,7 +58,7 @@ export default function Users({ v }: { v: View }) {
                   <td style={{padding: "10px 16px"}}>
                     <span style={css(`display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12px;color: ${_u?.scolor ?? ""}`)}><span style={css(`width:8px;height:8px;border-radius:50%;background: ${_u?.scolor ?? ""}`)} />{I(_u?.statusLabel)}</span>
                   </td>
-                  <td style={{padding: "10px 16px", color: "#6b7a8c"}}>{I(_u?.lastLogin)}</td>
+                  <td style={{padding: "10px 16px", color: "#6b7a8c", whiteSpace: "nowrap"}}>{I(_u?.lastLogin)}</td>
                   <td style={{padding: "10px 16px", textAlign: "right", whiteSpace: "nowrap"}}>
                     <button onClick={_u?.view} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", marginLeft: "6px"}}>View</button>
                     {_u?.canReassign ? <button onClick={_u?.reassign} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px", marginLeft: "6px"}}>Reassign area</button> : null}

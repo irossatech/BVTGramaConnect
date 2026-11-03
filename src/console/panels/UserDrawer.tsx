@@ -52,7 +52,7 @@ export default function UserDrawer({ v }: { v: View }) {
             <select name="role" value={val(v.nu?.role, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
               {list(v.nuRoles).map((_o, _i1) => (
                 <React.Fragment key={_i1}>
-                  <option value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                  <option value={val(_o?.id, "")}>{_o?.label}</option>
                 </React.Fragment>
               ))}
             </select>
@@ -61,9 +61,9 @@ export default function UserDrawer({ v }: { v: View }) {
             <label key={_st.key} style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(_st.label)}</span>
               <select name={_st.key} value={val(_st.value, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
-                <option value="" disabled>{I(_st.ph)}</option>
+                <option value="" disabled>{_st.ph}</option>
                 {list(_st.options).map((_o) => (
-                  <option key={_o.id} value={val(_o?.id, "")}>{I(_o?.label)}</option>
+                  <option key={_o.id} value={val(_o?.id, "")}>{_o?.label}</option>
                 ))}
               </select>
             </label>

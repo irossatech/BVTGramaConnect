@@ -2,9 +2,24 @@
 import { I, val } from "../../shared/dc";
 import type { View } from "../Site";
 import { ui } from "../ui/theme";
+import type { ReactNode } from "react";
+
+type Field = "name" | "mobile" | "village" | "message";
 
 export default function Contact({ v }: { v: View }) {
-  const { ink, green, muted, line, display, fs, wrap, h1, kicker, lead, pillDark, pillLight, textBtn, field } = ui(v);
+  const { ink, green, muted, line, display, fs, wrap, h1, kicker, lead, pillDark, pillLight, textBtn, field: fieldStyle } = ui(v);
+  // Every field is required: a star on the label, and a message under the field when Send finds it empty or wrong.
+  const red = "#b3261e";
+  const bad = (n: Field) => !!v.errs?.[n];
+  const aria = (n: Field) => ({required: true, "aria-required": true, "aria-invalid": bad(n), "aria-describedby": bad(n) ? "err-" + n : undefined});
+  const box = (n: Field) => ({...fieldStyle, ...(bad(n) ? {borderColor: red, outlineColor: red, background: "#fffafa"} : null)});
+  const field = (n: Field, label: string | undefined, err: string | undefined, input: ReactNode) => (
+    <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+      <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(label)} <span aria-hidden="true" style={{color: red}}>*</span></span>
+      {input}
+      {bad(n) ? <span id={"err-" + n} className="gc-err" style={{animation: "mk-fade .2s ease-out", display: "flex", alignItems: "flex-start", gap: "6px", fontSize: fs.sm, lineHeight: "1.4", color: red, fontWeight: "600"}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" style={{flexShrink: "0", marginTop: "1px"}}><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5M12 16v.5" /></svg>{I(err)}</span> : null}
+    </label>
+  );
   return (
     <section style={{padding: "clamp(48px,7vw,96px) 0 clamp(56px,8vw,112px)"}}>
         <div style={{...wrap, display: "flex", flexWrap: "wrap", gap: "clamp(32px,5vw,72px)", alignItems: "flex-start", animation: "mk-fade .25s ease-out"}}>
@@ -32,22 +47,10 @@ export default function Contact({ v }: { v: View }) {
                 <button className="gc-pill" onClick={v.resetForm} style={{...pillLight, marginTop: "8px"}}>{I(v.t?.sendAnother)}</button>
               </div> : null}
             {v.notSent ? <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
-                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                  <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fName)}</span>
-                  <input name="name" autoComplete="name" value={val(v.form?.name, "")} onChange={v.onField} placeholder={v.t?.fNamePh} style={field} />
-                </label>
-                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                  <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fMobile)}</span>
-                  <input name="mobile" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={val(v.form?.mobile, "")} onChange={v.onField} placeholder={v.t?.fMobilePh} style={field} />
-                </label>
-                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                  <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fVillage)}</span>
-                  <input name="village" value={val(v.form?.village, "")} onChange={v.onField} placeholder={v.t?.fVillagePh} style={field} />
-                </label>
-                <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-                  <span style={{fontSize: fs.sm, fontWeight: "700", color: ink}}>{I(v.t?.fMessage)}</span>
-                  <textarea name="message" rows={4} value={val(v.form?.message, "")} onChange={v.onField} placeholder={v.t?.fMessagePh} style={{...field, height: "auto", padding: "12px 14px", lineHeight: "1.5", resize: "vertical"}} />
-                </label>
+                {field("name", v.t?.fName, v.t?.errName, <input name="name" autoComplete="name" value={val(v.form?.name, "")} onChange={v.onField} placeholder={v.t?.fNamePh} {...aria("name")} style={box("name")} />)}
+                {field("mobile", v.t?.fMobile, v.t?.errMobile, <input name="mobile" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={val(v.form?.mobile, "")} onChange={v.onField} placeholder={v.t?.fMobilePh} {...aria("mobile")} style={box("mobile")} />)}
+                {field("village", v.t?.fVillage, v.t?.errVillage, <input name="village" autoComplete="address-level2" value={val(v.form?.village, "")} onChange={v.onField} placeholder={v.t?.fVillagePh} {...aria("village")} style={box("village")} />)}
+                {field("message", v.t?.fMessage, v.t?.errMessage, <textarea name="message" rows={4} value={val(v.form?.message, "")} onChange={v.onField} placeholder={v.t?.fMessagePh} {...aria("message")} style={{...box("message"), height: "auto", padding: "12px 14px", lineHeight: "1.5", resize: "vertical"}} />)}
                 <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{position: "absolute", left: "-10000px", width: "1px", height: "1px", opacity: "0"}} />
                 {v.formError ? <div role="alert" style={{fontSize: fs.base, color: "#b3261e", fontWeight: "500"}}>{I(v.t?.fError)}</div> : null}
                 <button className="gc-pill" onClick={v.submitForm} style={{...pillDark, height: "48px", fontSize: fs.base, marginTop: "4px"}}>{I(v.t?.fSend)}</button>

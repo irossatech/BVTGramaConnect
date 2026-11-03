@@ -7,10 +7,10 @@ import { TickBox, SelBar } from "../ui/parts";
 export default function Ads({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
+      <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <span style={{flex: "1", minWidth: "240px", fontSize: "13px", color: "#6b7a8c", lineHeight: "1.5"}}>Banners at the top of citizens' Home page, after the welcome picture. Each shows only in the area and on the dates you choose.</span>
         <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.adsCountLabel)}</span>
-        <button onClick={v.newAd} disabled={v.adsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;opacity: ${v.adsUnavailable ? .5 : 1}`)}>+ New ad</button>
+        <button onClick={v.newAd} disabled={v.adsUnavailable} style={css(`height:40px;padding:0 18px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;cursor:pointer;font-size:13px;opacity: ${v.adsUnavailable ? .5 : 1}`)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>New ad</button>
       </div>
       <SelBar sel={v.adSel} removeLabel="Delete selected" />
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
@@ -22,7 +22,7 @@ export default function Ads({ v }: { v: View }) {
             <div style={css(`display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap;border-top: ${_i1 || v.adSel?.show ? "1px solid #f3f5f8" : "0"}`)}>
               <TickBox on={_a?.sel} onChange={_a?.toggleSel} label={"Select " + (_a?.title || "")} />
               <button onClick={_a?.open} aria-label={"Edit " + (_a?.title || "")} style={css(`width:144px;aspect-ratio:3/2;border:0;padding:0;border-radius:10px;overflow:hidden;background:#f1f3f6;cursor:pointer;flex-shrink:0;opacity: ${_a?.dim ?? 1}`)}>
-                <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={_a?.image} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={_a?.image} alt="" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} /></span>
+                <span style={{position: "relative", display: "block", width: "100%", height: "100%", overflow: "hidden"}}><img src={_a?.image} alt="" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(.8)", transform: "scale(1.15)"}} /><img src={_a?.image} alt="" style={{position: "relative", width: "100%", height: "100%", objectFit: "contain", display: "block"}} />{_a?.isVideo ? <span aria-label="Video ad" style={{position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(0,0,0,.45)", display: "flex", alignItems: "center", justifyContent: "center"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7 4l13 8-13 8z" /></svg></span> : null}</span>
               </button>
               <div style={{flex: "1", minWidth: "180px", display: "flex", flexDirection: "column", gap: "4px"}}>
                 <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14.5px"}}>{I(_a?.title)}</span>

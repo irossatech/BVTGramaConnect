@@ -4,6 +4,7 @@
 import React from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 import { I } from "../shared/dc";
+import config from "../shared/config";
 import GCApi, { type SiteApiError } from "./api";
 import LEGAL, { type Lang } from "./content/legal";
 import STRINGS, { type Strings } from "./content/strings";
@@ -24,6 +25,9 @@ type Category = "announce" | "schemes" | "news" | "updates";
 interface ShowcasePost {
   category: string;
   title: string;
+  /** The post's own language, and its title in the other language once translated. */
+  language?: string;
+  translation?: { language: string; title: string } | null;
   published_at: string;
   area?: { name: string } | null;
 }
@@ -57,6 +61,8 @@ interface FeedItem {
   chip: string;
   title: string;
   meta: string;
+  /** Set when the title is not in the page's language (no translation yet), for screen readers. */
+  lang?: string;
 }
 
 interface Props {
@@ -76,11 +82,12 @@ interface State {
   form: ContactForm;
   sent: boolean;
   formError: boolean;
+  /** Contact form fields that failed the check on Send; each clears as it is edited. */
+  errs: Partial<Record<keyof ContactForm, boolean>>;
   toast: string | null;
   site: SiteConfig | null;
   sending: boolean;
   scrolled: boolean;
-  speaking: boolean;
   /** The Super Admin switched English off (GET /app-config/): Telugu only, no language switch. */
   enOff: boolean;
 }
@@ -99,21 +106,17 @@ const MONTHS: Record<Lang, string[]> = {
 };
 const EMPTY_FORM: ContactForm = { name: "", mobile: "", village: "", message: "" };
 const isFormField = (x: string): x is keyof ContactForm => x in EMPTY_FORM;
+/** Every contact field is required; the mobile is an Indian 10-digit number (starts 6-9). */
+const formErrs = (f: ContactForm): Partial<Record<keyof ContactForm, boolean>> => {
+  const bad = { name: !f.name.trim(), mobile: !/^[6-9]\d{9}$/.test(f.mobile), village: !f.village.trim(), message: !f.message.trim() };
+  return Object.fromEntries(Object.entries(bad).filter(([, b]) => b));
+};
 
 /** The page the address names: /faq/ style, or an old #faq style link. */
 function pageFromUrl(): Page {
   const l = window.location;
   const hash = (l.hash || "").replace(/^#/, "");
   return pageFromSlug(l.pathname.replace(/^\/+|\/+$/g, "")) ?? (isPage(hash) ? hash : "home");
-}
-
-// Read-aloud, like the app's Listen: the best voice the browser has for the language.
-function pickVoice(voices: SpeechSynthesisVoice[], L: Lang): SpeechSynthesisVoice | null {
-  const code = L === "te" ? "te" : "en";
-  const lang = (x: SpeechSynthesisVoice) => (x.lang || "").toLowerCase().replace("_", "-");
-  const rank = (x: SpeechSynthesisVoice) => (lang(x) === code + "-in" ? 2 : 0) + (/natural|online|google/i.test(x.name) ? 1 : 0);
-  const ok = voices.filter((x) => lang(x).startsWith(code) || (L === "te" && /telugu/i.test(x.name)));
-  return ok.sort((a, b) => rank(b) - rank(a))[0] || null;
 }
 
 /** "14 అక్టో" / "14 Oct" in India time; "" for a bad date. */
@@ -141,17 +144,15 @@ export default class Site extends React.Component<Props, State> {
     form: EMPTY_FORM,
     sent: false,
     formError: false,
+    errs: {},
     toast: null,
     site: null,
     sending: false,
     scrolled: false,
-    speaking: false,
     enOff: false,
   };
 
   private el: HTMLDivElement | null = null;
-  private tl: HTMLElement | null = null;
-  private tlFill: HTMLElement | null = null;
   private io: IntersectionObserver | null = null;
   private ro: ResizeObserver | null = null;
   private iv = 0;
@@ -213,7 +214,6 @@ export default class Site extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this.dead = true;
-    this.hush();
     clearInterval(this.iv);
     cancelAnimationFrame(this.raf);
     this.io?.disconnect();
@@ -227,12 +227,6 @@ export default class Site extends React.Component<Props, State> {
   private scrollFx() {
     const scrolled = window.scrollY > 8;
     if (scrolled !== this.state.scrolled) this.setState({ scrolled });
-    // "A day in the village": the line fills as the day scrolls past the middle of the screen.
-    if (this.tl && this.tlFill) {
-      const r = this.tl.getBoundingClientRect();
-      const p = (window.innerHeight * 0.6 - r.top) / r.height;
-      this.tlFill.style.transform = "scaleY(" + Math.min(1, Math.max(0, p)) + ")";
-    }
   }
 
   // Sections animate every time they enter the viewport, from below when scrolling down and from above when
@@ -292,64 +286,8 @@ export default class Site extends React.Component<Props, State> {
       .catch(() => {});
   }
 
-  // Read-aloud, like the app's Listen: today's posts in the chosen language, through the browser's own speech voices.
-  private listen(L: Lang, t: Strings, items: FeedItem[], retry = false) {
-    const sp = window.speechSynthesis;
-    if (!sp || !window.SpeechSynthesisUtterance) {
-      this.toast(t.noVoice, 6000);
-      return;
-    }
-    if (this.state.speaking && !retry) {
-      this.hush();
-      return;
-    }
-    if (!sp.getVoices().length && !retry) {
-      // Voices load late on some browsers.
-      let done = false;
-      const go = () => {
-        if (done) return;
-        done = true;
-        sp.removeEventListener("voiceschanged", go);
-        this.listen(L, t, items, true);
-      };
-      sp.addEventListener("voiceschanged", go);
-      setTimeout(go, 1200);
-      return;
-    }
-    const voice = pickVoice(sp.getVoices(), L);
-    if (L === "te" && !voice) {
-      this.toast(t.noVoice, 6000);
-      return;
-    }
-    sp.cancel();
-    const parts = items.map((p) => p.chip + ". " + p.title + ".");
-    const stop = () => {
-      if (!this.dead) this.setState({ speaking: false });
-    };
-    parts.forEach((txt, i) => {
-      const u = new SpeechSynthesisUtterance(txt);
-      u.lang = L === "te" ? "te-IN" : "en-IN";
-      if (voice) u.voice = voice;
-      u.rate = 0.95;
-      if (i === parts.length - 1) u.onend = stop;
-      u.onerror = stop;
-      sp.speak(u);
-    });
-    this.setState({ speaking: true });
-  }
-
-  private hush() {
-    try {
-      window.speechSynthesis?.cancel();
-    } catch {
-      /* no speech support */
-    }
-    if (this.state.speaking) this.setState({ speaking: false });
-  }
-
   // Back/Forward, or a typed #link.
   private syncPage() {
-    this.hush();
     const p = pageFromUrl();
     if (p !== this.state.page) {
       this.setState({ page: p, menuOpen: false });
@@ -392,7 +330,6 @@ export default class Site extends React.Component<Props, State> {
   }
 
   private go(p: Page) {
-    this.hush();
     if (p !== this.state.page) {
       try {
         window.history.pushState(null, "", pathOf(p) + window.location.search);
@@ -494,7 +431,10 @@ export default class Site extends React.Component<Props, State> {
     // Hero ticker: the newest published posts (showcase API); without data, three sample notices.
     const card = (p: ShowcasePost): FeedItem => {
       const c = CAT[isCategory(p.category) ? p.category : "updates"];
-      return { chip: c[L], title: p.title, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
+      // On the English page a Telugu post shows its English title when there is one.
+      const tr = p.language && p.language !== L && p.translation?.language === L ? p.translation.title : "";
+      const lang = !tr && p.language && p.language !== L ? p.language : undefined;
+      return { chip: c[L], title: tr || p.title, lang, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
     };
     const sc = s.showcase[L];
     const sample: ShowcasePost[] =
@@ -531,25 +471,25 @@ export default class Site extends React.Component<Props, State> {
     const DAY: { title: string; m: [number, string, string][] } =
       L === "te"
         ? {
-            title: "ఊరిలో ఒక రోజు — యాప్‌తో",
+            title: "యాప్‌తో ఊరిలో ఒక రోజు",
             m: [
-              [3, "ఉ. 6:30", "ఉదయం టీ తాగుతూనే — నేటి వార్తలను యాప్ చదివి వినిపిస్తుంది."],
-              [0, "ఉ. 10:00", "ఆధార్, భూమి రికార్డులు, సర్టిఫికెట్లు — ఏ సేవ కావాలన్నా అభ్యర్థన పంపండి; అధికారులే మీకు కాల్ చేస్తారు."],
-              [2, "మ. 1:00", "విరామంలో 60 సెకన్ల వీడియోలు చూడండి — ఆరోగ్యం, భద్రత, గ్రామ సభపై ఉపయోగకరమైన చిట్కాలు."],
-              [4, "సా. 4:00", "పథకాల చివరి తేదీలు, రాబోయే శిబిరాలు — ఇంకా ఎన్ని రోజులో యాప్ గుర్తుచేస్తుంది, ఏ గడువూ మిస్ అవ్వదు."],
+              [3, "ఉ. 6:30", "ఉదయం టీ తాగుతూనే నేటి వార్తలను యాప్ చదివి వినిపిస్తుంది."],
+              [0, "ఉ. 10:00", "ఆధార్, భూమి రికార్డులు, సర్టిఫికెట్లు: ఏ సేవ కావాలన్నా అభ్యర్థన పంపండి. అధికారులే మీకు కాల్ చేస్తారు."],
+              [2, "మ. 1:00", "విరామంలో ఆరోగ్యం, భద్రత, గ్రామ సభపై 60 సెకన్ల వీడియోలు చూడండి."],
+              [4, "సా. 4:00", "పథకాల చివరి తేదీలు, రాబోయే శిబిరాలకు ఇంకా ఎన్ని రోజులో యాప్ గుర్తుచేస్తుంది."],
               [5, "రా. 7:00", "నచ్చిన పోస్టును సేవ్ చేయండి, లేదా కుటుంబం, ఇరుగుపొరుగుతో వాట్సాప్‌లో పంచుకోండి."],
-              [1, "ఎప్పుడైనా", "అవసరమైనప్పుడు — పోలీసు, అంబులెన్స్, హెల్ప్‌లైన్లు, మీ అధికారులు ఒక్క తాకుతో."],
+              [1, "ఎప్పుడైనా", "పోలీసు, అంబులెన్స్, హెల్ప్‌లైన్లు, మీ అధికారులు ఒక్క తాకుతో."],
             ],
           }
         : {
             title: "A day in the village, with the app",
             m: [
               [3, "6:30 am", "Over morning tea, the app reads today’s news aloud."],
-              [0, "10:00 am", "Aadhaar, land records, certificates — whatever you need, send a request and the officials call you back."],
-              [2, "1:00 pm", "Take a break with 60-second videos — useful tips on health, safety and your Gram Sabha."],
-              [4, "4:00 pm", "Scheme last dates and upcoming camps — the app counts down the days, so no deadline slips by."],
+              [0, "10:00 am", "Need Aadhaar, land records or a certificate? Send a request and the officials call you back."],
+              [2, "1:00 pm", "Lunch break: 60-second videos on health, safety and your Gram Sabha."],
+              [4, "4:00 pm", "The app counts down the days to scheme last dates and upcoming camps."],
               [5, "7:00 pm", "Save a post for later, or share it with family and neighbours on WhatsApp."],
-              [1, "Any time", "When it matters — police, ambulance, helplines and your officials, one tap away."],
+              [1, "Any time", "Police, ambulance, helplines and your officials, one tap away."],
             ],
           };
     const legalPage = s.page === "privacy" || s.page === "terms" ? s.page : null;
@@ -559,17 +499,8 @@ export default class Site extends React.Component<Props, State> {
       te: L === "te",
       day: {
         title: DAY.title,
-        ref: (el: HTMLElement | null) => {
-          this.tl = el;
-          if (el) this.scrollFx();
-        },
-        fillRef: (el: HTMLElement | null) => {
-          this.tlFill = el;
-        },
         items: DAY.m.map(([k, time, story]) => ({ ...appFeatures[k], time, story })),
       },
-      speaking: s.speaking,
-      listen: () => this.listen(L, t, feed),
       wordIdx: s.tick,
       word: words[s.tick % words.length],
       ringText: ring,
@@ -593,8 +524,7 @@ export default class Site extends React.Component<Props, State> {
       langLabel: L === "te" ? "EN" : "తెలుగు",
       enOff: s.enOff,
       toggleLang: () => {
-        this.hush();
-        const nl: Lang = L === "te" ? "en" : "te";
+            const nl: Lang = L === "te" ? "en" : "te";
         this.setState({ lang: nl });
         document.documentElement.lang = nl;
         this.loadShowcase(nl);
@@ -623,7 +553,10 @@ export default class Site extends React.Component<Props, State> {
         : null,
       playClick: () => this.openStore(site.play_store_url, t),
       appClick: () => this.openStore(site.app_store_url, t),
-      // No iPhone app yet: the button says so in large text until the server has an App Store link.
+      // No app in a store yet: each button says so in large text until the server has its store link.
+      apkUrl: config.androidApkUrl,
+      apkLabel: L === "te" ? "నేరుగా డౌన్‌లోడ్" : "Direct download",
+      playLabel: site.play_store_url ? ["GET IT ON", "Google Play"] as const : ["Google Play", L === "te" ? "త్వరలో వస్తోంది" : "Coming soon"] as const,
       appLabel: site.app_store_url ? ["Download on the", "App Store"] as const : ["App Store", L === "te" ? "త్వరలో వస్తోంది" : "Coming soon"] as const,
       contact,
       features,
@@ -637,19 +570,23 @@ export default class Site extends React.Component<Props, State> {
       onField: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (!isFormField(name)) return;
-        this.setState((st) => ({ form: { ...st.form, [name]: name === "mobile" ? value.replace(/\D/g, "").slice(0, 10) : value }, formError: false }));
+        this.setState((st) => ({ form: { ...st.form, [name]: name === "mobile" ? value.replace(/\D/g, "").slice(0, 10) : value }, formError: false, errs: { ...st.errs, [name]: false } }));
       },
       submitForm: () => {
-        if (!f.name.trim() || f.mobile.length < 10 || !f.message.trim()) {
-          this.setState({ formError: true });
+        const errs = formErrs(f);
+        const first = Object.keys(errs)[0];
+        if (first) {
+          this.setState({ errs, formError: false });
+          this.el?.querySelector<HTMLElement>(`[name=${first}]`)?.focus();
           return;
         }
         this.send(f, L, t);
       },
-      resetForm: () => this.setState({ sent: false, form: EMPTY_FORM }),
+      resetForm: () => this.setState({ sent: false, form: EMPTY_FORM, errs: {} }),
       sent: s.sent,
       notSent: !s.sent,
       formError: s.formError,
+      errs: s.errs,
       toast: { show: !!s.toast, text: s.toast || "" },
     };
   }

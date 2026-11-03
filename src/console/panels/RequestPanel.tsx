@@ -58,7 +58,7 @@ export default function RequestPanel({ v }: { v: View }) {
           <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>Assigned to</span>
           {v.rq?.canAssign ? <select aria-label="Assigned to" value={val(v.rq?.assigned, "")} onChange={v.rqView?.onAssign} style={{height: "46px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "12px", fontSize: "14.5px", fontWeight: "600", background: "#fff", marginTop: "-6px", flexShrink: "0"}}>
               {list(v.rqAssigneeOpts).map((_o, _i1) => (
-                <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{I(_o?.label)}</option></React.Fragment>
+                <React.Fragment key={_i1}><option value={val(_o?.id, "")}>{_o?.label}</option></React.Fragment>
               ))}
             </select> : <div style={{border: "1px solid #eef2f6", borderRadius: "14px", padding: "12px 14px", fontSize: "14.5px", fontWeight: "600", color: "#17212e", marginTop: "-6px", flexShrink: "0"}}>{I(v.rqView?.assignedName)}</div>}
           <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>

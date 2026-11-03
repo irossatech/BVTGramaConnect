@@ -17,7 +17,7 @@ export function ui(v: Pick<View, "te" | "headLh">) {
   const pillDark: CSSProperties = {...pill, border: "1.5px solid " + blue, background: blue, color: "#fff"};
   const pillLight: CSSProperties = {...pill, border: "1.5px solid " + blue, background: "#fff", color: blue};
   const badgeLight: CSSProperties = {display: "inline-flex", alignItems: "center", gap: "8px", alignSelf: "flex-start", padding: "6px 12px 6px 8px", borderRadius: "999px", background: "#e4f4df", color: "#1d7a33", fontSize: fs.xs, fontWeight: "700"};
-  const textBtn: CSSProperties = {background: "none", border: "0", padding: "0", color: blue, fontWeight: "700", fontSize: v.te ? "13px" : "14px", cursor: "pointer"};
+  const textBtn: CSSProperties = {display: "inline-flex", alignItems: "center", gap: "4px", minHeight: "44px", background: "none", border: "0", padding: "0", color: blue, fontWeight: "700", fontSize: v.te ? "13px" : "14px", cursor: "pointer"};
   const field: CSSProperties = {height: "46px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "12px", fontSize: "15px", background: "#fff", color: "#17212e", outlineColor: blue};
   return { ink, blue, green, muted, line, cream, display, fs, wrap, h2, h1, kicker, lead, pill, pillDark, pillLight, badgeLight, textBtn, field };
 }

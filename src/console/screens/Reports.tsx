@@ -6,7 +6,7 @@ import type { View } from "../Console";
 export default function Reports({ v }: { v: View }) {
   return (
     <>
-      <div style={{display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "16px"}}>
+      <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "16px"}}>
         {list(v.repSummary).map((_k, _i1) => (
           <React.Fragment key={_i1}>
             <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "18px 20px", boxShadow: "0 2px 8px rgba(0,64,126,.06)", display: "flex", flexDirection: "column", gap: "8px"}}>
@@ -17,20 +17,22 @@ export default function Reports({ v }: { v: View }) {
           </React.Fragment>
         ))}
       </div>
-      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px"}}>
+      <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "start"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
           <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Posts by area</span>
-            <button onClick={v.exportByArea} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Export CSV</button>
+            <button onClick={v.exportByArea} disabled={!!v.exporting} aria-busy={v.exporting === "posts-by-area"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "posts-by-area" ? "Exporting…" : "Export CSV"}</button>
           </div>
+          {/* 26 districts and their mandals: the list scrolls inside the card, its header stays put. */}
+          <div className="sa-scrolly" style={{maxHeight: "420px", overflowY: "auto", margin: "0 -4px", padding: "0 4px"}}>
           <table style={{width: "100%", fontSize: "13px"}}>
             <thead>
-              <tr style={{color: "#6b7a8c", fontSize: "12px", textAlign: "left"}}>
+              <tr style={{color: "#6b7a8c", fontSize: "12px", textAlign: "left", position: "sticky", top: "0", background: "#fff", zIndex: "1"}}>
                 <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600"}}>Area</th>
-                <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Total</th>
-                <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Published</th>
-                <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Pending</th>
-                <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Rejected</th>
+                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Total</th>
+                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Published</th>
+                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Pending</th>
+                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Rejected</th>
               </tr>
             </thead>
             <tbody>
@@ -39,20 +41,21 @@ export default function Reports({ v }: { v: View }) {
                 <React.Fragment key={_i1}>
                   <tr>
                     <td style={css(`padding:9px 0;border-bottom:1px solid #f3f5f8;font-weight: ${_r?.weight ?? ""};color:#0A2550;padding-left: ${_r?.indent ?? ""}`)}>{I(_r?.name)}</td>
-                    <td style={{padding: "9px 0", borderBottom: "1px solid #f3f5f8", textAlign: "right", fontVariantNumeric: "tabular-nums"}}>{I(_r?.total)}</td>
-                    <td style={{padding: "9px 0", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: "#1d7a33", fontVariantNumeric: "tabular-nums"}}>{I(_r?.pub)}</td>
-                    <td style={{padding: "9px 0", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: "#b35a0e", fontVariantNumeric: "tabular-nums"}}>{I(_r?.pend)}</td>
-                    <td style={{padding: "9px 0", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: "#6b7a8c", fontVariantNumeric: "tabular-nums"}}>{I(_r?.rej)}</td>
+                    <td style={{padding: "9px 0 9px 16px", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: Number(_r?.total) ? "#0A2550" : "#a3adb9", fontVariantNumeric: "tabular-nums"}}>{I(_r?.total)}</td>
+                    <td style={{padding: "9px 0 9px 16px", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: Number(_r?.pub) ? "#1d7a33" : "#a3adb9", fontVariantNumeric: "tabular-nums"}}>{I(_r?.pub)}</td>
+                    <td style={{padding: "9px 0 9px 16px", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: Number(_r?.pend) ? "#b35a0e" : "#a3adb9", fontVariantNumeric: "tabular-nums"}}>{I(_r?.pend)}</td>
+                    <td style={{padding: "9px 0 9px 16px", borderBottom: "1px solid #f3f5f8", textAlign: "right", color: Number(_r?.rej) ? "#6b7a8c" : "#a3adb9", fontVariantNumeric: "tabular-nums"}}>{I(_r?.rej)}</td>
                   </tr>
                 </React.Fragment>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
           <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Average review time by level</span>
-            <button onClick={v.exportReviewTime} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Export CSV</button>
+            <button onClick={v.exportReviewTime} disabled={!!v.exporting} aria-busy={v.exporting === "review-time"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "review-time" ? "Exporting…" : "Export CSV"}</button>
           </div>
           {list(v.reviewTime).map((_r, _i1) => (
             <React.Fragment key={_i1}>
@@ -75,7 +78,7 @@ export default function Reports({ v }: { v: View }) {
         <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
           <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Admin activity · last 30 days</span>
           <div style={{display: "flex", gap: "8px"}}>
-            <button onClick={v.exportActivity} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>Export CSV</button>
+            <button onClick={v.exportActivity} disabled={!!v.exporting} aria-busy={v.exporting === "admin-activity"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "admin-activity" ? "Exporting…" : "Export CSV"}</button>
           </div>
         </div>
         <table style={{width: "100%", fontSize: "13px"}}>

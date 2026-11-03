@@ -17,15 +17,15 @@ export default function Footer({ v }: { v: View }) {
               </div>
               <div style={{fontFamily: display, fontWeight: "700", fontSize: fs.md, color: "#f2dd3d"}}>ప్రతి గ్రామం... ప్రతి కుటుంబం... మన లక్ష్యం!</div>
             </div>
-            <nav aria-label="Footer" style={{display: "flex", flexWrap: "wrap", gap: "8px 20px", alignItems: "center"}}>
+            <nav aria-label="Footer" className="gc-foot-nav" style={{display: "flex", flexWrap: "wrap", gap: "0 24px", alignItems: "center"}}>
               {list(v.navItems).map((_n, _i1) => (
-                <a key={_i1} href={_n?.href} onClick={_n?.link} style={{display: "inline-block", background: "none", border: "0", padding: "6px 0", color: "rgba(255,255,255,.9)", fontSize: fs.base, lineHeight: "normal", textDecoration: "none", cursor: "pointer"}}>{I(_n?.label)}</a>
+                <a key={_i1} href={_n?.href} onClick={_n?.link} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "rgba(255,255,255,.9)", fontSize: fs.base, lineHeight: "normal", textDecoration: "none", cursor: "pointer"}}>{I(_n?.label)}</a>
               ))}
             </nav>
           </div>
-          <div style={{borderTop: "1px solid rgba(255,255,255,.15)", paddingTop: "18px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "10px", fontSize: fs.sm, color: "rgba(255,255,255,.7)"}}>
+          <div style={{borderTop: "1px solid rgba(255,255,255,.15)", paddingTop: "10px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "0 10px", fontSize: fs.sm, color: "rgba(255,255,255,.7)"}}>
             <span>© 2026 BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India</span>
-            <span style={{display: "flex", gap: "16px"}}><a href={v.privacyHref} onClick={v.privacyLink} style={{background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footPrivacy)}</a><a href={v.termsHref} onClick={v.termsLink} style={{background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footTerms)}</a></span>
+            <span style={{display: "flex", gap: "16px"}}><a href={v.privacyHref} onClick={v.privacyLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footPrivacy)}</a><a href={v.termsHref} onClick={v.termsLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footTerms)}</a></span>
           </div>
         </div>
       </footer>

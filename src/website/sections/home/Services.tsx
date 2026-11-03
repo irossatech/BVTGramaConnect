@@ -1,15 +1,14 @@
-// Home: what the app gives citizens, as a ruled list.
+// Home: what the app gives citizens, as a ruled list; on desktop the heading stays in view beside it.
 import { I, list } from "../../../shared/dc";
 import type { View } from "../../Site";
 import { ui } from "../../ui/theme";
 
 export default function Services({ v }: { v: View }) {
-  const { ink, muted, line, display, fs, wrap, h2, kicker, lead } = ui(v);
+  const { ink, muted, line, display, fs, wrap, h2, lead } = ui(v);
   return (
-    <section style={{background: "#fff", borderTop: "1px solid " + line, borderBottom: "1px solid " + line, padding: "clamp(48px,7vw,88px) 0"}}>
+    <section style={{background: "#fff", borderTop: "1px solid " + line, borderBottom: "1px solid " + line, padding: "clamp(28px,3.5vw,48px) 0 clamp(48px,7vw,88px)"}}>
       <div style={{...wrap, display: "flex", flexWrap: "wrap", gap: "clamp(32px,5vw,64px)"}}>
-        <div className="gc-reveal" style={{flex: "1 1 320px", display: "flex", flexDirection: "column", gap: "12px"}}>
-          <div style={kicker}>{I(v.t?.servicesKicker)}</div>
+        <div className="gc-reveal" style={{flex: "1 1 320px", display: "flex", flexDirection: "column", gap: "12px", alignSelf: "flex-start", position: v.desktop ? "sticky" : "static", top: "120px"}}>
           <h2 style={h2}>{I(v.t?.servicesTitle)}</h2>
           <p style={lead}>{I(v.t?.servicesSub)}</p>
         </div>

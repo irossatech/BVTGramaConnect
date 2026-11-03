@@ -7,7 +7,7 @@ export default function AuthLayout({ v }: { v: View }) {
   return (
     <>
       {" "}
-      <div style={{height: "100vh", display: "grid", gridTemplateColumns: "1fr 520px"}}>
+      <div className="sa-cols" style={{height: "100vh", display: "grid", gridTemplateColumns: "1fr 520px"}}>
         <div style={{position: "relative", overflow: "hidden", background: "#0A2550"}}>
           {" "}
           <img src="/assets/village-landscape.jpg" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", opacity: ".55"}} />
