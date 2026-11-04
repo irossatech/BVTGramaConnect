@@ -8,3 +8,5 @@ next-env.d.ts
 
 # The Android APK behind the website's "Direct download" link: copied in per release, never committed.
 public/downloads/
+dist/downloads/
+.DS_Store

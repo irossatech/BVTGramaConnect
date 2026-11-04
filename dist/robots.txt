@@ -6,4 +6,4 @@ Allow: /
 Disallow: /api/
 Disallow: /django-admin/
 
-Sitemap: https://www.gramaconnect.com/sitemap.xml
+Sitemap: https://dev.gramaconnect.com/sitemap.xml

@@ -58,6 +58,9 @@ export interface Me {
   /** "app_label.codename" strings. */
   permissions?: string[];
   groups?: MeGroup[];
+  /** The server's final word on what this person may do (e.g. a Super Admin may post only when
+   *  SUPER_ADMIN_CAN_POST is on, although the role has posts.create_post). */
+  capabilities?: { can_post?: boolean };
 }
 
 /** POST /auth/session/login/: {user: Me}; older servers sent Me itself. */

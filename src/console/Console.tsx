@@ -2801,7 +2801,7 @@ export default class Component extends React.Component<Props, State> {
           where: v && m ? v.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village',
           dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : []};
       })() : null,
-      canCompose: this.can('posts.create_post'), openCompose: () => this.openCompose(),
+      canCompose: this.can('posts.create_post') && s.me?.capabilities?.can_post !== false, openCompose: () => this.openCompose(),
       cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFPhotos(e), saveCF: () => this.saveCompose(),
       cf: s.cf ? (() => {
         const f = s.cf;
