@@ -6,7 +6,6 @@ __pycache__/
 next-env.d.ts
 *.tsbuildinfo
 
-# The Android APK behind the website's "Direct download" link: copied in per release, never committed.
+# The Android APK's source copy: the build copies it into dist/downloads/, which is committed.
 public/downloads/
-dist/downloads/
 .DS_Store

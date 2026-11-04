@@ -128,7 +128,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 | `GC_API_BASE` | `/api/v1` | both apps (built in) | Base URL of the API both apps call |
 | `GC_SITE_URL` | `https://dev.gramaconnect.com` | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
-| `GC_ANDROID_APK_URL` | empty | website (built in) | The "Direct download" link under the hero's store buttons, e.g. `/downloads/bvt-grama-connect.apk` or a full https link. Empty hides the link. See *Android APK download* below |
+| `GC_ANDROID_APK_URL` | empty | website (built in) | The "Direct download" link under the hero's store buttons, `/downloads/bvt-grama-connect.apk` (committed in `dist/downloads/`). Empty hides the link. See *Android APK download* below |
 
 ## What changed from the prototypes
 
@@ -179,12 +179,15 @@ Added on 3 Nov 2026 (owner requests; the design and content changes below replac
 
 ## Android APK download
 
-While the app is not in the stores, the website's "Direct download" link serves the Android APK.
+While the app is not in the stores, the website's "Direct download" link downloads the Android APK straight from this site: `GC_ANDROID_APK_URL=/downloads/bvt-grama-connect.apk`. The server deploys only the committed `dist/`, so the APK (about 27 MB) is **committed** at `dist/downloads/bvt-grama-connect.apk`.
 
-1. Put the release APK (the arm64 build) at `public/downloads/bvt-grama-connect.apk` here (for `npm run dev`), and at the same path on the server.
-2. Keep `GC_ANDROID_APK_URL=/downloads/bvt-grama-connect.apk` in `.env`.
+**Publishing a new APK:**
 
-`public/downloads/` is git-ignored: the APK (about 26 MB) never goes into git, so a deploy does not carry it. Put the new file on the server by hand each time. Current file: app 1.0.0 build 9 (3 Nov 2026).
+1. Build it in the app repo: `flutter build apk --release --split-per-abi`, and take `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`.
+2. Copy it to `public/downloads/bvt-grama-connect.apk` here (same name; it replaces the old one).
+3. `npm run build` copies it into `dist/downloads/`. Commit `dist/` and push; the next deploy serves it.
+
+`public/downloads/` is git-ignored (only the copy in `dist/` is committed, so the file is in git once per version). Each new APK adds about 27 MB to the repository's history: fine until the app is on Google Play. Then set the server's `PLAY_STORE_URL`, empty `GC_ANDROID_APK_URL`, rebuild, and remove `dist/downloads/`.
 
 ## When the designer changes a prototype
 
