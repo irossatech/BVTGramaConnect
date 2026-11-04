@@ -1,0 +1,330 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "ui_kits/app/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Noto Sans Telugu|Poppins))/i]",
+        "message": "Font not provided by the design system. Available: Noto Sans Telugu, Poppins."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:tone|children|style|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: tone, children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:announce|schemes|news|updates|location)$/]",
+        "message": "<Badge> tone must be one of 'announce' | 'schemes' | 'news' | 'updates' | 'location'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BottomNavItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|label|key|ref|className|style|children)$/]",
+        "message": "<BottomNavItem> doesn't accept that prop. Declared props: id, label."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|chevron|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, chevron, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|ghost|subtle)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'ghost' | 'subtle'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='HeroCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:category|title|description|cta|image|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<HeroCard> doesn't accept that prop. Declared props: category, title, description, cta, image, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='HeroCard'] > JSXAttribute[name.name='category'] > Literal[value!=/^(?:announce|schemes|news|updates|location)$/]",
+        "message": "<HeroCard> category must be one of 'announce' | 'schemes' | 'news' | 'updates' | 'location'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconBadge'] > JSXAttribute > JSXIdentifier[name!=/^(?:category|size|icon|style|key|ref|className|style|children)$/]",
+        "message": "<IconBadge> doesn't accept that prop. Declared props: category, size, icon, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconBadge'] > JSXAttribute[name.name='category'] > Literal[value!=/^(?:announce|schemes|news|updates|location)$/]",
+        "message": "<IconBadge> category must be one of 'announce' | 'schemes' | 'news' | 'updates' | 'location'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='LocationSelector'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<LocationSelector> doesn't accept that prop. Declared props: value, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ServiceCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:category|title|description|tinted|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<ServiceCard> doesn't accept that prop. Declared props: category, title, description, tinted, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ServiceCard'] > JSXAttribute[name.name='category'] > Literal[value!=/^(?:announce|schemes|news|updates|location)$/]",
+        "message": "<ServiceCard> category must be one of 'announce' | 'schemes' | 'news' | 'updates' | 'location'."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "Badge": {
+        "replaces": []
+      },
+      "BottomNavItem": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "HeroCard": {
+        "replaces": []
+      },
+      "IconBadge": {
+        "replaces": []
+      },
+      "LocationSelector": {
+        "replaces": []
+      },
+      "ServiceCard": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--blue-100",
+      "--blue-50",
+      "--blue-500",
+      "--blue-700",
+      "--blue-900",
+      "--border-default",
+      "--border-subtle",
+      "--brand-accent",
+      "--brand-highlight",
+      "--brand-primary",
+      "--brand-secondary",
+      "--cat-announce",
+      "--cat-announce-bg",
+      "--cat-location",
+      "--cat-location-bg",
+      "--cat-news",
+      "--cat-news-bg",
+      "--cat-schemes",
+      "--cat-schemes-bg",
+      "--cat-updates",
+      "--cat-updates-bg",
+      "--duration-base",
+      "--duration-fast",
+      "--ease-standard",
+      "--font-body",
+      "--font-display",
+      "--font-latin",
+      "--font-telugu",
+      "--gradient-brand",
+      "--gradient-india",
+      "--gray-100",
+      "--gray-300",
+      "--gray-50",
+      "--gray-500",
+      "--gray-700",
+      "--gray-900",
+      "--green-100",
+      "--green-400",
+      "--green-600",
+      "--green-800",
+      "--icon-badge",
+      "--icon-badge-lg",
+      "--icon-md",
+      "--icon-sm",
+      "--leading-normal",
+      "--leading-snug",
+      "--leading-tight",
+      "--mobile-width",
+      "--orange-100",
+      "--orange-500",
+      "--purple-100",
+      "--purple-600",
+      "--radius-full",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--shadow-card",
+      "--shadow-raised",
+      "--space-1",
+      "--space-10",
+      "--space-12",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-8",
+      "--surface-brand",
+      "--surface-card",
+      "--surface-muted",
+      "--surface-page",
+      "--teal-100",
+      "--teal-600",
+      "--text-2xl",
+      "--text-3xl",
+      "--text-base",
+      "--text-body",
+      "--text-heading",
+      "--text-highlight",
+      "--text-lg",
+      "--text-md",
+      "--text-muted",
+      "--text-on-brand",
+      "--text-sm",
+      "--text-xl",
+      "--text-xs",
+      "--tracking-caps",
+      "--tracking-display",
+      "--weight-bold",
+      "--weight-extrabold",
+      "--weight-medium",
+      "--weight-regular",
+      "--weight-semibold",
+      "--white",
+      "--yellow-400"
+    ],
+    "tokenKinds": {
+      "--blue-900": "color",
+      "--blue-700": "color",
+      "--blue-500": "color",
+      "--blue-100": "color",
+      "--blue-50": "color",
+      "--green-800": "color",
+      "--green-600": "color",
+      "--green-400": "color",
+      "--green-100": "color",
+      "--orange-500": "color",
+      "--orange-100": "color",
+      "--purple-600": "color",
+      "--purple-100": "color",
+      "--teal-600": "color",
+      "--teal-100": "color",
+      "--yellow-400": "color",
+      "--white": "color",
+      "--gray-50": "color",
+      "--gray-100": "color",
+      "--gray-300": "color",
+      "--gray-500": "color",
+      "--gray-700": "color",
+      "--gray-900": "color",
+      "--brand-primary": "color",
+      "--brand-secondary": "color",
+      "--brand-accent": "color",
+      "--brand-highlight": "color",
+      "--surface-page": "color",
+      "--surface-card": "color",
+      "--surface-muted": "color",
+      "--surface-brand": "color",
+      "--text-heading": "font",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-on-brand": "font",
+      "--text-highlight": "font",
+      "--border-subtle": "color",
+      "--border-default": "color",
+      "--cat-announce": "color",
+      "--cat-announce-bg": "color",
+      "--cat-schemes": "color",
+      "--cat-schemes-bg": "color",
+      "--cat-news": "color",
+      "--cat-news-bg": "color",
+      "--cat-updates": "color",
+      "--cat-updates-bg": "color",
+      "--cat-location": "color",
+      "--cat-location-bg": "color",
+      "--gradient-brand": "color",
+      "--gradient-india": "color",
+      "--font-telugu": "font",
+      "--font-latin": "font",
+      "--font-display": "font",
+      "--font-body": "font",
+      "--text-xs": "font",
+      "--text-sm": "font",
+      "--text-base": "font",
+      "--text-md": "font",
+      "--text-lg": "font",
+      "--text-xl": "font",
+      "--text-2xl": "font",
+      "--text-3xl": "font",
+      "--leading-tight": "font",
+      "--leading-snug": "font",
+      "--leading-normal": "font",
+      "--weight-regular": "font",
+      "--weight-medium": "font",
+      "--weight-semibold": "font",
+      "--weight-bold": "font",
+      "--weight-extrabold": "font",
+      "--tracking-display": "font",
+      "--tracking-caps": "font",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-8": "spacing",
+      "--space-10": "spacing",
+      "--space-12": "spacing",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-pill": "radius",
+      "--radius-full": "radius",
+      "--shadow-card": "shadow",
+      "--shadow-raised": "shadow",
+      "--icon-sm": "spacing",
+      "--icon-md": "spacing",
+      "--icon-badge": "spacing",
+      "--icon-badge-lg": "spacing",
+      "--ease-standard": "other",
+      "--duration-fast": "other",
+      "--duration-base": "other",
+      "--mobile-width": "spacing"
+    },
+    "fontFamilies": [
+      "Noto Sans Telugu",
+      "Poppins"
+    ]
+  }
+}
