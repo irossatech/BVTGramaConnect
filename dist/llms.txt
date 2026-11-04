@@ -8,10 +8,10 @@
 
 ## Pages
 
-- [Home](https://dev.gramaconnect.com/): what the app does and how to get it
-- [How it works](https://dev.gramaconnect.com/howitworks/)
-- [For officials](https://dev.gramaconnect.com/officials/)
-- [FAQ](https://dev.gramaconnect.com/faq/)
-- [Contact](https://dev.gramaconnect.com/contact/)
-- [Privacy policy](https://dev.gramaconnect.com/privacy/)
-- [Terms](https://dev.gramaconnect.com/terms/)
+- [Home](https://www.gramaconnect.com/): what the app does and how to get it
+- [How it works](https://www.gramaconnect.com/howitworks/)
+- [For officials](https://www.gramaconnect.com/officials/)
+- [FAQ](https://www.gramaconnect.com/faq/)
+- [Contact](https://www.gramaconnect.com/contact/)
+- [Privacy policy](https://www.gramaconnect.com/privacy/)
+- [Terms](https://www.gramaconnect.com/terms/)

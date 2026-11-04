@@ -7,7 +7,7 @@ import { writeFileSync } from "node:fs";
 try {
   process.loadEnvFile(".env"); // never overrides real environment variables
 } catch {}
-const site = (process.env.GC_SITE_URL || "https://dev.gramaconnect.com").replace(/\/+$/, "");
+const site = (process.env.GC_SITE_URL || "https://www.gramaconnect.com").replace(/\/+$/, "");
 
 // The website's pages (src/website/routes.ts): path, llms.txt label.
 const PAGES = [

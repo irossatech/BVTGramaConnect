@@ -86,7 +86,7 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (today `https://dev.gramaconnect.com`), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
+Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (`https://www.gramaconnect.com`, production), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
 
 - Log in to the console with your live Super Admin account. **Everything you save changes live data.**
 - To use another server (staging, or a local API on `http://127.0.0.1:8000`), change `GC_DEV_API` in `.env` and restart `npm run dev`.
@@ -126,7 +126,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 | Variable | Default | Used by | Meaning |
 |---|---|---|---|
 | `GC_API_BASE` | `/api/v1` | both apps (built in) | Base URL of the API both apps call |
-| `GC_SITE_URL` | `https://dev.gramaconnect.com` | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
+| `GC_SITE_URL` | `https://www.gramaconnect.com` (production) | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
 | `GC_ANDROID_APK_URL` | empty | website (built in) | The "Direct download" link under the hero's store buttons, `/downloads/bvt-grama-connect.apk` (committed in `dist/downloads/`). Empty hides the link. See *Android APK download* below |
 
