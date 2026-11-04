@@ -805,16 +805,17 @@ export default class Component extends React.Component<Props, State> {
     return ['district', 'mandal', 'village', 'panchayat'].filter((k) => this.can(Component.MANAGE[k] || '')).map((k) => ({id: k, label: Component.ROLE[k].label}));
   }
 
-  // A temporary password to hand over in person: 12 characters, no look-alikes, at least one lower, upper and digit.
+  // A temporary password to hand over in person: 12 characters, no look-alikes, at least one lower, upper,
+  // digit and special character (the server's password rules; the app's newTempPassword is the same).
   private newPassword() {
-    const sets = ['abcdefghjkmnpqrstuvwxyz', 'ABCDEFGHJKLMNPQRSTUVWXYZ', '23456789'];
+    const sets = ['abcdefghjkmnpqrstuvwxyz', 'ABCDEFGHJKLMNPQRSTUVWXYZ', '23456789', '@#$%&*!?'];
     const all = sets.join('');
     const pick = (chars: string, n: number) => {
       const r = new Uint32Array(n);
       crypto.getRandomValues(r);
       return Array.from(r, (x) => chars[x % chars.length]);
     };
-    const out = [...sets.map((c) => pick(c, 1)[0]), ...pick(all, 9)];
+    const out = [...sets.map((c) => pick(c, 1)[0]), ...pick(all, 12 - sets.length)];
     const r = new Uint32Array(out.length);
     crypto.getRandomValues(r);
     for (let i = out.length - 1; i > 0; i--) {
@@ -960,10 +961,11 @@ export default class Component extends React.Component<Props, State> {
 
   private loginFail(e: unknown) {
     const c = e instanceof ApiError ? e.code : undefined, L = Component.LOGIN_ERR;
-    if (e instanceof ApiError && c === 'locked_out') {
-      const sec = Number(e.body.retry_after_s) || 900;
+    if (e instanceof ApiError && (c === 'locked_out' || c === 'throttled')) {
+      const sec = Number(e.body.retry_after_s) || (c === 'throttled' ? 3600 : 900);
       const min = Math.max(1, Math.ceil(sec / 60));
-      this.toast('Too many failed attempts. Try again in ' + min + ' minute' + (min === 1 ? '' : 's') + '.', '#b3261e');
+      const what = c === 'throttled' ? 'Too many logins from this network.' : 'Too many failed attempts.';
+      this.toast(what + ' Try again in ' + min + ' minute' + (min === 1 ? '' : 's') + '.', '#b3261e');
       return;
     }
     if (c && L[c]) {
@@ -1323,7 +1325,8 @@ export default class Component extends React.Component<Props, State> {
     return e;
   }
 
-  // Same limit as the app (kAdVideoMaxMb); any length. The server checks again (ADS_VIDEO_MAX_MB).
+  // Banner videos: any length, at most this big. The server (ADS_VIDEO_MAX_MB) and the app (kAdVideoMaxMb)
+  // have the same number: change them together.
   private static readonly AD_VIDEO_MAX_MB = 60;
 
   // One picker for both: a picture is used as it is, a video is checked for size and length first.
@@ -1380,29 +1383,26 @@ export default class Component extends React.Component<Props, State> {
       Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
       if (vfile) {
         fd.append('video', vfile);
-        fd.append('duration_s', String(f.dur));
+        fd.append('duration_s', String(Math.min(f.dur, 32767))); // the server's top
       } else if (file) fd.append('image', file);
       req = f.id ? this.api.upload('/admin/ads/' + f.id + '/', fd, undefined, 'PATCH') : this.api.upload('/admin/ads/', fd);
     } else req = this.api.patch('/admin/ads/' + f.id + '/', {...fields, area_id: Number(area[1]), starts_on: f.start || null, ends_on: f.end || null, is_active: f.active});
-    const notYet = 'Video banners are not on the server yet. Use a picture for now; videos will work once the server is updated.';
     const stay = () => this.setState((x) => ({af: x.af && {...x.af, saving: false}}));
     this.setState({af: {...f, saving: true}});
-    req.then((r) => {
-      // An older server saves the details but ignores the video: say so and keep the form open.
-      if (vfile && !(r as Ad | null)?.video) {
-        stay();
-        this.toast(notYet);
-        this.loadAds();
-        return;
-      }
+    req.then(() => {
       this.setState({af: null});
       this.toast((f.id ? 'Ad saved · ' : 'Ad published · ') + fields.title);
       this.loadAds();
     }).catch((e: unknown) => {
       stay();
-      // An older server asks for a picture on a new video ad.
-      if (vfile && e instanceof ApiError && e.body.fields && 'image' in e.body.fields) this.toast(notYet);
-      else this.fail(e);
+      // Only a video upload gets these messages; a picture's errors come from the server as they are.
+      const c = vfile && e instanceof ApiError ? e.code : undefined;
+      const msg = c === 'unsupported_media' ? 'Use an MP4 or MOV video.'
+        : c === 'file_too_large' || (vfile && e instanceof ApiError && e.status === 413) ? 'The video is larger than ' + Component.AD_VIDEO_MAX_MB + ' MB.' : '';
+      if (msg) {
+        this.setState((x) => ({af: x.af && {...x.af, verr: msg}}));
+        this.toast(msg, '#b3261e');
+      } else this.fail(e);
     });
   }
 

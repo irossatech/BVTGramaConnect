@@ -52,7 +52,7 @@ src/
     ds.tsx                  Badge and IconBadge from the design system
 
   shared/                   used by both apps
-    PageHead.tsx            <head>: viewport, design-system stylesheets, Google Fonts, SEO tags
+    PageHead.tsx            <head>: viewport, design-system stylesheets, fonts, SEO tags
     dc.tsx                  I(), css(), list(), val(): the rendering rules of the old runtime
     config.ts               { apiBase, siteUrl } from GC_API_BASE / GC_SITE_URL at build time
   types/react-css.d.ts      lets inline styles set CSS custom properties ("--d")
@@ -68,7 +68,7 @@ tsconfig.json               TypeScript, strict
 
 ## Tech stack
 
-Next.js 16 (Pages Router, static export, webpack) on React 19.2, in TypeScript (strict mode). Each app is one class component: the prototype's logic class plus its template as JSX. Styles are inline plus the design-system CSS; fonts come from Google Fonts. Both apps call the REST API under `/api/v1/` on their own domain. There is no Node server in production: the built files are served as static files.
+Next.js 16 (Pages Router, static export, webpack) on React 19.2, in TypeScript (strict mode). Each app is one class component: the prototype's logic class plus its template as JSX. Styles are inline plus the design-system CSS; fonts are served from this site (`public/fonts/`), not Google. Both apps call the REST API under `/api/v1/` on their own domain. There is no Node server in production: the built files are served as static files.
 
 ## Requirements
 
@@ -200,4 +200,4 @@ The components are now the source; a new prototype export is not copied in. Appl
 
 ## Deploy
 
-Run `npm run build` and publish `dist/` at `/` and `dist/console/` at `/console/` as static files. The APK is not part of the deploy (see *Android APK download*). The server needs Node 20.9 or newer to build. The pages need a Content-Security-Policy with `script-src 'self'` and `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`.
+Run `npm run build` and publish `dist/` at `/` and `dist/console/` at `/console/` as static files. The APK is not part of the deploy (see *Android APK download*). The server needs Node 20.9 or newer to build. The pages need a Content-Security-Policy with `script-src 'self'`, `style-src 'self' 'unsafe-inline'` and `font-src 'self'`. They load nothing from Google.

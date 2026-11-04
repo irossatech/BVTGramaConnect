@@ -79,7 +79,7 @@ tbody tr{transition:background-color .12s ease}
 export default function ConsolePage() {
   return (
     <>
-      <PageHead fonts="family=Rubik:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700" css={CSS} title="Grama Connect – Console" robots="noindex, nofollow" />
+      <PageHead css={CSS} title="Grama Connect – Console" robots="noindex, nofollow" />
       <Console />
     </>
   );

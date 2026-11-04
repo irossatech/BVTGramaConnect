@@ -137,7 +137,6 @@ export default function SitePage({ page }: { page: Page }) {
   return (
     <>
       <PageHead
-        fonts="family=Rubik:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700"
         css={CSS}
         title={m.title}
         description={m.description}

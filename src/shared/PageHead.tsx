@@ -1,15 +1,18 @@
 // <head> for one page: the design-system stylesheets, Google Fonts and the page's own global CSS
-// (the prototype's <helmet>). Each page keeps its own, so the website and console CSS never meet.
+// (the prototype's <helmet>). The stylesheets are @imports at the top of the page's <style>, not
+// <link> tags: Next.js warns about stylesheet links in next/head, and this keeps the page CSS
+// after the design system so its rules still win. Each page keeps its own, so the website and console CSS never meet.
 // title, description and robots go into the exported HTML, so search engines and link previews
 // (WhatsApp, Facebook) read them without running the page's JavaScript.
 import Head from "next/head";
 import config from "./config";
 
 const DS = "/_ds/grama-connect/";
+// The design system's tokens, one by one (its styles.css only @imports these, and its tokens/fonts.css
+// loads Google Fonts). The fonts come from this site (public/fonts/), so the pages never call Google.
+const DS_FILES = ["tokens/colors.css", "tokens/typography.css", "tokens/spacing.css"];
 
 interface PageHeadProps {
-  /** Google Fonts query, e.g. "family=Rubik:wght@500;700&family=Nunito+Sans:wght@400". */
-  fonts: string;
   /** The page's own global CSS. */
   css: string;
   title: string;
@@ -21,8 +24,9 @@ interface PageHeadProps {
   jsonLd?: object;
 }
 
-export default function PageHead({ fonts, css, title, description, robots, path = "/", jsonLd }: PageHeadProps) {
+export default function PageHead({ css, title, description, robots, path = "/", jsonLd }: PageHeadProps) {
   const site = config.siteUrl;
+  const imports = DS_FILES.map((f) => `@import url("${DS + f}");`).join("") + `@import url("/fonts/fonts.css");`;
   return (
     <Head>
       <meta name="viewport" content="width=device-width, initial-scale=1" key="viewport" />
@@ -50,11 +54,7 @@ export default function PageHead({ fonts, css, title, description, robots, path 
         <meta name="twitter:card" content="summary_large_image" />
         {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
       </> : null}
-      {["tokens/fonts.css", "tokens/colors.css", "tokens/typography.css", "tokens/spacing.css", "styles.css"].map((f) => (
-        <link key={f} rel="stylesheet" href={DS + f} />
-      ))}
-      <link rel="stylesheet" href={"https://fonts.googleapis.com/css2?" + fonts + "&display=swap"} />
-      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <style dangerouslySetInnerHTML={{ __html: imports + css }} />
     </Head>
   );
 }

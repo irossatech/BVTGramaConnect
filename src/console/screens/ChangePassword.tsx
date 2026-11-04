@@ -21,11 +21,13 @@ export default function ChangePassword({ v }: { v: View }) {
         <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
           <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>New password</span>
           <span style={{position: "relative", display: "block"}}>
-            <input name="next" type={v.pw?.next?.type} value={val(v.cpNext, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="new-password" style={{width: "100%", boxSizing: "border-box", height: "48px", padding: "0 48px 0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
+            <input name="next" type={v.pw?.next?.type} value={val(v.cpNext, "")} onChange={v.onCp} onKeyDown={v.onCpKey} autoComplete="new-password" aria-describedby="cp-rules" style={{width: "100%", boxSizing: "border-box", height: "48px", padding: "0 48px 0 14px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", outlineColor: "#0D3B7A"}} />
             <button type="button" onClick={v.pw?.next?.toggle} aria-label={v.pw?.next?.label} aria-pressed={v.pw?.next?.shown} title={v.pw?.next?.label} style={{position: "absolute", top: "50%", right: "6px", transform: "translateY(-50%)", width: "36px", height: "36px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={v.pw?.next?.icon} /></svg>
             </button>
           </span>
+          {/* Console users are admins: the server needs 12 characters for them (security gap G12). */}
+          <span id="cp-rules" style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.5"}}>At least 12 characters, with a capital letter, a small letter, a number and a special character (such as @ # $ %).</span>
         </label>
         <button onClick={v.changePassword} disabled={v.cannotChange} style={css(`height:48px;border:0;border-radius:999px;background:#0D3B7A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity: ${v.changeOpacity ?? ""}`)}>Save and continue</button>
         <div style={{display: "flex", justifyContent: "space-between"}}>
