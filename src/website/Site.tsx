@@ -404,6 +404,9 @@ export default class Site extends React.Component<Props, State> {
         ["l4", "V", "#1F8A3B"],
       ] as const
     ).map(([k, short, bg], i) => ({ name: t[k], example: tx[k + "e"], role: tx[k + "r"], desc: tx[k + "d"], short, bg, indent: mobile ? "0" : i * 36 + "px" }));
+    // How it works and Contact: the explainer rows under each page's main content.
+    const howDetails = [1, 2, 3, 4, 5].map((n) => ({ title: tx["hw" + n], desc: tx["hw" + n + "d"] }));
+    const contactHelp = [1, 2, 3, 4, 5].map((n) => ({ title: tx["ct" + n], desc: tx["ct" + n + "d"] }));
     const offCards = (["o1", "o2", "o3"] as const).map((k) => ({ title: t[k], items: ["a", "b", "c"].map((x) => ({ text: tx[k + x] })) }));
     // Newer mobile-app features (citizen side), shown in "A day in the village". Icons are simple line drawings.
     const appFeatures = (
@@ -577,6 +580,8 @@ export default class Site extends React.Component<Props, State> {
       audiences,
       levels,
       offCards,
+      howDetails,
+      contactHelp,
       faqs,
       feed,
       form: f,

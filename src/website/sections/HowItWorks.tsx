@@ -2,7 +2,7 @@
 import { I, list } from "../../shared/dc";
 import type { View } from "../Site";
 import { ui } from "../ui/theme";
-import { StepsGrid } from "../ui/parts";
+import { DetailRows, StepsGrid } from "../ui/parts";
 
 export default function HowItWorks({ v }: { v: View }) {
   const { ink, muted, line, cream, display, fs, wrap, h1, lead } = ui(v);
@@ -42,6 +42,9 @@ export default function HowItWorks({ v }: { v: View }) {
     </section>
     <section style={{padding: "0 0 clamp(56px,8vw,112px)"}}>
       <div style={{...wrap}}><StepsGrid v={v} /></div>
+    </section>
+    <section style={{padding: "0 0 clamp(56px,8vw,112px)"}}>
+      <div style={{...wrap}}><DetailRows v={v} title={v.t?.hwTitle} sub={v.t?.hwSub} items={v.howDetails} /></div>
     </section>
     </>
   );

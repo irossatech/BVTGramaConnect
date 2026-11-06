@@ -22,7 +22,20 @@ const te = {
       x1:'సేవలు & అభ్యర్థనలు',x1d:'ఆధార్, భూమి రికార్డులు లేదా సర్టిఫికెట్‌తో సహాయం కావాలా? అభ్యర్థన పంపండి. మీ గ్రామ అధికారులు మీకు కాల్ చేస్తారు.',x2:'సహాయ నంబర్లు',x2d:'పోలీసు, అంబులెన్స్, హెల్ప్‌లైన్లు, మీ స్థానిక అధికారులు. ఒక్క తాకుతో కాల్ చేయండి.',x3:'60 సెకన్ల వీడియోలు',x3d:'మీ ఊరి నుంచి చిన్న, ఉపయోగకరమైన వీడియోలు, ఒక నిమిషంలోపే.',x4:'వార్తలు వినండి',x4d:'చదవడానికి సమయం లేదా? “వినండి” నొక్కితే యాప్ నేటి వార్తలను చదివి వినిపిస్తుంది.',x5:'గడువులు మిస్ కాకండి',x5d:'పథకాల చివరి తేదీలు, రాబోయే శిబిరాలకు ఇంకా ఎన్ని రోజులో కనిపిస్తుంది.',x6:'సేవ్ & షేర్',x6d:'పోస్ట్‌ను తర్వాత చదవడానికి సేవ్ చేయండి, లేదా చిత్రంగా వాట్సాప్‌లో పంచుకోండి.',appMore:'ఇంకా: వార్తల శోధన, పెద్ద అక్షరాలు, అత్యవసర హెచ్చరికలు, కొత్త పోస్టులకు నోటిఫికేషన్లు.',q8:'యాప్ ద్వారా అధికారుల సహాయం అడగవచ్చా?',ans8:'అవును. హోమ్‌లోని “సేవలు” తెరిచి సేవను ఎంచుకుని మీ పేరు, మొబైల్ నంబర్ ఇవ్వండి. అభ్యర్థన మీ గ్రామ అధికారులకు చేరుతుంది; వారు మిమ్మల్ని సంప్రదిస్తారు.',
       formNote:'మీ వివరాలను మీకు జవాబివ్వడానికి మాత్రమే వాడతాం.',
       ctaTitle:'మీ ఊరి వార్తలు, మీ ఫోన్‌లో',ctaSub:'తెలుగులో, ఇంగ్లీష్‌లో. నెట్ నెమ్మదిగా ఉన్నా పనిచేస్తుంది.',
-      footPrivacy:'గోప్యతా విధానం',footTerms:'నిబంధనలు',toastStore:'యాప్ త్వరలో స్టోర్‌లలోకి వస్తోంది.',toastApk:'Android యాప్ డౌన్‌లోడ్ అవుతోంది…',toastFail:'సందేశం వెళ్లలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.',toastBusy:'ఇప్పుడు చాలా సందేశాలు వస్తున్నాయి. కొన్ని నిమిషాల తర్వాత ప్రయత్నించండి.'
+      footPrivacy:'గోప్యతా విధానం',footTerms:'నిబంధనలు',toastStore:'యాప్ త్వరలో స్టోర్‌లలోకి వస్తోంది.',toastApk:'Android యాప్ డౌన్‌లోడ్ అవుతోంది…',toastFail:'సందేశం వెళ్లలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.',toastBusy:'ఇప్పుడు చాలా సందేశాలు వస్తున్నాయి. కొన్ని నిమిషాల తర్వాత ప్రయత్నించండి.',
+      hwTitle:'ఒక పోస్ట్ మీ ఫోన్‌కు ఎలా చేరుతుంది',hwSub:'ప్రతి వార్త మీ ఊరి వారే రాస్తారు, అధికారి సరిచూస్తారు, మీ ప్రాంతానికి మాత్రమే పంపుతారు.',
+      hw1:'మీ ఊరి వారే రాస్తారు',hw1d:'పంచాయతీ సభ్యులు శీర్షిక, వివరణ, వర్గం ఎంచుకుని గరిష్టంగా 3 ఫోటోలతో నోటీసు, పథకం వార్త లేదా ప్రకటన పోస్ట్ చేస్తారు. పోస్ట్ “సమీక్ష కోసం పంపబడ్డాయి” స్థితిలో ఉంటుంది.',
+      hw2:'24 గంటల్లో సరిచూస్తారు',hw2d:'గ్రామ అడ్మిన్ పోస్టును చదివి ప్రచురిస్తారు, వ్యాఖ్యతో సవరణకు తిరిగి పంపుతారు లేదా కారణంతో తిరస్కరిస్తారు. 24 గంటల్లో సమీక్ష జరగకపోతే అది మండల అడ్మిన్‌కు వెళ్తుంది.',
+      hw3:'సరైన గ్రామాలకు మాత్రమే',hw3d:'గ్రామ పోస్టులు ఆ గ్రామానికే వెళ్తాయి. మండల, జిల్లా అడ్మిన్లు తమ ప్రకటన ఏ ప్రాంతానికి వెళ్లాలో ఎంచుకుంటారు. మీరు ఎంచుకున్న గ్రామం, మండలం, జిల్లా వార్తలన్నీ ఒకే ఫీడ్‌లో కనిపిస్తాయి.',
+      hw4:'ప్రతి చర్యకు బాధ్యత',hw4d:'అడ్మిన్ పోస్టులు వారి అధికారిక పాత్రతో నమోదవుతాయి. తప్పుగా ఉన్న పోస్టును ఎప్పుడైనా తొలగించవచ్చు, ప్రతి చర్య ఆడిట్ లాగ్‌లో నమోదవుతుంది.',
+      hw5:'మీకు కావలసింది ఒక ఫోన్ మాత్రమే',hw5d:'ఖాతా, పాస్‌వర్డ్ అవసరం లేదు: యాప్ తెరిచి భాష, గ్రామం ఎంచుకోండి. 2GB RAM ఉన్న Android ఫోన్లలో, నెమ్మదైన 2G/3G నెట్‌వర్క్‌లో కూడా పనిచేస్తుంది. పూర్తిగా ఉచితం.',
+      ctTitle:'మేం ఏ విషయాల్లో సహాయం చేస్తాం',
+      ct1:'మీ గ్రామం యాప్‌లో లేదా?',ct1d:'మీ గ్రామం, మండలం, జిల్లా పేర్లు రాయండి. మా బృందం చేర్చిన తర్వాత అది యాప్‌లోని గ్రామాల జాబితాలో కనిపిస్తుంది.',
+      ct2:'అధికారులకు లాగిన్',ct2d:'పంచాయతీ సభ్యులకు గ్రామ లేదా మండల అడ్మిన్, గ్రామ అడ్మిన్లకు మండల లేదా జిల్లా అడ్మిన్ లాగిన్ ఇస్తారు. వారెవరో తెలియకపోతే మీ గ్రామం, పదవి రాయండి, మేం కలుపుతాం.',
+      ct3:'తప్పుగా ఉన్న పోస్ట్',ct3d:'గ్రామం పేరు, పోస్ట్ శీర్షిక రాయండి. ఆ ప్రాంత అడ్మిన్‌కు తెలియజేస్తాం; వారు దాన్ని సరిచేయవచ్చు లేదా తొలగించవచ్చు.',
+      ct4:'యాప్ సరిగ్గా పనిచేయడం లేదా?',ct4d:'మీ ఫోన్ మోడల్, ఏం జరిగిందో రాయండి. యాప్‌ను అప్‌డేట్ చేసి మళ్ళీ ప్రయత్నించడం తరచుగా సమస్యను పరిష్కరిస్తుంది.',
+      ct5:'ఆధార్, సర్టిఫికెట్ వంటి సేవలు',ct5d:'వేగంగా సహాయం కోసం యాప్ హోమ్‌లోని “సేవలు” వాడండి: మీ అభ్యర్థన నేరుగా మీ గ్రామ అధికారులకు చేరుతుంది.',
+      ctSafe:'ఈ ఫారంలో ఆధార్ నంబర్, బ్యాంక్ వివరాలు లేదా OTP ఎప్పుడూ రాయకండి. మేం వాటిని ఎప్పుడూ అడగం.',
 };
 
 /** All the website's text keys. */
@@ -49,7 +62,20 @@ const en: Strings = {
       x1:'Services & requests',x1d:'Need help with Aadhaar, land records or a certificate? Send a request and your village officials will call you.',x2:'Help numbers',x2d:'Police, ambulance, helplines and your local officials, one tap to call.',x3:'60-second videos',x3d:'Short videos from your village, a minute or less each.',x4:'Listen to the news',x4d:'No time to read? Tap Listen and the app reads today’s news aloud.',x5:'Never miss a deadline',x5d:'Scheme last dates and upcoming camps, with a countdown of the days left.',x6:'Save & share',x6d:'Keep a post to read later, or share it on WhatsApp as a picture.',appMore:'Plus: news search, bigger text, urgent alerts, and notifications for new posts.',q8:'Can I ask officials for help through the app?',ans8:'Yes. Open Services on the Home screen, pick the service, and leave your name and mobile number. The request goes to your village officials, who will get in touch.',
       formNote:'We use your details only to reply to you.',
       ctaTitle:'Your village’s news, on your phone',ctaSub:'Works in Telugu and English, even on a slow network.',
-      footPrivacy:'Privacy policy',footTerms:'Terms',toastStore:'The app isn’t in the stores yet. It’s coming soon.',toastApk:'Downloading the Android app…',toastFail:'That didn’t go through. Please try again.',toastBusy:'We’re getting a lot of messages right now. Please try again in a few minutes.'
+      footPrivacy:'Privacy policy',footTerms:'Terms',toastStore:'The app isn’t in the stores yet. It’s coming soon.',toastApk:'Downloading the Android app…',toastFail:'That didn’t go through. Please try again.',toastBusy:'We’re getting a lot of messages right now. Please try again in a few minutes.',
+      hwTitle:'How a post reaches your phone',hwSub:'Every update is written by someone from your village, checked by an official, and sent only to the area it’s for.',
+      hw1:'Written by your village',hw1d:'A Panchayat member posts a notice, scheme update or announcement with a title, description, category and up to 3 photos. It is marked “Sent for review”.',
+      hw2:'Checked within 24 hours',hw2d:'The Village Admin reads it and publishes it, sends it back for a fix with a comment, or discards it with a reason. If it isn’t reviewed within 24 hours, it moves up to the Mandal Admin.',
+      hw3:'Sent only where it belongs',hw3d:'Village posts go to that village. Mandal and District admins choose the area their announcement reaches. News for your village, mandal and district appears in one feed.',
+      hw4:'Every action on record',hw4d:'Admin posts carry their official role. A wrong post can be taken down at any time, and every action is recorded in the audit log.',
+      hw5:'All you need is a phone',hw5d:'No account or password: open the app and pick your language and village. It runs on Android phones with 2 GB RAM, even on slow 2G/3G networks. Completely free.',
+      ctTitle:'What we can help with',
+      ct1:'Village missing from the app',ct1d:'Write your village, mandal and district. Once our team adds it, it appears in the app’s village list.',
+      ct2:'A login for officials',ct2d:'Panchayat members get a login from their Village or Mandal Admin; Village Admins from their Mandal or District Admin. Not sure who that is? Tell us your village and role and we’ll connect you.',
+      ct3:'A post that looks wrong',ct3d:'Tell us the village and the post’s title. We pass it to the admin for that area, who can correct it or take it down.',
+      ct4:'The app isn’t working',ct4d:'Tell us your phone model and what happened. Updating the app and trying again often fixes it.',
+      ct5:'Aadhaar, certificates and other services',ct5d:'For the quickest help, use Services on the app’s Home screen: your request goes straight to your village officials.',
+      ctSafe:'Never write your Aadhaar number, bank details or an OTP in this form. We will never ask for them.',
 };
 
 const STRINGS: Record<Lang, Strings> = { te, en };

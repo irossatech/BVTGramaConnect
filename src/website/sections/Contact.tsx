@@ -2,6 +2,7 @@
 import { I, val } from "../../shared/dc";
 import type { View } from "../Site";
 import { ui } from "../ui/theme";
+import { DetailRows } from "../ui/parts";
 import type { ReactNode } from "react";
 
 type Field = "name" | "mobile" | "village" | "message";
@@ -58,6 +59,7 @@ export default function Contact({ v }: { v: View }) {
               </div> : null}
           </div>
         </div>
+        <div style={{...wrap, marginTop: "clamp(48px,7vw,96px)"}}><DetailRows v={v} title={v.t?.ctTitle} items={v.contactHelp} note={v.t?.ctSafe} /></div>
       </section>
   );
 }

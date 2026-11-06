@@ -55,3 +55,25 @@ export function StepsGrid({ v }: { v: View }) {
     </div>
   );
 }
+
+/** A titled list of explainer rows (How it works, Contact): heading on the left, text on the right; stacked on phones. */
+export function DetailRows({ v, title, sub, items, note }: { v: View; title?: string; sub?: string; items: View["howDetails"]; note?: string }) {
+  const { ink, muted, line, display, fs, h2, lead } = ui(v);
+  return (
+    <div style={{display: "flex", flexDirection: "column", gap: "clamp(20px,3vw,32px)"}}>
+      <div style={{display: "flex", flexDirection: "column", gap: "12px"}}>
+        <h2 style={h2}>{I(title)}</h2>
+        {sub ? <p style={lead}>{I(sub)}</p> : null}
+      </div>
+      <div style={{borderBottom: "1px solid " + line}}>
+        {list(items).map((_r, _i1) => (
+          <div key={_i1} className="gc-reveal" style={{"--d": _i1 * 60 + "ms", display: "grid", gridTemplateColumns: v.mobile ? "minmax(0,1fr)" : "minmax(200px,300px) minmax(0,1fr)", gap: v.mobile ? "6px" : "0 40px", padding: "20px 0", borderTop: "1px solid " + line}}>
+            <h3 style={{margin: "0", fontFamily: display, fontWeight: "700", fontSize: fs.lg, lineHeight: v.headLh, color: ink}}>{I(_r?.title)}</h3>
+            <p style={{margin: "0", fontSize: fs.base, lineHeight: v.te ? "1.75" : "1.6", color: muted, maxWidth: "62ch", textWrap: "pretty"}}>{I(_r?.desc)}</p>
+          </div>
+        ))}
+      </div>
+      {note ? <p style={{margin: "0", fontSize: fs.sm, lineHeight: "1.5", color: muted}}>{I(note)}</p> : null}
+    </div>
+  );
+}
