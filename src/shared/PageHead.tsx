@@ -22,9 +22,12 @@ interface PageHeadProps {
   path?: string;
   /** Structured data (schema.org JSON-LD). */
   jsonLd?: object;
+  /** Share preview: the site name and the share image's alt text (the website passes them from its locale files). */
+  siteName?: string;
+  imageAlt?: string;
 }
 
-export default function PageHead({ css, title, description, robots, path = "/", jsonLd }: PageHeadProps) {
+export default function PageHead({ css, title, description, robots, path = "/", jsonLd, siteName, imageAlt }: PageHeadProps) {
   const site = config.siteUrl;
   const imports = DS_FILES.map((f) => `@import url("${DS + f}");`).join("") + `@import url("/fonts/fonts.css");`;
   return (
@@ -38,7 +41,7 @@ export default function PageHead({ css, title, description, robots, path = "/", 
       {description ? <>
         <meta name="description" content={description} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Grama Connect" />
+        <meta property="og:site_name" content={siteName} />
         <meta property="og:locale" content="te_IN" />
         <meta property="og:locale:alternate" content="en_IN" />
         <meta property="og:title" content={title} />
@@ -50,7 +53,7 @@ export default function PageHead({ css, title, description, robots, path = "/", 
         <meta property="og:image" content={site + "/assets/og-image.jpg"} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Grama Connect: verified village news for Andhra Pradesh, in Telugu" />
+        <meta property="og:image:alt" content={imageAlt} />
         <meta name="twitter:card" content="summary_large_image" />
         {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
       </> : null}

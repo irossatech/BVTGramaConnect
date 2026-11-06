@@ -1,0 +1,476 @@
+{
+  "ui": {
+    "taglineShort": "Our village – our services",
+    "villageImgAlt": "A green village in Andhra Pradesh",
+    "getApp": "Get the app",
+    "nav_home": "Home",
+    "nav_how": "How It Works",
+    "nav_officials": "For Officials",
+    "nav_faq": "FAQ",
+    "nav_contact": "Contact",
+    "heroBadge": "Made for the villages of Andhra Pradesh",
+    "heroSub": "Panchayat notices, scheme deadlines, water and power updates. Your local officials check them and send them straight to your phone. In Telugu, free, and no sign-up.",
+    "servicesTitle": "What reaches your phone",
+    "servicesSub": "News from your village, mandal and district, in one feed.",
+    "f1": "Village announcements",
+    "f1d": "Missed the drum? It’s waiting for you in the app.",
+    "f2": "Govt schemes",
+    "f2d": "Which schemes you can apply for, and the last date to apply.",
+    "f3": "Village news & notices",
+    "f3d": "Road works, water supply, health camps: what’s changing near you.",
+    "f4": "Public updates",
+    "f4d": "Bus timings, weather warnings and other everyday updates.",
+    "f5": "Village / Mandal / District info",
+    "f5d": "Only posts for your area. Nothing from places you don’t live.",
+    "howTitle": "From your Panchayat to your phone, checked on the way",
+    "s1": "Your Panchayat writes it",
+    "s1d": "A Panchayat member posts the notice in the app, with photos if there are any.",
+    "s2": "An official checks it",
+    "s2d": "Your Village, Mandal or District admin reads it first. If something’s wrong, it goes back for a fix.",
+    "s3": "You hear about it",
+    "s3d": "Once it’s approved, everyone in the village gets a notification on their phone.",
+    "howMore": "See how it works",
+    "whoTitle": "One app, three roles",
+    "a1k": "Citizens",
+    "a1t": "Read your village’s news",
+    "a1d": "Download the app and pick your village. No account, no password. Every post is checked before you see it.",
+    "a1c": "Get the app",
+    "a2k": "Panchayat members",
+    "a2t": "Post for your village",
+    "a2d": "Share notices, scheme news and announcements. Once your admin approves, the whole village sees it.",
+    "a2c": "How to post",
+    "a3k": "Admins",
+    "a3t": "Review and publish",
+    "a3d": "Review posts from your area, look after your team, and reach everyone with one announcement.",
+    "a3c": "For officials",
+    "how2Title": "State → District → Mandal → Village: one responsibility at every level",
+    "how2Sub": "Information flows down; verification flows up. Each level sees only its own area.",
+    "l1": "State",
+    "l1e": "Andhra Pradesh",
+    "l1r": "Super Admin",
+    "l1d": "Master data for districts, mandals and villages; appointing admins; settings such as categories, languages and escalation time. Can review any decision.",
+    "l2": "District",
+    "l2e": "e.g. Guntur",
+    "l2r": "District Admin",
+    "l2d": "District-wide announcements (health camps, scheme deadlines). Manages Mandal Admins and reviews escalated posts.",
+    "l3": "Mandal",
+    "l3e": "e.g. Tenali, Mangalagiri",
+    "l3r": "Mandal Admin",
+    "l3d": "Mandal-level information (crop insurance, bus timings). Manages Village Admins and Panchayat members.",
+    "l4": "Village",
+    "l4e": "e.g. Kolakaluru, Nandivelugu, Pedaravuru",
+    "l4r": "Village Admin & Panchayat members",
+    "l4d": "Panchayat members post; the Village Admin reviews within 24 hours and publishes. If delayed, it escalates to the Mandal Admin.",
+    "offTitle": "For Panchayat members and admins",
+    "offSub": "Sharing news with your village now takes about a minute. Here’s how posting, reviewing and getting a login work.",
+    "o1": "Posting",
+    "o1a": "Choose a title, description and category, and add up to 3 photos.",
+    "o1b": "Posts by Panchayat members are marked “Sent for review”.",
+    "o1c": "Admin posts publish immediately; Mandal and District admins can pick the target area.",
+    "o2": "Reviewing",
+    "o2a": "Publish, send back for recheck with a comment, or discard with a reason.",
+    "o2b": "A member can edit and resubmit a post sent for recheck.",
+    "o2c": "Published posts can be taken down at any time; every action is recorded in the audit log.",
+    "o3": "Getting a login",
+    "o3a": "Panchayat members: contact your Village Admin or Mandal Admin.",
+    "o3b": "Village Admins: contact your Mandal Admin or District Admin.",
+    "o3c": "Your admin adds you and gives you a username and a temporary password. You choose your own password the first time you log in.",
+    "offLoginTitle": "Need a login? Your Mandal or District admin can set you up.",
+    "offLoginBody": "Not sure who that is? Send us a message and we’ll connect you.",
+    "contactUs": "Contact us",
+    "faqTitle": "Frequently asked questions",
+    "faqMore": "Didn’t find your answer?",
+    "q1": "Is the app free?",
+    "ans1": "Yes, completely free. No subscription, nothing to pay.",
+    "q2": "Is the news verified?",
+    "ans2": "Yes. Everything a Panchayat member posts is reviewed by the Village, Mandal or District Admin before citizens see it. Posts by admins are recorded under their official role.",
+    "q3": "Do citizens need to log in?",
+    "ans3": "No. Open the app, choose your language and village, and you are done. Only officials log in, with a username and password.",
+    "q4": "Which languages are available?",
+    "ans4": "Telugu is the primary language. A toggle in the header switches to English. Posts appear in the language the admin wrote them in.",
+    "q5": "What if my village is not in the app?",
+    "ans5": "Tell us your village and mandal through the Contact page. Once our team adds it, it appears in the app's village list.",
+    "q6": "How do notifications work?",
+    "ans6": "As soon as a new post is published for your chosen village you get a push notification. Mandal and district announcements appear in the same feed.",
+    "q7": "Does it work on budget phones?",
+    "ans7": "Yes. The app is built for Android phones with 2 GB RAM and slow 2G/3G networks.",
+    "contactTitle": "Write to the Grama Connect team",
+    "contactSub": "Village missing from the app, need a login, or something not working? Tell us below. We usually reply within 2 working days.",
+    "officeLabel": "Office",
+    "phoneLabel": "Phone & email",
+    "hours": "Mon–Sat 10:00–18:00",
+    "fName": "Name",
+    "fNamePh": "e.g. Ravi Kumar",
+    "fMobile": "Mobile number",
+    "fMobilePh": "e.g. 98765 43210",
+    "fVillage": "Village / Mandal",
+    "fVillagePh": "e.g. Kolakaluru, Tenali",
+    "fMessage": "Message",
+    "fMessagePh": "e.g. Please add our village to the app",
+    "fSend": "Send message",
+    "fError": "Please check your name, mobile number, village and message, then try again.",
+    "errName": "Enter your name.",
+    "errMobile": "Enter a 10-digit mobile number starting with 6, 7, 8 or 9.",
+    "errVillage": "Enter your village or mandal.",
+    "errMessage": "Write your message.",
+    "sentTitle": "Message sent",
+    "sentBody": "We’ll reply to",
+    "sendAnother": "Send another message",
+    "tickerLabel": "Latest news",
+    "wordPre": "Never miss your village’s",
+    "wordPost": "",
+    "x1": "Services & requests",
+    "x1d": "Need help with Aadhaar, land records or a certificate? Send a request and your village officials will call you.",
+    "x2": "Help numbers",
+    "x2d": "Police, ambulance, helplines and your local officials, one tap to call.",
+    "x3": "60-second videos",
+    "x3d": "Short videos from your village, a minute or less each.",
+    "x4": "Listen to the news",
+    "x4d": "No time to read? Tap Listen and the app reads today’s news aloud.",
+    "x5": "Never miss a deadline",
+    "x5d": "Scheme last dates and upcoming camps, with a countdown of the days left.",
+    "x6": "Save & share",
+    "x6d": "Keep a post to read later, or share it on WhatsApp as a picture.",
+    "appMore": "Plus: news search, bigger text, urgent alerts, and notifications for new posts.",
+    "q8": "Can I ask officials for help through the app?",
+    "ans8": "Yes. Open Services on the Home screen, pick the service, and leave your name and mobile number. The request goes to your village officials, who will get in touch.",
+    "formNote": "We use your details only to reply to you.",
+    "ctaTitle": "Your village’s news, on your phone",
+    "ctaSub": "Works in Telugu and English, even on a slow network.",
+    "footPrivacy": "Privacy policy",
+    "footTerms": "Terms",
+    "toastStore": "The app isn’t in the stores yet. It’s coming soon.",
+    "toastApk": "Downloading the Android app…",
+    "toastFail": "That didn’t go through. Please try again.",
+    "toastBusy": "We’re getting a lot of messages right now. Please try again in a few minutes.",
+    "hwTitle": "How a post reaches your phone",
+    "hwSub": "Every update is written by someone from your village, checked by an official, and sent only to the area it’s for.",
+    "hw1": "Written by your village",
+    "hw1d": "A Panchayat member posts a notice, scheme update or announcement with a title, description, category and up to 3 photos. It is marked “Sent for review”.",
+    "hw2": "Checked within 24 hours",
+    "hw2d": "The Village Admin reads it and publishes it, sends it back for a fix with a comment, or discards it with a reason. If it isn’t reviewed within 24 hours, it moves up to the Mandal Admin.",
+    "hw3": "Sent only where it belongs",
+    "hw3d": "Village posts go to that village. Mandal and District admins choose the area their announcement reaches. News for your village, mandal and district appears in one feed.",
+    "hw4": "Every action on record",
+    "hw4d": "Admin posts carry their official role. A wrong post can be taken down at any time, and every action is recorded in the audit log.",
+    "hw5": "All you need is a phone",
+    "hw5d": "No account or password: open the app and pick your language and village. It runs on Android phones with 2 GB RAM, even on slow 2G/3G networks. Completely free.",
+    "ctTitle": "What we can help with",
+    "ct1": "Village missing from the app",
+    "ct1d": "Write your village, mandal and district. Once our team adds it, it appears in the app’s village list.",
+    "ct2": "A login for officials",
+    "ct2d": "Panchayat members get a login from their Village or Mandal Admin; Village Admins from their Mandal or District Admin. Not sure who that is? Tell us your village and role and we’ll connect you.",
+    "ct3": "A post that looks wrong",
+    "ct3d": "Tell us the village and the post’s title. We pass it to the admin for that area, who can correct it or take it down.",
+    "ct4": "The app isn’t working",
+    "ct4d": "Tell us your phone model and what happened. Updating the app and trying again often fixes it.",
+    "ct5": "Aadhaar, certificates and other services",
+    "ct5d": "For the quickest help, use Services on the app’s Home screen: your request goes straight to your village officials.",
+    "ctSafe": "Never write your Aadhaar number, bank details or an OTP in this form. We will never ask for them.",
+    "brand": "GRAMA CONNECT",
+    "motto": "ప్రతి గ్రామం... ప్రతి కుటుంబం... మన లక్ష్యం!",
+    "ring": "GRAMA CONNECT  •  CONNECTING VILLAGES  •  EMPOWERING INDIA  •  ",
+    "playPre": "GET IT ON",
+    "playName": "Google Play",
+    "appPre": "Download on the",
+    "appName": "App Store",
+    "langOther": "తెలుగు",
+    "langSwitch": "తెలుగుకు మార్చండి",
+    "ariaMain": "Main",
+    "ariaMenu": "Menu",
+    "ariaFooter": "Footer",
+    "apkLabel": "Direct download",
+    "comingSoon": "Coming soon",
+    "copyright": "© {year} BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India · It is not a government app."
+  },
+  "categories": {
+    "announce": "Announcements",
+    "schemes": "Govt Schemes",
+    "news": "News & Notices",
+    "updates": "Public Updates"
+  },
+  "words": {
+    "announce": "announcements",
+    "schemes": "govt schemes",
+    "news": "news & notices",
+    "updates": "public updates"
+  },
+  "months": [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ],
+  "sample": [
+    {
+      "category": "announce",
+      "title": "Drinking water timing change",
+      "published_at": "2026-10-14",
+      "area": {
+        "name": "Kolakaluru"
+      }
+    },
+    {
+      "category": "schemes",
+      "title": "Ration card camp – 18 Oct",
+      "published_at": "2026-10-13",
+      "area": {
+        "name": "Tenali"
+      }
+    },
+    {
+      "category": "news",
+      "title": "Road repair notice",
+      "published_at": "2026-10-12",
+      "area": {
+        "name": "Guntur"
+      }
+    }
+  ],
+  "day": {
+    "title": "A day in the village, with the app",
+    "moments": [
+      {
+        "feature": 3,
+        "time": "6:30 am",
+        "story": "Over morning tea, the app reads today’s news aloud."
+      },
+      {
+        "feature": 0,
+        "time": "10:00 am",
+        "story": "Need Aadhaar, land records or a certificate? Send a request and the officials call you back."
+      },
+      {
+        "feature": 2,
+        "time": "1:00 pm",
+        "story": "Lunch break: 60-second videos on health, safety and your Gram Sabha."
+      },
+      {
+        "feature": 4,
+        "time": "4:00 pm",
+        "story": "The app counts down the days to scheme last dates and upcoming camps."
+      },
+      {
+        "feature": 5,
+        "time": "7:00 pm",
+        "story": "Save a post for later, or share it with family and neighbours on WhatsApp."
+      },
+      {
+        "feature": 1,
+        "time": "Any time",
+        "story": "Police, ambulance, helplines and your officials, one tap away."
+      }
+    ]
+  },
+  "office": {
+    "address": "GramaConnect, 2nd Floor, Collectorate Road,\nGuntur – 522004, Andhra Pradesh",
+    "phone": "+91 863 223 4567",
+    "email": "help@gramaconnect.com"
+  },
+  "seo": {
+    "name": "Grama Connect",
+    "home": "Village News App for Andhra Pradesh",
+    "how": "How It Works",
+    "officials": "For Panchayat Members and Admins",
+    "faq": "FAQ",
+    "contact": "Contact Us",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "noscript": "Never miss what’s happening in your village. Panchayat notices, scheme deadlines, water and power updates — checked by your local officials and sent straight to your phone. In Telugu, free, and no sign-up.",
+    "homeDesc": "Panchayat notices, scheme deadlines, water and power updates for Andhra Pradesh villages, checked by local officials. In Telugu, free, no sign-up.",
+    "howDesc": "From your Panchayat to your phone, checked on the way. Panchayat members post, admins check every post, and the news reaches every phone in the village, in Telugu.",
+    "faqDesc": "Is the app free? Which villages are covered? Who checks the news? Answers to common questions about Grama Connect.",
+    "imageAlt": "Grama Connect: verified village news for Andhra Pradesh, in Telugu",
+    "region": "Andhra Pradesh",
+    "needJs": "Please turn on JavaScript to use this website."
+  },
+  "legal": {
+    "note": "",
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: 6 November 2026",
+      "intro": "This page explains, in plain words, what information the Grama Connect app and this website collect about you, why, who can see it, and what you can do about it. Citizens can use the app without an account.",
+      "sections": [
+        {
+          "h": "Who we are",
+          "body": [
+            "Grama Connect is run by BVT. It is not a government app and is not affiliated with any government department. Posts are written by Panchayat members and officials, and checked by officials before they are published."
+          ]
+        },
+        {
+          "h": "What we collect",
+          "body": [
+            [
+              "Reading news: nothing that identifies you. Your language, village, saved posts and text size are stored only on your phone.",
+              "Location (optional): if you tap “Use my location” and allow it, the app sends your position once, only to find your nearest village. We do not save it or show it to anyone.",
+              "Service requests: your name, mobile number, optional email, address, the service and your note, and your village.",
+              "Contact form on this website: your name, mobile number, village or mandal, your message, and your internet (IP) address, which we use to stop spam.",
+              "Posting from the app: when a phone first posts, it gets a private posting key after a Google Play Integrity check. We keep that key, the device ID and the IP address only in scrambled (hashed) form, together with your village, language, app version and the posts, photos and videos you send.",
+              "Notifications: if you allow them, a notification token so we can tell you about your village's news and the result of your post or request.",
+              "Officials (Panchayat members and admins): username, name, mobile number, optional email, role and area. These accounts are opened only by their admins. Passwords are stored only in hashed form. Every review action is recorded in an audit log."
+            ]
+          ]
+        },
+        {
+          "h": "How we use it",
+          "body": [
+            [
+              "To show news for your village and send notifications.",
+              "To pass your service request to the officials of your village so they can contact you.",
+              "To reply to your message.",
+              "To keep the service safe: stop spam, block misuse for a limited time, and keep a record of official actions."
+            ],
+            "We do not sell your information or use it for advertising profiles. The sponsored banners in the app are placed by administrators and do not track you."
+          ]
+        },
+        {
+          "h": "Who can see it",
+          "body": [
+            [
+              "Service requests: the officials of your village, and the admins above them who handle requests.",
+              "Contact messages: our support team.",
+              "Published posts are visible to everyone who picks that area. A shared post link opens a page with the post that anyone can open. Citizens' posts never show the writer's name or phone; they show only “Citizen”.",
+              "Service providers we rely on: our hosting provider, and Google (Firebase Cloud Messaging for notifications, Play Integrity checks, and app delivery on Google Play). They receive only what they need to provide that service.",
+              "Authorities, when the law requires it."
+            ]
+          ]
+        },
+        {
+          "h": "On your phone and in your browser",
+          "body": [
+            [
+              "Listen (read aloud) uses your phone’s or browser’s own voice; the text is not sent to us.",
+              "Sharing a post uses the app you choose, such as WhatsApp.",
+              "This website sets no tracking cookies and loads no outside fonts or trackers. Only officials who log in to the console get a login (session) cookie, which ends after 30 minutes of inactivity."
+            ]
+          ]
+        },
+        {
+          "h": "How long we keep it",
+          "body": [
+            "Only as long as needed for the purposes above: requests and messages until they are handled, and for a reasonable period after for our records; official accounts while the person holds the role. A block on a phone ends by itself."
+          ]
+        },
+        {
+          "h": "Your rights and deleting your data",
+          "body": [
+            "Under India’s Digital Personal Data Protection Act, 2023, you can ask to see, correct or delete your personal data, and withdraw your consent. Citizens have no account, and officials' accounts are opened by their admins, so to ask for deletion write to {email} or use the Contact page. We will acknowledge your request within 2 working days, then switch off the account and remove your personal details, except records the law requires us to keep."
+          ]
+        },
+        {
+          "h": "Security",
+          "body": [
+            "The website and the app use secure (HTTPS) connections only. Only authorised officials can see this information. Passwords and device details are stored in hashed form. Hidden location and phone details inside uploaded photos and videos are removed. Every official action is recorded."
+          ]
+        },
+        {
+          "h": "Children",
+          "body": [
+            "The app is meant for adults. We do not knowingly collect information from children under 18."
+          ]
+        },
+        {
+          "h": "Changes",
+          "body": [
+            "If we change this policy, we will update this page and the date above."
+          ]
+        },
+        {
+          "h": "Contact",
+          "body": [
+            "Questions or complaints about privacy: {email} · {phone} · or the Contact page."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "updated": "Last updated: 6 November 2026",
+      "intro": "These terms apply when you use the Grama Connect app or this website. By using them, you agree to these terms.",
+      "sections": [
+        {
+          "h": "The service and who runs it",
+          "body": [
+            "A free service that brings announcements, scheme information and notices from your Panchayat, Mandal and District level to your phone. Citizens do not need an account. Grama Connect is run by BVT; it is not a government app and is not affiliated with any government department."
+          ]
+        },
+        {
+          "h": "About the information",
+          "body": [
+            [
+              "Posts are written by Panchayat members and officials, and checked by officials before they are published. Even so, details such as dates and eligibility can change; for anything important, confirm with your Panchayat or the office named in the post.",
+              "In an emergency, do not rely on the app: call 112 (emergency) or 108 (ambulance)."
+            ]
+          ]
+        },
+        {
+          "h": "Using the app responsibly",
+          "body": [
+            [
+              "Post only true, useful information for your village.",
+              "No abusive, hateful, misleading or illegal content, and nothing that shares other people’s private details or photos without their consent.",
+              "Do not try to break, overload or misuse the service."
+            ],
+            "Officials may decline, send back or take down posts, and may temporarily block a phone that misuses the service."
+          ]
+        },
+        {
+          "h": "Official accounts",
+          "body": [
+            "Logins are given only by the official's admin; there is no sign-up in the app. Keep your password private and change the temporary password at your first login. You are responsible for what is posted or approved from your account; every action is recorded. Admins may switch an account off."
+          ]
+        },
+        {
+          "h": "Service requests",
+          "body": [
+            "A request passes your details to your village officials. Sending one does not guarantee the service; the officials will contact you about next steps."
+          ]
+        },
+        {
+          "h": "Shared links and banners",
+          "body": [
+            "A shared post link opens a page that anyone can open; when the post is taken down, the link stops working. Sponsored banners are placed by administrators. Links may open other websites or apps that have their own terms; we are not responsible for them."
+          ]
+        },
+        {
+          "h": "Availability and liability",
+          "body": [
+            "We work to keep the service running and accurate, but provide it “as is”, without guarantees. To the extent the law allows, we are not liable for loss caused by relying on a post, by delays, or by the service being unavailable."
+          ]
+        },
+        {
+          "h": "Content and names",
+          "body": [
+            "The app’s design, name and logo belong to Grama Connect. Each post is the responsibility of the official or member who wrote it."
+          ]
+        },
+        {
+          "h": "Changes",
+          "body": [
+            "We may update these terms; the date above shows the latest version. Continuing to use the service means you accept the changes."
+          ]
+        },
+        {
+          "h": "Law",
+          "body": [
+            "These terms are governed by the laws of India."
+          ]
+        },
+        {
+          "h": "Contact",
+          "body": [
+            "{email} · {phone} · or the Contact page."
+          ]
+        }
+      ]
+    }
+  }
+}

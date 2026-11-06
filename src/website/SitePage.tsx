@@ -4,8 +4,7 @@
 import PageHead from "../shared/PageHead";
 import config from "../shared/config";
 import Site from "./Site";
-import LEGAL from "./content/legal";
-import STRINGS from "./content/strings";
+import LOCALES from "./i18n";
 import { pathOf, type Page } from "./routes";
 
 const CSS = `
@@ -90,31 +89,30 @@ html,body{height:100%;margin:0}#__next{height:100%}
 html:not(.gc-ready) .gc-site{visibility:hidden}
 `;
 
-const NAME = "Grama Connect";
-const T = STRINGS;
+// Search results and share previews are in English; each title ends in the page's Telugu name, since the
+// pages are in Telugu and Telugu searches should match the title too. Every text comes from the locale files.
+const { en: EN, te: TE } = LOCALES;
+const NAME = EN.seo.name, NAME_TE = TE.seo.name;
 const cut = (x: string) => (x.length > 160 ? x.slice(0, 157).replace(/\s+\S*$/, "") + "…" : x);
-const HOME_DESC =
-  "Panchayat notices, scheme deadlines, water and power updates for Andhra Pradesh villages, checked by local officials. In Telugu, free, no sign-up.";
+const title = (p: Exclude<Page, "home">) => EN.seo[p] + " – " + NAME + " | " + TE.seo[p];
 
-// Title and description of each page (search results and share previews).
-// Titles end in the page's Telugu name: the pages are in Telugu, so Telugu searches match the title too.
-const NAME_TE = "గ్రామ కనెక్ట్";
+// Title and description of each page.
 const META: Record<Page, { title: string; description: string }> = {
-  home: { title: NAME + " – Village News App for Andhra Pradesh | " + NAME_TE, description: HOME_DESC },
-  how: { title: "How It Works – " + NAME + " | " + T.te.nav_how, description: cut(T.en.howTitle + ". Panchayat members post, admins check every post, and the news reaches every phone in the village, in Telugu.") },
-  officials: { title: "For Panchayat Members and Admins – " + NAME + " | " + T.te.nav_officials, description: cut(T.en.offSub) },
-  faq: { title: "FAQ – " + NAME + " | తరచుగా అడిగే ప్రశ్నలు", description: cut("Is the app free? Which villages are covered? Who checks the news? Answers to common questions about " + NAME + ".") },
-  contact: { title: "Contact Us – " + NAME + " | " + T.te.nav_contact, description: cut(T.en.contactSub) },
-  privacy: { title: LEGAL.en.privacy.title + " – " + NAME + " | " + LEGAL.te.privacy.title, description: cut(LEGAL.en.privacy.intro) },
-  terms: { title: LEGAL.en.terms.title + " – " + NAME + " | " + LEGAL.te.terms.title, description: cut(LEGAL.en.terms.intro) },
+  home: { title: NAME + " – " + EN.seo.home + " | " + NAME_TE, description: EN.seo.homeDesc },
+  how: { title: title("how"), description: cut(EN.seo.howDesc) },
+  officials: { title: title("officials"), description: cut(EN.ui.offSub) },
+  faq: { title: title("faq"), description: cut(EN.seo.faqDesc) },
+  contact: { title: title("contact"), description: cut(EN.ui.contactSub) },
+  privacy: { title: title("privacy"), description: cut(EN.legal.privacy.intro) },
+  terms: { title: title("terms"), description: cut(EN.legal.terms.intro) },
 };
 
 const TITLES = Object.fromEntries(Object.entries(META).map(([k, m]) => [k, m.title])) as Record<Page, string>;
 
 // FAQ questions and answers looked up by a built key ("q1", "ans1").
-const FAQ_TE: Readonly<Record<string, string>> = T.te;
+const FAQ_TE: Readonly<Record<string, string>> = TE.ui;
 
-const AP = { "@type": "AdministrativeArea", name: "Andhra Pradesh" };
+const AP = { "@type": "AdministrativeArea", name: EN.seo.region };
 
 // Structured data (schema.org) for search engines. The FAQ uses the page's own Telugu text, as rendered.
 function jsonLd(page: Page): object {
@@ -125,11 +123,11 @@ function jsonLd(page: Page): object {
     { "@type": "WebPage", "@id": url + "#page", url, name: META[page].title, description: META[page].description, inLanguage: "te", isPartOf: { "@id": site + "/#website" } },
   ];
   if (page === "home") {
-    graph.push({ "@type": "MobileApplication", name: NAME, alternateName: NAME_TE, url: site + "/", image: site + "/assets/og-image.jpg", operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: HOME_DESC, areaServed: AP, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org,
+    graph.push({ "@type": "MobileApplication", name: NAME, alternateName: NAME_TE, url: site + "/", image: site + "/assets/og-image.jpg", operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: EN.seo.homeDesc, areaServed: AP, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org,
       ...(config.androidApkUrl ? { downloadUrl: new URL(config.androidApkUrl, site + "/").href } : {}) });
   } else {
     graph.push({ "@type": "BreadcrumbList", itemListElement: [
-      { "@type": "ListItem", position: 1, name: T.te.nav_home, item: site + "/" },
+      { "@type": "ListItem", position: 1, name: TE.ui.nav_home, item: site + "/" },
       { "@type": "ListItem", position: 2, name: META[page].title.split(" – ")[0], item: url },
     ] });
   }
@@ -151,13 +149,15 @@ export default function SitePage({ page }: { page: Page }) {
         description={m.description}
         path={pathOf(page)}
         jsonLd={jsonLd(page)}
+        siteName={NAME}
+        imageAlt={EN.seo.imageAlt}
       />
       <noscript>
         <main style={{maxWidth: "640px", margin: "0 auto", padding: "48px 16px", lineHeight: "1.6"}}>
           <p><strong>{NAME}</strong></p>
-          <p lang="te">మీ ఊరి ప్రతి వార్త, ఇక మీ ఫోన్‌లోనే. పంచాయతీ నోటీసులు, పథకాల గడువులు, నీరు–కరెంటు సమాచారం — మీ స్థానిక అధికారులు సరిచూసి నేరుగా మీ ఫోన్‌కు పంపుతారు. తెలుగులో, ఉచితంగా, ఏ రిజిస్ట్రేషన్ లేకుండా.</p>
-          <p>Never miss what’s happening in your village. Panchayat notices, scheme deadlines, water and power updates — checked by your local officials and sent straight to your phone. In Telugu, free, and no sign-up.</p>
-          <p>Please turn on JavaScript to use this website.</p>
+          <p lang="te">{TE.seo.noscript}</p>
+          <p lang="en">{EN.seo.noscript}</p>
+          <p lang="en">{EN.seo.needJs}</p>
         </main>
       </noscript>
       <Site page={page} titles={TITLES} />

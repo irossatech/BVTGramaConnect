@@ -18,7 +18,7 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 | Change | Edit | Then |
 |---|---|---|
 | Website behaviour and data | `src/website/Site.tsx` (state, methods, `renderVals()`) | `npm run build` |
-| Website texts | `src/website/content/strings.ts` (Telugu and English, same keys), `content/legal.ts` (Privacy, Terms) | `npm run build` |
+| Website texts | `src/website/locales/te.json` and `en.json` (same keys; `legal` holds Privacy and Terms, `seo` the page titles and descriptions) | `npm run build` |
 | Website markup | the section in `src/website/sections/` (look: `src/website/ui/`) | `npm run build` |
 | Website fetch helper | `src/website/api.ts` | `npm run build` |
 | Console behaviour, data, API calls | `src/console/Console.tsx` (state, methods, `renderVals()`); API shapes in `src/console/types.ts` | `npm run build` |
@@ -45,7 +45,7 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 
 ## Text and languages (website)
 
-- Every website text lives in `src/website/strings.ts` with a `te` and an `en` entry under the same key; TypeScript fails the build if one language misses a key.
+- Every website text lives in `src/website/locales/te.json` and `en.json` under the same key; TypeScript fails the build if one language misses a key. Never write visible text (labels, aria-labels, alt text, titles, fallback values) in code: add a key to both files and read it (`v.t.<key>` in markup).
 - Telugu is the default language (`lang: 'te'`).
 - Do not "fix" the hero subtitles: the Telugu one is an English sentence and the English one starts in Telugu, on purpose.
 - Files are UTF-8. Check Telugu on screen after every change.

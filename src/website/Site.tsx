@@ -1,13 +1,12 @@
 // Public website, ported from the approved prototype "Public Website.dc.html".
 // render() is the prototype's template as JSX; data enters only through state and renderVals().
-// Texts live in strings.ts (Telugu and English), page addresses in routes.ts.
+// Texts live in locales/te.json and locales/en.json (i18n.ts), page addresses in routes.ts.
 import React from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 import { I } from "../shared/dc";
 import config from "../shared/config";
 import GCApi, { type SiteApiError } from "./api";
-import LEGAL, { type Lang } from "./content/legal";
-import STRINGS, { type Strings } from "./content/strings";
+import LOCALES, { type Lang, type Strings } from "./i18n";
 import { isPage, pageFromSlug, pathOf, type Page } from "./routes";
 import { cream, ui } from "./ui/theme";
 import Header from "./sections/Header";
@@ -92,18 +91,14 @@ interface State {
   enOff: boolean;
 }
 
-// Showcase category chips and labels; announce keeps the prototype's exact chip colours.
-const CAT: Record<Category, { te: string; en: string; bg: string; color: string }> = {
-  announce: { te: "గ్రామ చాటింపులు", en: "Announcements", bg: "#e4f4df", color: "#1d7a33" },
-  schemes: { te: "ప్రభుత్వ పథకాలు", en: "Govt Schemes", bg: "#fff0dc", color: "#9a4a08" },
-  news: { te: "వార్తలు & నోటీసులు", en: "News & Notices", bg: "#e3f0fb", color: "#0D3B7A" },
-  updates: { te: "ప్రజా అప్‌డేట్లు", en: "Public Updates", bg: "#f1e6f7", color: "#6e3590" },
+// Showcase category chip colours (labels: categories in the locale files); announce keeps the prototype's exact chip colours.
+const CAT: Record<Category, { bg: string; color: string }> = {
+  announce: { bg: "#e4f4df", color: "#1d7a33" },
+  schemes: { bg: "#fff0dc", color: "#9a4a08" },
+  news: { bg: "#e3f0fb", color: "#0D3B7A" },
+  updates: { bg: "#f1e6f7", color: "#6e3590" },
 };
 const isCategory = (x: string): x is Category => x in CAT;
-const MONTHS: Record<Lang, string[]> = {
-  te: ["జన", "ఫిబ్ర", "మార్చి", "ఏప్రి", "మే", "జూన్", "జులై", "ఆగ", "సెప్టెం", "అక్టో", "నవం", "డిసెం"],
-  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-};
 const EMPTY_FORM: ContactForm = { name: "", mobile: "", village: "", message: "" };
 const isFormField = (x: string): x is keyof ContactForm => x in EMPTY_FORM;
 /** Every contact field is required; the mobile is an Indian 10-digit number (starts 6-9). */
@@ -126,7 +121,7 @@ function day(iso: string, L: Lang): string {
   const parts = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "numeric", timeZone: "Asia/Kolkata" }).formatToParts(d);
   const dd = parts.find((x) => x.type === "day")?.value ?? "";
   const mm = Number(parts.find((x) => x.type === "month")?.value ?? 1) - 1;
-  return dd + " " + MONTHS[L][mm];
+  return dd + " " + LOCALES[L].months[mm];
 }
 
 /** Everything the sections render: texts, lists and handlers (Site.renderVals()). */
@@ -351,7 +346,8 @@ export default class Site extends React.Component<Props, State> {
   renderVals() {
     const s = this.state,
       L = s.lang,
-      t = STRINGS[L];
+      loc = LOCALES[L],
+      t = loc.ui;
     // Texts looked up by a built key ("f1" + "d").
     const tx: Readonly<Record<string, string>> = t;
     const mobile = s.w < 820;
@@ -433,80 +429,39 @@ export default class Site extends React.Component<Props, State> {
     });
     // Hero ticker: the newest published posts (showcase API); without data, three sample notices.
     const card = (p: ShowcasePost): FeedItem => {
-      const c = CAT[isCategory(p.category) ? p.category : "updates"];
+      const k = isCategory(p.category) ? p.category : "updates";
       // On the English page a Telugu post shows its English title when there is one.
       const tr = p.language && p.language !== L && p.translation?.language === L ? p.translation.title : "";
       const lang = !tr && p.language && p.language !== L ? p.language : undefined;
-      return { chip: c[L], title: tr || p.title, lang, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
+      return { chip: loc.categories[k], title: tr || p.title, lang, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
     };
     const sc = s.showcase[L];
-    const sample: ShowcasePost[] =
-      L === "te"
-        ? [
-            { category: "announce", title: "తాగునీటి సరఫరా సమయం మార్పు", published_at: "2026-10-14", area: { name: "కొలకలూరు" } },
-            { category: "schemes", title: "రేషన్ కార్డు శిబిరం – అక్టోబర్ 18", published_at: "2026-10-13", area: { name: "తెనాలి" } },
-            { category: "news", title: "రోడ్డు మరమ్మతు నోటీసు", published_at: "2026-10-12", area: { name: "గుంటూరు" } },
-          ]
-        : [
-            { category: "announce", title: "Drinking water timing change", published_at: "2026-10-14", area: { name: "Kolakaluru" } },
-            { category: "schemes", title: "Ration card camp – 18 Oct", published_at: "2026-10-13", area: { name: "Tenali" } },
-            { category: "news", title: "Road repair notice", published_at: "2026-10-12", area: { name: "Guntur" } },
-          ];
-    const feed = (sc?.featured ? [sc.featured, ...(sc.items || [])].slice(0, 3) : sample).map(card);
+    const feed = (sc?.featured ? [sc.featured, ...(sc.items || [])].slice(0, 3) : (loc.sample as ShowcasePost[])).map(card);
     const f = s.form;
     const site: SiteConfig = s.site || {};
-    const addr = (site[`office_address_${L}`] || "GramaConnect, 2nd Floor, Collectorate Road,\nGuntur – 522004, Andhra Pradesh").split("\n");
+    const addr = (site[`office_address_${L}`] || loc.office.address).split("\n");
     const contact = {
       addr1: addr[0] || "",
       addr2: addr.slice(1).join(" "),
-      phone: site.phone || "+91 863 223 4567",
+      phone: site.phone || loc.office.phone,
       hours: site[`hours_${L}`] || t.hours,
-      email: site.email || "help@gramaconnect.com",
+      email: site.email || loc.office.email,
     };
     // Hero: the word that changes every few seconds, and the brand line around the photo.
-    const WORD: Record<Lang, Record<Category, string>> = {
-      te: { announce: "చాటింపులు", schemes: "ప్రభుత్వ పథకాలు", news: "వార్తలు & నోటీసులు", updates: "ప్రజా అప్‌డేట్లు" },
-      en: { announce: "announcements", schemes: "govt schemes", news: "news & notices", updates: "public updates" },
-    };
-    const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: WORD[L][k], color: CAT[k].color, icon: icons[k] }));
-    const ring = "GRAMA CONNECT  •  CONNECTING VILLAGES  •  EMPOWERING INDIA  •  ";
-    // One day in the village, each moment tied to a feature (index into appFeatures).
-    const DAY: { title: string; m: [number, string, string][] } =
-      L === "te"
-        ? {
-            title: "యాప్‌తో ఊరిలో ఒక రోజు",
-            m: [
-              [3, "ఉ. 6:30", "ఉదయం టీ తాగుతూనే నేటి వార్తలను యాప్ చదివి వినిపిస్తుంది."],
-              [0, "ఉ. 10:00", "ఆధార్, భూమి రికార్డులు, సర్టిఫికెట్లు: ఏ సేవ కావాలన్నా అభ్యర్థన పంపండి. అధికారులే మీకు కాల్ చేస్తారు."],
-              [2, "మ. 1:00", "విరామంలో ఆరోగ్యం, భద్రత, గ్రామ సభపై 60 సెకన్ల వీడియోలు చూడండి."],
-              [4, "సా. 4:00", "పథకాల చివరి తేదీలు, రాబోయే శిబిరాలకు ఇంకా ఎన్ని రోజులో యాప్ గుర్తుచేస్తుంది."],
-              [5, "రా. 7:00", "నచ్చిన పోస్టును సేవ్ చేయండి, లేదా కుటుంబం, ఇరుగుపొరుగుతో వాట్సాప్‌లో పంచుకోండి."],
-              [1, "ఎప్పుడైనా", "పోలీసు, అంబులెన్స్, హెల్ప్‌లైన్లు, మీ అధికారులు ఒక్క తాకుతో."],
-            ],
-          }
-        : {
-            title: "A day in the village, with the app",
-            m: [
-              [3, "6:30 am", "Over morning tea, the app reads today’s news aloud."],
-              [0, "10:00 am", "Need Aadhaar, land records or a certificate? Send a request and the officials call you back."],
-              [2, "1:00 pm", "Lunch break: 60-second videos on health, safety and your Gram Sabha."],
-              [4, "4:00 pm", "The app counts down the days to scheme last dates and upcoming camps."],
-              [5, "7:00 pm", "Save a post for later, or share it with family and neighbours on WhatsApp."],
-              [1, "Any time", "Police, ambulance, helplines and your officials, one tap away."],
-            ],
-          };
+    const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: loc.words[k], color: CAT[k].color, icon: icons[k] }));
     const legalPage = s.page === "privacy" || s.page === "terms" ? s.page : null;
     const fill = (x: string) => x.replace("{email}", contact.email).replace("{phone}", contact.phone);
     return {
       page: s.page,
       te: L === "te",
+      // One day in the village, each moment tied to a feature (index into appFeatures).
       day: {
-        title: DAY.title,
-        items: DAY.m.map(([k, time, story]) => ({ ...appFeatures[k], time, story })),
+        title: loc.day.title,
+        items: loc.day.moments.map(({ feature, time, story }) => ({ ...appFeatures[feature], time, story })),
       },
       wordIdx: s.tick,
       word: words[s.tick % words.length],
-      ringText: ring,
+      ringText: t.ring,
       scrolled: s.scrolled,
       rootRef: (el: HTMLDivElement | null) => {
         this.el = el;
@@ -524,7 +479,7 @@ export default class Site extends React.Component<Props, State> {
       termsHref: pathOf("terms"),
       privacyLink: this.link("privacy"),
       termsLink: this.link("terms"),
-      langLabel: L === "te" ? "EN" : "తెలుగు",
+      langLabel: t.langOther,
       enOff: s.enOff,
       toggleLang: () => {
             const nl: Lang = L === "te" ? "en" : "te";
@@ -557,11 +512,11 @@ export default class Site extends React.Component<Props, State> {
       goTerms: () => this.go("terms"),
       legal: legalPage
         ? {
-            title: LEGAL[L][legalPage].title,
-            updated: LEGAL[L][legalPage].updated,
-            intro: LEGAL[L][legalPage].intro,
-            note: LEGAL[L].note,
-            sections: LEGAL[L][legalPage].sections.map((x) => ({
+            title: loc.legal[legalPage].title,
+            updated: loc.legal[legalPage].updated,
+            intro: loc.legal[legalPage].intro,
+            note: loc.legal.note,
+            sections: loc.legal[legalPage].sections.map((x) => ({
               h: x.h,
               body: x.body.map((b) => (Array.isArray(b) ? { list: b.map(fill), text: undefined } : { list: undefined, text: fill(b) })),
             })),
@@ -571,9 +526,9 @@ export default class Site extends React.Component<Props, State> {
       appClick: () => this.openStore(site.app_store_url, t),
       // No app in a store yet: each button says so in large text until the server has its store link.
       apkUrl: config.androidApkUrl,
-      apkLabel: L === "te" ? "నేరుగా డౌన్‌లోడ్" : "Direct download",
-      playLabel: site.play_store_url ? ["GET IT ON", "Google Play"] as const : ["Google Play", L === "te" ? "త్వరలో వస్తోంది" : "Coming soon"] as const,
-      appLabel: site.app_store_url ? ["Download on the", "App Store"] as const : ["App Store", L === "te" ? "త్వరలో వస్తోంది" : "Coming soon"] as const,
+      apkLabel: t.apkLabel,
+      playLabel: site.play_store_url ? [t.playPre, t.playName] as const : [t.playName, t.comingSoon] as const,
+      appLabel: site.app_store_url ? [t.appPre, t.appName] as const : [t.appName, t.comingSoon] as const,
       contact,
       features,
       steps,

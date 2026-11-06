@@ -13,11 +13,11 @@ export default function Footer({ v }: { v: View }) {
             <div style={{display: "flex", flexDirection: "column", gap: "10px", flex: "1 1 280px"}}>
               <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
                 <img src="/assets/logo-mark.png" alt="" style={{width: "36px", height: "36px", borderRadius: "18.5%"}} />
-                <span style={{fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: ".03em"}}>GRAMA CONNECT</span>
+                <span style={{fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: ".03em"}}>{I(v.t?.brand)}</span>
               </div>
-              <div style={{fontFamily: display, fontWeight: "700", fontSize: fs.md, color: "#f2dd3d"}}>ప్రతి గ్రామం... ప్రతి కుటుంబం... మన లక్ష్యం!</div>
+              <div style={{fontFamily: display, fontWeight: "700", fontSize: fs.md, color: "#f2dd3d"}}>{I(v.t?.motto)}</div>
             </div>
-            <nav aria-label="Footer" className="gc-foot-nav" style={{display: "flex", flexWrap: "wrap", gap: "0 24px", alignItems: "center"}}>
+            <nav aria-label={v.t?.ariaFooter} className="gc-foot-nav" style={{display: "flex", flexWrap: "wrap", gap: "0 24px", alignItems: "center"}}>
               {list(v.navItems).map((_n, _i1) => (
                 <a key={_i1} href={_n?.href} onClick={_n?.link} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "rgba(255,255,255,.9)", fontSize: fs.base, lineHeight: "normal", textDecoration: "none", cursor: "pointer"}}>{I(_n?.label)}</a>
               ))}
@@ -25,7 +25,7 @@ export default function Footer({ v }: { v: View }) {
           </div>
           <div style={{borderTop: "1px solid rgba(255,255,255,.15)", paddingTop: "10px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "0 10px", fontSize: fs.sm, color: "rgba(255,255,255,.7)"}}>
             {/* The year comes from the visitor's clock, so it is right every January without a rebuild. */}
-            <span suppressHydrationWarning>© {new Date().getFullYear()} BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India · It is not a government app.</span>
+            <span suppressHydrationWarning>{v.t?.copyright.replace("{year}", String(new Date().getFullYear()))}</span>
             <span style={{display: "flex", gap: "16px"}}><a href={v.privacyHref} onClick={v.privacyLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footPrivacy)}</a><a href={v.termsHref} onClick={v.termsLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footTerms)}</a></span>
           </div>
         </div>

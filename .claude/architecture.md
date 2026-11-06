@@ -24,9 +24,10 @@ src/
       Header.tsx  Footer.tsx
       Home.tsx              → home/Hero, Services, DayInVillage, Steps, Audiences, Download
       HowItWorks.tsx  Officials.tsx  Faq.tsx  Contact.tsx  Legal.tsx
-    content/                the words
-      strings.ts            every text, Telugu and English (TypeScript checks both have the same keys)
-      legal.ts              Privacy policy and Terms
+    locales/                the words: every text a visitor sees, and nothing else
+      te.json               Telugu
+      en.json               English (same keys; i18n.ts makes TypeScript fail the build if one misses a key)
+    i18n.ts                 loads the two locale files (and documents their sections)
     ui/
       theme.ts              colours and text styles
       parts.tsx             pieces several sections use (store buttons, steps, ticks, tricolour)
@@ -84,7 +85,7 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 
 - `src/website/Site.tsx` is the approved prototype `Public Website.dc.html` with the allowed port changes.
 - Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `admin`. `go()` pushes `#<page>` (home: no hash) onto the history, and `hashchange` and `popstate` set the page from the hash, so links like `/#faq` open that page and Back and Forward work. Below 820 px a ResizeObserver switches to the mobile layout.
-- The Telugu and English texts are in `src/website/strings.ts`. Telugu is the default.
+- Every Telugu and English text is in `src/website/locales/te.json` and `en.json` (loaded by `i18n.ts`); the code holds no visible text. Telugu is the default.
 - Data: on mount `GET /public/site-config/` fills the office details and store links; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
 
 ## Console

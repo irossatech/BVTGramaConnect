@@ -26,9 +26,10 @@ src/
       Header.tsx  Footer.tsx
       Home.tsx              → home/Hero, Services, DayInVillage, Steps, Audiences, Download
       HowItWorks.tsx  Officials.tsx  Faq.tsx  Contact.tsx  Legal.tsx
-    content/                the words
-      strings.ts            every text, Telugu and English (TypeScript checks both have the same keys)
-      legal.ts              Privacy policy and Terms
+    locales/                the words: every text a visitor sees, and nothing else
+      te.json               Telugu
+      en.json               English (same keys; i18n.ts makes TypeScript fail the build if one misses a key)
+    i18n.ts                 loads the two locale files (and documents their sections)
     ui/
       theme.ts              colours and text styles
       parts.tsx             pieces several sections use (store buttons, APK link, steps, tricolour)
@@ -165,7 +166,7 @@ Added on 3 Nov 2026 (owner requests; the design and content changes below replac
 - **A day in the village** (Home): a timeline read top to bottom, the heading pinned on desktop; each moment's rail fills as it scrolls in.
 - **How it works:** the four levels are a staircase (State → District → Mandal → Village) whose connectors draw in; the three steps' cards no longer show as a grey block while they fade in.
 - **Listen removed:** the hero's read-aloud button and its code are gone.
-- **Contact form:** all four fields required, each with its own error under it (`errName`, `errMobile` (Indian 10-digit, starts 6–9), `errVillage`, `errMessage` in `strings.ts`); the first wrong field gets focus.
+- **Contact form:** all four fields required, each with its own error under it (`errName`, `errMobile` (Indian 10-digit, starts 6–9), `errVillage`, `errMessage` in `locales/*.json`); the first wrong field gets focus.
 - **Header:** turns into the floating bar in one step (same height, nothing below moves) with a transform-only settle animation; no more animating padding, width or height.
 
 **Console**
