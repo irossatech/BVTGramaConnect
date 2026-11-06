@@ -2,7 +2,7 @@
 import { I } from "../../../shared/dc";
 import type { View } from "../../Site";
 import { ui } from "../../ui/theme";
-import { appleIcon, playIcon, storeLabel } from "../../ui/parts";
+import { ApkLink, appleIcon, playIcon, storeLabel } from "../../ui/parts";
 
 export default function Download({ v }: { v: View }) {
   const { ink, green, fs, wrap, h2, lead, pill } = ui(v);
@@ -29,6 +29,7 @@ export default function Download({ v }: { v: View }) {
             <button className="gc-pill" onClick={v.playClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid #fff", background: "#fff", color: ink}}>{playIcon}{storeLabel(v.playLabel[0], v.playLabel[1])}</button>
             <button className="gc-pill" onClick={v.appClick} style={{...pill, height: "54px", padding: "0 22px 0 16px", gap: "10px", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,.75)", background: "rgba(255,255,255,.08)", color: "#fff"}}>{appleIcon}{storeLabel(v.appLabel[0], v.appLabel[1])}</button>
           </div>
+          <ApkLink v={v} color="#fff" />
           </div>
         </div>
       </div>
