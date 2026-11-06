@@ -4,6 +4,10 @@ import type { CSSProperties } from "react";
 import type { View } from "../Site";
 
 export const ink = "#0A2550", blue = "#0D3B7A", green = "#1F8A3B", muted = "#4A5868", line = "#E3E8DF", cream = "#F6F8F3";
+/** A value for wide screens and one for phones (under 820 px), switched by CSS, not JavaScript: the page is built
+ *  ahead of time, so the exported HTML must already be right at every width. Works in any inline style property.
+ *  How: SitePage's CSS sets --gc-m/--gc-d to "initial" (invalid, so var() takes its fallback) or " " (empty). */
+export const rsp = (wide: string, phone: string) => `var(--gc-m,${wide}) var(--gc-d,${phone})`;
 export const display = "'Rubik','Telugu UI','Noto Sans Telugu',sans-serif";
 
 export function ui(v: Pick<View, "te" | "headLh">) {

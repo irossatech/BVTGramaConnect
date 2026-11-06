@@ -25,9 +25,11 @@ interface PageHeadProps {
   /** Share preview: the site name and the share image's alt text (the website passes them from its locale files). */
   siteName?: string;
   imageAlt?: string;
+  /** Fonts the first screen needs (woff2), fetched at once instead of after the CSS that names them. */
+  fonts?: string[];
 }
 
-export default function PageHead({ css, title, description, robots, path = "/", jsonLd, siteName, imageAlt }: PageHeadProps) {
+export default function PageHead({ css, title, description, robots, path = "/", jsonLd, siteName, imageAlt, fonts }: PageHeadProps) {
   const site = config.siteUrl;
   const imports = DS_FILES.map((f) => `@import url("${DS + f}");`).join("") + `@import url("/fonts/fonts.css");`;
   return (
@@ -37,6 +39,9 @@ export default function PageHead({ css, title, description, robots, path = "/", 
       <link rel="icon" type="image/png" href="/assets/logo-mark.png" />
       <link rel="apple-touch-icon" href="/assets/logo-mark.png" />
       <meta name="theme-color" content="#0D3B7A" />
+      {/* The stylesheets the page's <style> @imports, requested in parallel instead of one after another. */}
+      {[...DS_FILES.map((f) => DS + f), "/fonts/fonts.css"].map((href) => <link key={href} rel="preload" as="style" href={href} />)}
+      {fonts?.map((href) => <link key={href} rel="preload" as="font" type="font/woff2" href={href} crossOrigin="" />)}
       {robots ? <meta name="robots" content={robots} /> : null}
       {description ? <>
         <meta name="description" content={description} />

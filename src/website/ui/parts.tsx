@@ -1,7 +1,7 @@
 // Small pieces more than one section uses. Markup exactly as in the original template.
 import { I, list } from "../../shared/dc";
 import type { View } from "../Site";
-import { green, ui } from "./theme";
+import { green, rsp, ui } from "./theme";
 
 /** The India tricolour as a small flag strip. */
 export function Tricolour() {
@@ -68,7 +68,7 @@ export function DetailRows({ v, title, sub, items, note }: { v: View; title?: st
       </div>
       <div style={{borderBottom: "1px solid " + line}}>
         {list(items).map((_r, _i1) => (
-          <div key={_i1} className="gc-reveal" style={{"--d": _i1 * 60 + "ms", display: "grid", gridTemplateColumns: v.mobile ? "minmax(0,1fr)" : "minmax(200px,300px) minmax(0,1fr)", gap: v.mobile ? "6px" : "0 40px", padding: "20px 0", borderTop: "1px solid " + line}}>
+          <div key={_i1} className="gc-reveal" style={{"--d": _i1 * 60 + "ms", display: "grid", gridTemplateColumns: rsp("minmax(200px,300px) minmax(0,1fr)", "minmax(0,1fr)"), gap: rsp("0 40px", "6px"), padding: "20px 0", borderTop: "1px solid " + line}}>
             <h3 style={{margin: "0", fontFamily: display, fontWeight: "700", fontSize: fs.lg, lineHeight: v.headLh, color: ink}}>{I(_r?.title)}</h3>
             <p style={{margin: "0", fontSize: fs.base, lineHeight: v.te ? "1.75" : "1.6", color: muted, maxWidth: "62ch", textWrap: "pretty"}}>{I(_r?.desc)}</p>
           </div>

@@ -98,6 +98,8 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 
 ## Build and serving
 
+- **First paint before React (website):** the exported HTML is complete and right at every width (phone/wide differences are CSS: `rsp()` in `src/website/ui/theme.ts`), so `scripts/defer-hydration.mjs` swaps Next.js's `<script defer>` tags for `public/boot.js`, which loads them in order once the browser reports its first contentful paint (3 s at most), with `<link rel=preload fetchpriority=low>` so they download meanwhile. The page shows at once; scroll reveal and the other effects switch on when React starts (`.gc-ready`). The console is unchanged.
+
 - `npm run build` runs `next build --webpack` with `output: "export"`: it writes `dist/index.html`, `dist/console/index.html`, `dist/_next/` (scripts and chunks) and copies `public/` into `dist/`. `GC_API_BASE` and `GC_SITE_URL` (environment first, then `.env`) are built into the scripts. `dist/` is git-ignored.
 - **Webpack and the Pages Router on purpose:** their pages carry only external `<script src="/_next/…">` tags plus a JSON data block, so the production Content-Security-Policy works without `'unsafe-inline'`. The App Router and Turbopack add inline scripts that the CSP would block.
 - All paths are absolute (`/_next/`, `/_ds/`, `/assets/`): the console page loads its scripts from the site root, so `/` and `/console/` must be served from the same `dist/` build.

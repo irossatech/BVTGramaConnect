@@ -10,6 +10,7 @@ Both apps must look and behave exactly like the approved prototypes. Only these 
 4. Hard-coded values in the markup become `renderVals()` values.
 5. Demo-only controls are removed or pointed at the real target.
 6. Markup, inline styles, CSS files, fonts, images and animations stay as they are.
+7. Website speed work the owner approved on 6 Nov 2026: WebP images at the size they are shown (`public/assets/*.webp`; the PNG/JPG originals stay for the console, favicon and share previews), woff2 fonts, phone/wide layouts in CSS through `rsp()` and the `gc-wide`/`gc-phone`/`gc-stick` classes (never `v.mobile` in markup), the hero's CSS entrance, scripts started after the first paint (`public/boot.js`), and the ticker label and header tagline colours for contrast.
 
 The console also has the documented additions listed in `architecture.md` ("Console"). Anything else, including new text or a new section, is a design change and needs the owner's sign-off first.
 

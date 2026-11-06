@@ -12,7 +12,7 @@ export default function Footer({ v }: { v: View }) {
           <div style={{display: "flex", flexWrap: "wrap", gap: "24px 40px", justifyContent: "space-between", alignItems: "flex-start"}}>
             <div style={{display: "flex", flexDirection: "column", gap: "10px", flex: "1 1 280px"}}>
               <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-                <img src="/assets/logo-mark.png" alt="" style={{width: "36px", height: "36px", borderRadius: "18.5%"}} />
+                <img src="/assets/logo-mark-96.webp" alt="" style={{width: "36px", height: "36px", borderRadius: "18.5%"}} />
                 <span style={{fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: ".03em"}}>{I(v.t?.brand)}</span>
               </div>
               <div style={{fontFamily: display, fontWeight: "700", fontSize: fs.md, color: "#f2dd3d"}}>{I(v.t?.motto)}</div>

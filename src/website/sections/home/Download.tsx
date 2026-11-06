@@ -17,7 +17,7 @@ export default function Download({ v }: { v: View }) {
           </svg>
           <div className="gc-dl-head" style={{position: "relative", display: "flex", alignItems: "center", gap: "18px", flex: "1 1 420px", minWidth: "0"}}>
             <span style={{flexShrink: "0", width: "64px", height: "64px", borderRadius: "20px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(0,0,0,.3)"}}>
-              <img src="/assets/logo-mark.png" alt="" style={{width: "48px", height: "48px", borderRadius: "18.5%"}} />
+              <img src="/assets/logo-mark-96.webp" alt="" style={{width: "48px", height: "48px", borderRadius: "18.5%"}} />
             </span>
             <div style={{display: "flex", flexDirection: "column", gap: "6px", minWidth: "0"}}>
               <h2 style={{...h2, color: "#fff", fontSize: "clamp(22px,2.4vw,30px)"}}>{I(v.t?.ctaTitle)}</h2>

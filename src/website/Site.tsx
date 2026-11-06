@@ -176,11 +176,13 @@ export default class Site extends React.Component<Props, State> {
       }
     }
     if (p !== this.state.page) this.setState({ page: p });
-    // The page was built ahead of time at the desktop width: lay it out at the real width, then show it.
-    if (this.el && Math.abs(this.el.clientWidth - this.state.w) > 2) this.setState({ w: this.el.clientWidth });
-    document.documentElement.classList.add("gc-ready");
+    // The layout itself follows the width in CSS (ui/theme.ts rsp()); the width here only drives the phone menu.
+    // window.innerWidth, like the CSS media queries, so both switch at the same 820 px.
+    if (Math.abs(window.innerWidth - this.state.w) > 2) this.setState({ w: window.innerWidth });
     document.documentElement.lang = this.state.lang;
+    // Mark what is already on screen as revealed before the reveal effect switches on, so nothing blinks.
     this.reveal();
+    document.documentElement.classList.add("gc-ready");
     this.loadSite();
     this.loadShowcase(this.state.lang);
     this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -193,8 +195,8 @@ export default class Site extends React.Component<Props, State> {
     window.addEventListener("hashchange", this.onNav);
     window.addEventListener("popstate", this.onNav);
     if (this.el && window.ResizeObserver) {
-      this.ro = new ResizeObserver((entries) => {
-        const w = entries[0].contentRect.width;
+      this.ro = new ResizeObserver(() => {
+        const w = window.innerWidth;
         if (Math.abs(w - this.state.w) > 2) this.setState({ w });
       });
       this.ro.observe(this.el);
@@ -246,7 +248,10 @@ export default class Site extends React.Component<Props, State> {
         }),
       { rootMargin: "0px 0px -8% 0px" },
     ));
+    const h = window.innerHeight * 0.92;
     els.forEach((e) => {
+      const r = e.getBoundingClientRect();
+      if (r.top < h && r.bottom > 0) e.classList.add("is-in");
       e.setAttribute("data-watch", "");
       io.observe(e);
     });
@@ -365,11 +370,11 @@ export default class Site extends React.Component<Props, State> {
       return { label: t[lk], on, bg: on ? "#e3f0fb" : "transparent", color: on ? "#0D3B7A" : "#17212e", href: pathOf(k), link: this.link(k) };
     });
     const icons: Record<Category | "location", string> = {
-      announce: "/assets/icon-announce.png",
-      schemes: "/assets/icon-schemes.png",
-      news: "/assets/icon-news.png",
-      updates: "/assets/icon-updates.png",
-      location: "/assets/icon-location.png",
+      announce: "/assets/icon-announce.webp",
+      schemes: "/assets/icon-schemes.webp",
+      news: "/assets/icon-news.webp",
+      updates: "/assets/icon-updates.webp",
+      location: "/assets/icon-location.webp",
     };
     const features = (
       [
@@ -467,11 +472,8 @@ export default class Site extends React.Component<Props, State> {
         this.el = el;
       },
       headLh: L === "te" ? "1.4" : "1.15",
-      desktop: !mobile,
-      mobile,
       menuOpen: mobile && s.menuOpen,
       menuIcon: s.menuOpen ? "M18 6L6 18M6 6l12 12" : "M4 7h16M4 12h16M4 17h16",
-      langMargin: mobile ? "auto" : "0",
       t,
       pg,
       navItems,

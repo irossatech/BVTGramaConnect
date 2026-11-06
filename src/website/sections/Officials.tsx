@@ -14,7 +14,7 @@ export default function Officials({ v }: { v: View }) {
           <p style={lead}>{I(v.t?.offSub)}</p>
         </div>
         <div style={{flex: "1 1 320px", borderRadius: "24px", overflow: "hidden"}}>
-          <img src="/assets/village-wide.jpg" alt={v.t?.villageImgAlt} width="774" height="482" loading="lazy" style={{width: "100%", height: "320px", objectFit: "cover", objectPosition: "center 60%", display: "block"}} />
+          <img src="/assets/village-wide.webp" alt={v.t?.villageImgAlt} width="774" height="482" loading="lazy" style={{width: "100%", height: "320px", objectFit: "cover", objectPosition: "center 60%", display: "block"}} />
         </div>
       </div>
     </section>

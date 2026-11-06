@@ -10,9 +10,9 @@ import { pathOf, type Page } from "./routes";
 const CSS = `
 /* "Telugu UI": the mobile app's Telugu face (Noto Sans Telugu scaled to 88% with tighter line metrics), so Telugu sits
    at the same size as the Latin text. Telugu characters only, so English pages never download it. */
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-400.woff) format("woff");font-weight:400 500;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-600.woff) format("woff");font-weight:600;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-700.woff) format("woff");font-weight:700 900;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-400.woff2) format("woff2");font-weight:400 500;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-700.woff2) format("woff2");font-weight:700 900;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
 :root{--blue-900:#0D3B7A;--green-600:#1F8A3B;--orange-500:#E9791E;--text-heading:#0A2550;--font-latin:"Rubik","Noto Sans Telugu",sans-serif;--font-telugu:"Nunito Sans","Noto Sans Telugu",sans-serif}
 body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Telugu UI","Noto Sans Telugu",sans-serif;color:#17212e;-webkit-font-smoothing:antialiased}
 a{color:#0D3B7A}a:hover{color:#0A2550}
@@ -52,9 +52,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 .gc-lang:hover .gc-globe{transform:rotate(-20deg)}
 .gc-faq:hover>span:first-child{color:#0D3B7A}
 }
-/* Scroll reveal, both ways: --from is +28px below the fold (scrolling down) or -28px above it (scrolling back up). */
-.gc-reveal{opacity:0;transform:translateY(var(--from,28px));transition:opacity .6s ease,transform .7s var(--ease-out);transition-delay:var(--d,0ms)}
-.gc-reveal.is-in{opacity:1;transform:none}
+/* Scroll reveal, both ways: --from is +28px below the fold (scrolling down) or -28px above it (scrolling back up).
+   Only once the script runs (.gc-ready): before that, and without JavaScript, everything is simply visible. */
+.gc-reveal{transition:opacity .6s ease,transform .7s var(--ease-out);transition-delay:var(--d,0ms)}
+.gc-ready .gc-reveal:not(.is-in){opacity:0;transform:translateY(var(--from,28px))}
+/* Hero entrance: plain CSS, so it plays as the page paints instead of waiting for the script. A slide only, no fade:
+   the hero stays visible from the first paint, so the browser counts it as shown at once (Largest Contentful Paint). */
+@keyframes gc-in{from{transform:translateY(16px)}}
+.gc-in{animation:gc-in .7s var(--ease-out) both;animation-delay:var(--d,0ms)}
+/* Phone (under 820 px) and wide layouts in CSS (ui/theme.ts rsp()), so the built page is right at every width. */
+:root{--gc-m:initial;--gc-d: }
+@media (max-width:819.98px){:root{--gc-m: ;--gc-d:initial}.gc-wide{display:none!important}}
+@media (min-width:820px){.gc-phone{display:none!important}.gc-stick{position:sticky}}
 /* New in the app (a day in the village): as each moment comes into view its dot fills, then the rail runs on to the next. */
 .gc-tl-dot{transition:background-color .4s ease .15s,transform .4s var(--ease-out) .15s}
 .gc-moment.is-in .gc-tl-dot{background:currentColor!important;transform:scale(1.15)}
@@ -82,11 +91,9 @@ html{scroll-behavior:smooth}
 .gc-ticker-track{animation:gc-marquee 36s linear infinite}
 .gc-ticker:hover .gc-ticker-track{animation-play-state:paused}
 /* Reduced motion: keep the gentle fades and colour changes, drop movement, parallax and pulsing. */
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in,.gc-seg{transform:none!important}.gc-draw{clip-path:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-level:hover .gc-lv-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word,.gc-float{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in,.gc-seg{transform:none!important}.gc-draw{clip-path:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-level:hover .gc-lv-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word,.gc-float,.gc-in{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
 @media (max-width:600px){.gc-foot-nav{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.gc-dl-head{flex-direction:column;align-items:flex-start!important;gap:14px!important}.gc-dl-actions{width:100%;align-items:stretch!important}.gc-dl-btns{display:grid!important;grid-template-columns:1fr;gap:10px!important}.gc-dl-btns>button{width:100%}}
 html,body{height:100%;margin:0}#__next{height:100%}
-/* The page is built ahead of time at the desktop width; it shows once the browser has laid it out at its own width. */
-html:not(.gc-ready) .gc-site{visibility:hidden}
 `;
 
 // Search results and share previews are in English; each title ends in the page's Telugu name, since the
@@ -151,6 +158,7 @@ export default function SitePage({ page }: { page: Page }) {
         jsonLd={jsonLd(page)}
         siteName={NAME}
         imageAlt={EN.seo.imageAlt}
+        fonts={["/assets/fonts/telugu-ui-400.woff2", "/assets/fonts/telugu-ui-700.woff2"]}
       />
       <noscript>
         <main style={{maxWidth: "640px", margin: "0 auto", padding: "48px 16px", lineHeight: "1.6"}}>
