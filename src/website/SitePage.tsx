@@ -97,14 +97,16 @@ const HOME_DESC =
   "Panchayat notices, scheme deadlines, water and power updates for Andhra Pradesh villages, checked by local officials. In Telugu, free, no sign-up.";
 
 // Title and description of each page (search results and share previews).
+// Titles end in the page's Telugu name: the pages are in Telugu, so Telugu searches match the title too.
+const NAME_TE = "గ్రామ కనెక్ట్";
 const META: Record<Page, { title: string; description: string }> = {
-  home: { title: NAME + " – Village News App for Andhra Pradesh", description: HOME_DESC },
-  how: { title: "How It Works – " + NAME, description: cut(T.en.howTitle + ". Panchayat members post, admins check every post, and the news reaches every phone in the village, in Telugu.") },
-  officials: { title: "For Panchayat Members and Admins – " + NAME, description: cut(T.en.offSub) },
+  home: { title: NAME + " – Village News App for Andhra Pradesh | " + NAME_TE, description: HOME_DESC },
+  how: { title: "How It Works – " + NAME + " | " + T.te.nav_how, description: cut(T.en.howTitle + ". Panchayat members post, admins check every post, and the news reaches every phone in the village, in Telugu.") },
+  officials: { title: "For Panchayat Members and Admins – " + NAME + " | " + T.te.nav_officials, description: cut(T.en.offSub) },
   faq: { title: "FAQ – " + NAME + " | తరచుగా అడిగే ప్రశ్నలు", description: cut("Is the app free? Which villages are covered? Who checks the news? Answers to common questions about " + NAME + ".") },
-  contact: { title: "Contact Us – " + NAME, description: cut(T.en.contactSub) },
-  privacy: { title: LEGAL.en.privacy.title + " – " + NAME, description: cut(LEGAL.en.privacy.intro) },
-  terms: { title: LEGAL.en.terms.title + " – " + NAME, description: cut(LEGAL.en.terms.intro) },
+  contact: { title: "Contact Us – " + NAME + " | " + T.te.nav_contact, description: cut(T.en.contactSub) },
+  privacy: { title: LEGAL.en.privacy.title + " – " + NAME + " | " + LEGAL.te.privacy.title, description: cut(LEGAL.en.privacy.intro) },
+  terms: { title: LEGAL.en.terms.title + " – " + NAME + " | " + LEGAL.te.terms.title, description: cut(LEGAL.en.terms.intro) },
 };
 
 const TITLES = Object.fromEntries(Object.entries(META).map(([k, m]) => [k, m.title])) as Record<Page, string>;
@@ -112,16 +114,19 @@ const TITLES = Object.fromEntries(Object.entries(META).map(([k, m]) => [k, m.tit
 // FAQ questions and answers looked up by a built key ("q1", "ans1").
 const FAQ_TE: Readonly<Record<string, string>> = T.te;
 
+const AP = { "@type": "AdministrativeArea", name: "Andhra Pradesh" };
+
 // Structured data (schema.org) for search engines. The FAQ uses the page's own Telugu text, as rendered.
 function jsonLd(page: Page): object {
   const site = config.siteUrl, url = site + pathOf(page), org = { "@id": site + "/#org" };
   const graph: object[] = [
-    { "@type": "Organization", "@id": site + "/#org", name: NAME, url: site + "/", logo: site + "/assets/logo-mark.png" },
-    { "@type": "WebSite", "@id": site + "/#website", name: NAME, url: site + "/", inLanguage: ["te", "en"], publisher: org },
+    { "@type": "Organization", "@id": site + "/#org", name: NAME, alternateName: NAME_TE, url: site + "/", logo: site + "/assets/logo-mark.png", areaServed: AP },
+    { "@type": "WebSite", "@id": site + "/#website", name: NAME, alternateName: NAME_TE, url: site + "/", inLanguage: ["te", "en"], publisher: org },
     { "@type": "WebPage", "@id": url + "#page", url, name: META[page].title, description: META[page].description, inLanguage: "te", isPartOf: { "@id": site + "/#website" } },
   ];
   if (page === "home") {
-    graph.push({ "@type": "MobileApplication", name: NAME, operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: HOME_DESC, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org });
+    graph.push({ "@type": "MobileApplication", name: NAME, alternateName: NAME_TE, url: site + "/", image: site + "/assets/og-image.jpg", operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: HOME_DESC, areaServed: AP, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org,
+      ...(config.androidApkUrl ? { downloadUrl: new URL(config.androidApkUrl, site + "/").href } : {}) });
   } else {
     graph.push({ "@type": "BreadcrumbList", itemListElement: [
       { "@type": "ListItem", position: 1, name: T.te.nav_home, item: site + "/" },
