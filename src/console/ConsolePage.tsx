@@ -10,6 +10,10 @@ const CSS = `
 body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Noto Sans Telugu",sans-serif;color:#17212e;font-size:14px}
 a{color:#0D3B7A}a:hover{color:#0A2550}
 input,textarea,select,button{font-family:inherit}
+/* Cursor: the arrow everywhere; the hand on links and buttons; the text cursor only where you type. */
+body{cursor:default}
+a[href],button:not(:disabled),[role=button],summary,label[for],select{cursor:pointer}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),textarea,[contenteditable=true]{cursor:text}
 table{border-collapse:collapse}
 /* Scrollbars stay hidden; lists and tables still scroll by wheel, trackpad, touch and keyboard. */
 *{scrollbar-width:none}*::-webkit-scrollbar{display:none}

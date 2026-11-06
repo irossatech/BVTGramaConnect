@@ -28,7 +28,7 @@ export default function ConfirmModal({ v }: { v: View }) {
           {v.modal?.hasInput ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.inputLabel)}</span>
               <span style={{display: "flex", gap: "10px"}}>
-                <input type="text" value={val(v.modalText, "")} onChange={v.onModalText} placeholder={v.modal?.inputPh} autoComplete="off" style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+                <input type={v.modal?.inputType || "text"} value={val(v.modalText, "")} onChange={v.onModalText} placeholder={v.modal?.inputPh} autoComplete={v.modal?.inputType === "password" ? "current-password" : "off"} style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
                 {v.modal?.hasGen ? <button onClick={v.genModal} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Generate</button> : null}
               </span>
             </label> : null}

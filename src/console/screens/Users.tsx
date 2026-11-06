@@ -8,20 +8,20 @@ export default function Users({ v }: { v: View }) {
   return (
     <>
       <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
-        <select name="role" value={val(v.uf?.role, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
+        <select name="role" value={val(v.uf?.role, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", flex: "1 1 140px", minWidth: "0"}}>
           <option value="">All roles</option>
           <option value="district">District Admin</option>
           <option value="mandal">Mandal Admin</option>
           <option value="village">Village Admin</option>
           <option value="panchayat">Panchayat Member</option>
         </select>
-        <select name="district" value={val(v.uf?.district, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
+        <select name="district" value={val(v.uf?.district, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", flex: "1 1 140px", minWidth: "0"}}>
           <DistrictOptions v={v} />
         </select>
-        <select name="status" value={val(v.uf?.status, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "150px"}}><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select>
-        <input name="q" value={val(v.uf?.q, "")} onChange={v.onUF} placeholder="Search name or mobile" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", width: "min(220px, 100%)"}} />
-        <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.userCount)}{" users"}</span>
-        {v.canAddUser ? <button onClick={v.openAddUser} style={{marginLeft: "auto", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add User</button> : null}
+        <select name="status" value={val(v.uf?.status, "")} onChange={v.onUF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", flex: "1 1 130px", minWidth: "0"}}><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select>
+        <input name="q" value={val(v.uf?.q, "")} onChange={v.onUF} placeholder="Search name or mobile" style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", flex: "1.6 1 190px", minWidth: "0"}} />
+        <span style={{fontSize: "13px", color: "#6b7a8c", whiteSpace: "nowrap", flexShrink: "0"}}>{I(v.userCount)}{" users"}</span>
+        {v.canAddUser ? <button onClick={v.openAddUser} style={{marginLeft: "auto", flexShrink: "0", whiteSpace: "nowrap", height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add User</button> : null}
       </div>
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
         {" "}

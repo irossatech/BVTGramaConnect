@@ -22,7 +22,7 @@ const te = {
       x1:'సేవలు & అభ్యర్థనలు',x1d:'ఆధార్, భూమి రికార్డులు లేదా సర్టిఫికెట్‌తో సహాయం కావాలా? అభ్యర్థన పంపండి. మీ గ్రామ అధికారులు మీకు కాల్ చేస్తారు.',x2:'సహాయ నంబర్లు',x2d:'పోలీసు, అంబులెన్స్, హెల్ప్‌లైన్లు, మీ స్థానిక అధికారులు. ఒక్క తాకుతో కాల్ చేయండి.',x3:'60 సెకన్ల వీడియోలు',x3d:'మీ ఊరి నుంచి చిన్న, ఉపయోగకరమైన వీడియోలు, ఒక నిమిషంలోపే.',x4:'వార్తలు వినండి',x4d:'చదవడానికి సమయం లేదా? “వినండి” నొక్కితే యాప్ నేటి వార్తలను చదివి వినిపిస్తుంది.',x5:'గడువులు మిస్ కాకండి',x5d:'పథకాల చివరి తేదీలు, రాబోయే శిబిరాలకు ఇంకా ఎన్ని రోజులో కనిపిస్తుంది.',x6:'సేవ్ & షేర్',x6d:'పోస్ట్‌ను తర్వాత చదవడానికి సేవ్ చేయండి, లేదా చిత్రంగా వాట్సాప్‌లో పంచుకోండి.',appMore:'ఇంకా: వార్తల శోధన, పెద్ద అక్షరాలు, అత్యవసర హెచ్చరికలు, కొత్త పోస్టులకు నోటిఫికేషన్లు.',q8:'యాప్ ద్వారా అధికారుల సహాయం అడగవచ్చా?',ans8:'అవును. హోమ్‌లోని “సేవలు” తెరిచి సేవను ఎంచుకుని మీ పేరు, మొబైల్ నంబర్ ఇవ్వండి. అభ్యర్థన మీ గ్రామ అధికారులకు చేరుతుంది; వారు మిమ్మల్ని సంప్రదిస్తారు.',
       formNote:'మీ వివరాలను మీకు జవాబివ్వడానికి మాత్రమే వాడతాం.',
       ctaTitle:'మీ ఊరి వార్తలు, మీ ఫోన్‌లో',ctaSub:'తెలుగులో, ఇంగ్లీష్‌లో. నెట్ నెమ్మదిగా ఉన్నా పనిచేస్తుంది.',
-      footPrivacy:'గోప్యతా విధానం',footTerms:'నిబంధనలు',toastStore:'యాప్ త్వరలో స్టోర్‌లలోకి వస్తోంది.',toastFail:'సందేశం వెళ్లలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.',toastBusy:'ఇప్పుడు చాలా సందేశాలు వస్తున్నాయి. కొన్ని నిమిషాల తర్వాత ప్రయత్నించండి.'
+      footPrivacy:'గోప్యతా విధానం',footTerms:'నిబంధనలు',toastStore:'యాప్ త్వరలో స్టోర్‌లలోకి వస్తోంది.',toastApk:'Android యాప్ డౌన్‌లోడ్ అవుతోంది…',toastFail:'సందేశం వెళ్లలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి.',toastBusy:'ఇప్పుడు చాలా సందేశాలు వస్తున్నాయి. కొన్ని నిమిషాల తర్వాత ప్రయత్నించండి.'
 };
 
 /** All the website's text keys. */
@@ -49,7 +49,7 @@ const en: Strings = {
       x1:'Services & requests',x1d:'Need help with Aadhaar, land records or a certificate? Send a request and your village officials will call you.',x2:'Help numbers',x2d:'Police, ambulance, helplines and your local officials, one tap to call.',x3:'60-second videos',x3d:'Short videos from your village, a minute or less each.',x4:'Listen to the news',x4d:'No time to read? Tap Listen and the app reads today’s news aloud.',x5:'Never miss a deadline',x5d:'Scheme last dates and upcoming camps, with a countdown of the days left.',x6:'Save & share',x6d:'Keep a post to read later, or share it on WhatsApp as a picture.',appMore:'Plus: news search, bigger text, urgent alerts, and notifications for new posts.',q8:'Can I ask officials for help through the app?',ans8:'Yes. Open Services on the Home screen, pick the service, and leave your name and mobile number. The request goes to your village officials, who will get in touch.',
       formNote:'We use your details only to reply to you.',
       ctaTitle:'Your village’s news, on your phone',ctaSub:'Works in Telugu and English, even on a slow network.',
-      footPrivacy:'Privacy policy',footTerms:'Terms',toastStore:'The app isn’t in the stores yet. It’s coming soon.',toastFail:'That didn’t go through. Please try again.',toastBusy:'We’re getting a lot of messages right now. Please try again in a few minutes.'
+      footPrivacy:'Privacy policy',footTerms:'Terms',toastStore:'The app isn’t in the stores yet. It’s coming soon.',toastApk:'Downloading the Android app…',toastFail:'That didn’t go through. Please try again.',toastBusy:'We’re getting a lot of messages right now. Please try again in a few minutes.'
 };
 
 const STRINGS: Record<Lang, Strings> = { te, en };

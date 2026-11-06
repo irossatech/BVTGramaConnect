@@ -24,7 +24,8 @@ export default function Footer({ v }: { v: View }) {
             </nav>
           </div>
           <div style={{borderTop: "1px solid rgba(255,255,255,.15)", paddingTop: "10px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "0 10px", fontSize: fs.sm, color: "rgba(255,255,255,.7)"}}>
-            <span>© 2026 BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India</span>
+            {/* The year comes from the visitor's clock, so it is right every January without a rebuild. */}
+            <span suppressHydrationWarning>© {new Date().getFullYear()} BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India · It is not a government app.</span>
             <span style={{display: "flex", gap: "16px"}}><a href={v.privacyHref} onClick={v.privacyLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footPrivacy)}</a><a href={v.termsHref} onClick={v.termsLink} style={{display: "inline-flex", alignItems: "center", minHeight: "44px", background: "none", border: "0", padding: "0", color: "inherit", fontSize: fs.sm, lineHeight: "normal", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: "3px"}}>{I(v.t?.footTerms)}</a></span>
           </div>
         </div>

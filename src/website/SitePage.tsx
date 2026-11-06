@@ -18,6 +18,10 @@ const CSS = `
 body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Telugu UI","Noto Sans Telugu",sans-serif;color:#17212e;-webkit-font-smoothing:antialiased}
 a{color:#0D3B7A}a:hover{color:#0A2550}
 input,textarea,select,button{font-family:inherit}
+/* Cursor: the arrow everywhere; the hand on links and buttons; the text cursor only where you type. */
+body{cursor:default}
+a[href],button:not(:disabled),[role=button],summary,label[for],select{cursor:pointer}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),textarea,[contenteditable=true]{cursor:text}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #0D3B7A;outline-offset:2px}
 @keyframes mk-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* Micro-interactions: quick (120-250 ms), ease-out, small distances. Hover effects only on devices that hover. */

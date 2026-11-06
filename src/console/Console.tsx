@@ -90,6 +90,8 @@ interface ModalSpec {
   sel?: string;
   hasInput?: boolean;
   noGen?: boolean;
+  /** The text box hides what is typed (confirming with your own password). */
+  password?: boolean;
   inputLabel?: string;
   inputPh?: string;
   /** A second text field under the first (My profile: the Telugu name). */
@@ -411,6 +413,8 @@ interface State {
   geo: GeoDistrictRow[];
   stateRow: GeoState | null;
   expanded: Record<string, boolean>;
+  /** Geography search: district, mandal or village name (English or Telugu) or LGD code. */
+  geoQ: string;
   geoForm: GeoForm | null;
   users: AdminUser[];
   userCount: number;
@@ -564,12 +568,12 @@ export default class Component extends React.Component<Props, State> {
   private static readonly CAT_ICONS: readonly ds.Category[] = ['announce', 'schemes', 'news', 'updates'];
   // API values -> the prototype's keys
   private static readonly RK: Readonly<Record<string, string>> = {SUPER_ADMIN:'super',DISTRICT_ADMIN:'district',MANDAL_ADMIN:'mandal',VILLAGE_ADMIN:'village',PANCHAYAT_MEMBER:'panchayat',SYSTEM:'system'};
-  private static readonly RAPI: Readonly<Partial<Record<string, string>>> = {district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
+  private static readonly RAPI: Readonly<Partial<Record<string, string>>> = {super:'SUPER_ADMIN',district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
   private static readonly SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',DRAFT:'Draft'};
   private static readonly SAPI: Readonly<Record<string, string>> = {Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
-  private static readonly LEVEL_OF_ROLE: Readonly<Partial<Record<string, AreaLevel>>> = {district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
+  private static readonly LEVEL_OF_ROLE: Readonly<Partial<Record<string, AreaLevel>>> = {super:'STATE',district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
   private static readonly HIST: Readonly<Record<string, string>> = {SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
-  private static readonly ACT: Readonly<Record<string, string>> = {'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
+  private static readonly ACT: Readonly<Record<string, string>> = {'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','user.super_admin_created':'added a Super Admin','user.super_admin_role_added':'gave the Super Admin role','user.super_admin_role_removed':'removed the Super Admin role','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   private static readonly PAGE = 20;
   // Home banner ads (docs/api-contract.md section 17): status worked out from the dates and the switch.
@@ -583,13 +587,13 @@ export default class Component extends React.Component<Props, State> {
   private static readonly LVROLE: Readonly<Record<string, string>> = {DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
   private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills','service_requests.manage_services'],services:['service_requests.manage_services','web_admin.access_web_console'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services','posts.view_review_queue'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
-  private static readonly MANAGE: Readonly<Partial<Record<string, string>>> = {district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
+  private static readonly MANAGE: Readonly<Partial<Record<string, string>>> = {super:'accounts.manage_super_admin',district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   private static readonly CONSOLE_PERM = 'web_admin.access_web_console';
   private static readonly LOGIN_ERR: Readonly<Record<string, string>> = {invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
   state: State = {
     screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, navOpen: false, exporting: null, notifOpen: false, notifs: [], notifUnread: 0, notifNext: null, notifLoading: false, notifError: false, gsearch: '', me: null,
-    geo: [], stateRow: null, expanded: {}, geoForm: null,
+    geo: [], stateRow: null, expanded: {}, geoQ: '', geoForm: null,
     users: [], userCount: 0, userPage: 1, userPages: 1, usersLoading: false,
     reqs: [], reqCount: 0, reqPage: 1, reqPages: 1, reqLoading: false, reqFilter: 'NEW', svcView: 'requests', ads: [], adsLoading: false, adsUnavailable: false, af: null,
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
@@ -802,7 +806,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private roleChoices(): Option[] {
-    return ['district', 'mandal', 'village', 'panchayat'].filter((k) => this.can(Component.MANAGE[k] || '')).map((k) => ({id: k, label: Component.ROLE[k].label}));
+    return ['super', 'district', 'mandal', 'village', 'panchayat'].filter((k) => this.can(Component.MANAGE[k] || '')).map((k) => ({id: k, label: Component.ROLE[k].label}));
   }
 
   // A temporary password to hand over in person: 12 characters, no look-alikes, at least one lower, upper,
@@ -1974,6 +1978,7 @@ export default class Component extends React.Component<Props, State> {
   private areaSteps(f: NewUserForm) {
     const g = this.state.geo.filter((d) => d.active);
     const lv = Component.LEVEL_OF_ROLE[f.role];
+    if (lv === 'STATE') return []; // Super Admin: the whole state, nothing to pick
     const d = g.find((x) => String(x.id) === String(f.nuD));
     const m = d && d.mandals.find((x) => String(x.id) === String(f.nuM));
     const steps: {key: 'nuD' | 'nuM' | 'area'; label: string; ph: string; value: string; options: Option[]}[] = [{key: 'nuD', label: 'District', ph: 'Choose a district', value: f.nuD || '', options: g.map((x) => ({id: String(x.id), label: this.nl(x)}))}];
@@ -1988,7 +1993,7 @@ export default class Component extends React.Component<Props, State> {
     if (name === 'role') {
       n.nuD = '';
       n.nuM = '';
-      n.area = '';
+      n.area = lv === 'STATE' && this.state.stateRow ? String(this.state.stateRow.id) : '';
     }
     if (name === 'nuD') {
       n.nuM = '';
@@ -2003,6 +2008,7 @@ export default class Component extends React.Component<Props, State> {
   private areaSummary(f: NewUserForm) {
     if (!f.area) return '';
     const lv = Component.LEVEL_OF_ROLE[f.role];
+    if (lv === 'STATE') return (this.state.stateRow ? this.state.stateRow.name_en : 'The state') + ' (whole state)';
     const d = this.state.geo.find((x) => String(x.id) === String(f.nuD));
     const m = d && d.mandals.find((x) => String(x.id) === String(f.nuM));
     const v = m && m.villages.find((x) => String(x.id) === String(f.area));
@@ -2012,6 +2018,8 @@ export default class Component extends React.Component<Props, State> {
   private areaOptions(role: string): AreaOption[] {
     const lv = Component.LEVEL_OF_ROLE[role];
     const g = this.state.geo;
+    const st = this.state.stateRow;
+    if (lv === 'STATE') return st ? [{id: String(st.id), label: st.name_en, level: lv}] : [];
     if (lv === 'DISTRICT') return g.filter((d) => d.active).map((d) => ({id: String(d.id), label: this.nl(d), level: lv}));
     if (lv === 'MANDAL') return g.flatMap((d) => d.mandals.filter((m) => m.active && d.active).map((m) => ({id: String(m.id), label: this.nl(m), level: lv})));
     return g.flatMap((d) => d.mandals.flatMap((m) => m.villages.filter((v) => v.active && m.active && d.active).map((v) => ({id: String(v.id), label: this.nl(v), level: 'VILLAGE' as const}))));
@@ -2156,7 +2164,7 @@ export default class Component extends React.Component<Props, State> {
     const pw = f.password.trim();
     if (pw) body.password = pw;
     const gen = this.nuGen;
-    this.api.post<TemporaryPassword | null>('/users/', body).then((d) => {
+    const send = (currentPassword?: string) => this.api.post<TemporaryPassword | null>('/users/', currentPassword ? {...body, current_password: currentPassword} : body).then((d) => {
       this.nuGen = '';
       this.setState({drawerOpen: false, nu: {...EMPTY_NU}});
       const temp = (d && d.temporary_password) || (pw && pw === gen ? pw : '');
@@ -2164,6 +2172,13 @@ export default class Component extends React.Component<Props, State> {
       else this.toast('User created · ' + body.username);
       this.loadUsers(1);
     }).catch((e: unknown) => this.fail(e));
+    if (f.role !== 'super') {
+      send();
+      return;
+    }
+    this.ask({title: 'Add a Super Admin', body: body.name + ' will be able to see and change everything, including other Super Admins. Enter your own password to confirm.', hasInput: true, noGen: true, password: true, inputLabel: 'Your password', inputPh: 'Your password', confirmLabel: 'Add Super Admin', bg: '#b3261e', onConfirm: (t) => {
+      if (t) send(t);
+    }});
   }
 
   // ---- geography ----
@@ -2276,6 +2291,42 @@ export default class Component extends React.Component<Props, State> {
   // Villages CSV import. Big files go up in parts of ~4,000 villages (each mandal kept in one part) so no request
   // reaches the server's 60 s limit; the importer is safe to repeat. Every part is checked first (dry run), the
   // totals are shown, and only then is anything saved. Helpers and rules: src/console/csv-parts.ts.
+  // Export CSV: every district, mandal and village already loaded on this page, in exactly the columns
+  // Import CSV takes, so a file can be exported, corrected in Excel and imported back. UTF-8 with a BOM,
+  // so Excel shows the Telugu names. One row per village (the import needs a village on every row).
+  private exportGeo() {
+    const st = this.state.stateRow;
+    const cols = ['state', 'state_te', 'district', 'district_te', 'mandal', 'mandal_te', 'village', 'village_te', 'latitude', 'longitude', 'pin_code', 'district_lgd_code', 'mandal_lgd_code', 'village_lgd_code'];
+    const cell = (x: string | null | undefined) => {
+      const t = String(x ?? '');
+      return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    const lines = [cols.join(',')];
+    let empty = 0;
+    for (const d of this.state.geo) {
+      for (const m of d.mandals) {
+        if (!m.villages.length) empty++;
+        for (const v of m.villages) {
+          lines.push([st ? st.name_en : 'Andhra Pradesh', st ? st.name_te : '', d.name, d.te, m.name, m.te, v.name, v.te, v.lat, v.lng, v.pin, d.lgd, m.lgd, v.lgd].map(cell).join(','));
+        }
+      }
+    }
+    if (lines.length === 1) {
+      this.toast('No villages to export yet.', '#E9791E');
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 10);
+    const url = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n') + '\r\n'], {type: 'text/csv;charset=utf-8'}));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'grama-geography-' + stamp + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.toast('Exported ' + (lines.length - 1).toLocaleString('en-IN') + ' villages' + (empty ? ' · ' + empty + ' mandal' + (empty === 1 ? '' : 's') + ' without villages left out' : ''));
+  }
+
   private importCsv() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -2483,7 +2534,56 @@ export default class Component extends React.Component<Props, State> {
       if (node.mandals) node.mandals.forEach((k) => walk(k, 'mandal', depth + 1, node.id, node.name, key, k.villages.length + ' villages'));
       else if (node.villages) node.villages.forEach((k) => walk(k, 'village', depth + 1, node.id, node.name, key, k.lat ? Number(k.lat).toFixed(4) + ', ' + Number(k.lng).toFixed(4) : ''));
     };
-    s.geo.forEach((d) => walk(d, 'district', 0, null, null, null, d.mandals.length + ' mandals'));
+    // Search: every match with the path above it (district > mandal), opened, matches highlighted.
+    // English names ignore case, spaces and dots; Telugu names and LGD codes match as typed.
+    const gq = s.geoQ.trim();
+    const gqEn = gq.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const hit = (n: GeoNode) => !!gq && ((gqEn.length > 0 && n.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes(gqEn)) || (!!n.te && n.te.includes(gq)) || (/^\d+$/.test(gq) && n.lgd === gq));
+    const VILLAGE_CAP = 300;
+    let geoFound = {districts: 0, mandals: 0, villages: 0, shown: 0};
+    if (!gq) {
+      s.geo.forEach((d) => walk(d, 'district', 0, null, null, null, d.mandals.length + ' mandals'));
+    } else {
+      const vMeta = (k: GeoNode) => (k.lat ? Number(k.lat).toFixed(4) + ', ' + Number(k.lng).toFixed(4) : '');
+      const mark = (row: ReturnType<typeof treeRow>, on: boolean) => (on ? {...row, rowBg: row.rowBg === 'transparent' ? '#fff8db' : row.rowBg, match: true} : row);
+      for (const d of s.geo) {
+        const dHit = hit(d);
+        const ms = d.mandals.map((m) => ({m, mHit: hit(m), vs: m.villages.filter(hit)})).filter((x) => x.mHit || x.vs.length);
+        if (!dHit && !ms.length) continue;
+        if (dHit) geoFound.districts++;
+        const dKey = '' + d.id;
+        // A matching district without matching places below stays closed until you open it; then it shows everything.
+        if (!ms.length) {
+          walk(d, 'district', 0, null, null, null, d.mandals.length + ' mandals');
+          const at = tree.findIndex((r) => r.kind === 'district' && r.name === d.name);
+          if (at >= 0) tree[at] = mark(tree[at], true);
+          continue;
+        }
+        tree.push(mark(treeRow(d, 'district', 0, null, null, null, d.mandals.length + ' mandals', dKey, true), dHit));
+        for (const {m, mHit, vs} of ms) {
+          if (mHit) geoFound.mandals++;
+          geoFound.villages += vs.length;
+          const mKey = 'm' + m.id;
+          const showAll = !vs.length && !!s.expanded[mKey];
+          tree.push(mark(treeRow(m, 'mandal', 1, d.id, d.name, dKey, m.villages.length + ' villages', mKey, vs.length > 0 || showAll), mHit));
+          for (const k of showAll ? m.villages : vs) {
+            if (geoFound.shown >= VILLAGE_CAP) break;
+            geoFound.shown++;
+            tree.push(mark(treeRow(k, 'village', 2, m.id, m.name, mKey, vMeta(k), 'v' + k.id, false), !showAll));
+          }
+        }
+      }
+    }
+    const geoSearch = gq ? {
+      on: true,
+      summary: geoFound.districts + geoFound.mandals + geoFound.villages === 0 ? '' : [
+        geoFound.districts ? geoFound.districts + (geoFound.districts === 1 ? ' district' : ' districts') : '',
+        geoFound.mandals ? geoFound.mandals + (geoFound.mandals === 1 ? ' mandal' : ' mandals') : '',
+        geoFound.villages ? geoFound.villages + (geoFound.villages === 1 ? ' village' : ' villages') : '',
+      ].filter(Boolean).join(' · ') + (geoFound.districts + geoFound.mandals + geoFound.villages === 1 ? ' matches' : ' match'),
+      more: geoFound.villages > geoFound.shown ? 'Showing the first ' + geoFound.shown + ' villages. Type more of the name to narrow the list.' : '',
+      empty: geoFound.districts + geoFound.mandals + geoFound.villages === 0 ? 'No district, mandal or village matches “' + gq + '”. Check the spelling, or try the Telugu name or the LGD code.' : '',
+    } : {on: false, summary: '', more: '', empty: ''};
     const gf = s.geoForm;
     const geoErr: Partial<GeoErrs> = gf && gf.tried ? this.geoErrs(gf) : {};
     const geoActive = gf && gf.id ? {on: gf.active, swBg: gf.active ? '#1F8A3B' : '#cfd8e3', swLeft: gf.active ? '21px' : '3px', bg: gf.active ? '#e4f4df' : '#f3f5f8',
@@ -2598,7 +2698,7 @@ export default class Component extends React.Component<Props, State> {
     // modal
     const m = s.modal;
     const cannot = !!(m && m.needsText && !s.modalText.trim());
-    const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
+    const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, inputType: m.password ? 'password' : 'text', hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
       hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [], confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
     const nu = s.nu;
     const canNU = this.nuValid(nu);
@@ -2662,7 +2762,9 @@ export default class Component extends React.Component<Props, State> {
         this.searchTimer = setTimeout(() => this.loadPosts(1), 300);
       },
       kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, distQ: s.distQ, onDistQ: (e: FieldChange) => this.setState({distQ: e.target.value}), distEmptyText: s.distQ.trim() ? 'No district matches “' + s.distQ.trim() + '”.' : 'Nothing waiting for review.', recent, noDistricts: !s.geo.length,
-      tree, addDistrict: () => this.setState({geoForm: {kind: 'district', id: null, parentId: null, parentName: null, parent: s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh', name: '', te: '', lgd: '', lat: '', lng: '', pin: '', isVillage: false}}), importCsv: () => this.importCsv(),
+      tree, geoQ: s.geoQ, geoSearch, onGeoQ: (e: FieldChange) => this.setState({geoQ: e.target.value}), clearGeoQ: () => this.setState({geoQ: ''}),
+      exportGeo: () => this.exportGeo(),
+      addDistrict: () => this.setState({geoForm: {kind: 'district', id: null, parentId: null, parentName: null, parent: s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh', name: '', te: '', lgd: '', lat: '', lng: '', pin: '', isVillage: false}}), importCsv: () => this.importCsv(),
       geoForm, geoFormShow: !!gf, geoFormEmpty: !gf, geoFormTitle: gf ? ((gf.id ? 'Edit ' : 'Add ') + gf.kind) : 'Details', geoSaveLabel: gf && gf.id ? 'Save changes' : 'Add', geoNamePh: gf ? {district: 'e.g. Bapatla', mandal: 'e.g. Ponnur', village: 'e.g. Kothapalem'}[gf.kind] : '',
       cannotSaveGeo: false, saveGeoOpacity: 1, geoErr, geoCoordsRequired: !!(gf && gf.isVillage && !gf.id), onGeoWhere: (e: FieldChange) => this.onGeoWhere(e.target.value),
       geoWhereNote: gf && gf.where ? (Component.parseCoords(gf.where) ? 'Latitude and longitude filled from what you pasted.' : /goo\.gl|maps\.app/.test(gf.where) ? 'Short links cannot be read here. Open the link, then copy the numbers shown (e.g. 16.2345, 80.4567).' : 'Paste numbers like 16.2345, 80.4567 or a full map link.') : '',
@@ -2704,7 +2806,7 @@ export default class Component extends React.Component<Props, State> {
           return {nu: n};
         });
       },
-      cannotSaveNU: !(canNU && (nu.id || nu.area)), saveNUOpacity: canNU && (nu.id || nu.area) ? 1 : .5, nuSteps, nuPlace, nuRoleLabel: (Component.ROLE[nu.role] || {label: ''}).label, saveNU: () => this.saveNU(),
+      cannotSaveNU: !(canNU && (nu.id || nu.area)), saveNUOpacity: canNU && (nu.id || nu.area) ? 1 : .5, nuSteps, nuPlace, nuSuper: !nu.id && nu.role === 'super', nuRoleLabel: (Component.ROLE[nu.role] || {label: ''}).label, saveNU: () => this.saveNU(),
       statusTabs, pf,
       onPF: (e: FieldChange) => {
         const {name, value} = e.target;

@@ -57,6 +57,9 @@ export default function UserDrawer({ v }: { v: View }) {
               ))}
             </select>
           </label>
+          {v.nuSuper ? <div role="note" style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: "#fde8e7", color: "#b3261e", lineHeight: "1.5"}}>
+            A Super Admin can see and change everything in the whole state, including other Super Admins. You will confirm with your own password.
+          </div> : null}
           {list(v.nuSteps).map((_st) => (
             <label key={_st.key} style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(_st.label)}</span>

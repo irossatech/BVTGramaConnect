@@ -12,7 +12,7 @@ export default function Geography({ v }: { v: View }) {
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>State → District → Mandal → Village</span>
             <span style={{display: "flex", gap: "8px"}}>
               <button onClick={v.importCsv} style={{height: "36px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>Import CSV</button>
-              <button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add district</button>
+              <button onClick={v.exportGeo} disabled={v.noDistricts} title="Download every district, mandal and village as a CSV file in the same columns as Import CSV" style={{height: "36px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px", opacity: v.noDistricts ? .5 : 1}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>Export CSV</button>
             </span>
           </div>
           {" "}
@@ -20,8 +20,24 @@ export default function Geography({ v }: { v: View }) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             {I(v.stateName)}{" "}
             <span style={{fontWeight: "500", color: "#6b7a8c"}}>{I(v.stateTe)}</span>
+            <span style={{marginLeft: "auto"}}><button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add district</button></span>
           </div>
           {" "}
+          {v.noDistricts ? null : <div role="search" style={{padding: "4px 0 10px"}}>
+            <label style={{position: "relative", display: "block"}}>
+              <span className="sa-sr" style={{position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)"}}>Search districts, mandals and villages</span>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <input type="text" inputMode="search" enterKeyHint="search" spellCheck={false} autoCorrect="off" autoCapitalize="off" value={val(v.geoQ, "")} onChange={v.onGeoQ} onKeyDown={(e) => { if (e.key === "Escape") v.clearGeoQ(); }} placeholder="Search a district, mandal or village (English or Telugu, or LGD code)" autoComplete="off" style={{width: "100%", boxSizing: "border-box", height: "44px", padding: "0 44px 0 40px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#f9fbfd", outlineColor: "#0D3B7A"}} />
+              {v.geoQ ? <button type="button" onClick={v.clearGeoQ} aria-label="Clear search" title="Clear search" style={{position: "absolute", right: "6px", top: "50%", transform: "translateY(-50%)", width: "32px", height: "32px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button> : null}
+            </label>
+            {v.geoSearch?.on ? <div role="status" aria-live="polite" style={{marginTop: "8px", fontSize: "13px", color: "#3b4a5c", display: "flex", flexDirection: "column", gap: "4px"}}>
+              {v.geoSearch.summary ? <span style={{fontWeight: "700"}}>{v.geoSearch.summary}</span> : null}
+              {v.geoSearch.more ? <span style={{color: "#b35a0e"}}>{v.geoSearch.more}</span> : null}
+            </div> : null}
+          </div>}
+          {v.geoSearch?.empty ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>{v.geoSearch.empty}</div> : null}
           {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
           {list(v.tree).map((_n, _i1) => (
             <React.Fragment key={_i1}>

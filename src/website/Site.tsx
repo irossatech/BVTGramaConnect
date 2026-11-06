@@ -533,9 +533,22 @@ export default class Site extends React.Component<Props, State> {
       goHome: () => this.go("home"),
       goHow: () => this.go("how"),
       goContact: () => this.go("contact"),
-      goGetApp: () => {
-        this.go("home");
-        setTimeout(() => document.getElementById("get-app")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+      // "Get the app" (header): the Play Store when the app is there, else the Android APK download on
+      // Android and computers, else a short message (iPhone, or no APK yet). It never scrolls the page.
+      getAppClick: () => {
+        this.setState({ menuOpen: false });
+        const iPhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (site.play_store_url && !iPhone) window.open(site.play_store_url, "_blank", "noopener");
+        else if (site.app_store_url && iPhone) window.open(site.app_store_url, "_blank", "noopener");
+        else if (config.androidApkUrl && !iPhone) {
+          const a = document.createElement("a");
+          a.href = config.androidApkUrl;
+          a.download = "";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          this.toast(t.toastApk);
+        } else this.toast(t.toastStore);
       },
       goPrivacy: () => this.go("privacy"),
       goTerms: () => this.go("terms"),

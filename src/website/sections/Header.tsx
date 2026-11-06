@@ -25,7 +25,7 @@ export default function Header({ v }: { v: View }) {
           <svg className="gc-globe" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M2.5 12h19M12 2.5c2.6 2.6 4 6 4 9.5s-1.4 6.9-4 9.5c-2.6-2.6-4-6-4-9.5s1.4-6.9 4-9.5z" /></svg>
           {I(v.langLabel)}
         </button>}
-        {v.desktop ? <button className="gc-pill" onClick={v.goGetApp} style={{...pillDark, height: "40px", padding: "0 18px", fontSize: fs.base}}>{I(v.t?.getApp)}</button> : null}
+        {v.desktop ? <button className="gc-pill" onClick={v.getAppClick} style={{...pillDark, height: "40px", padding: "0 18px", fontSize: fs.base}}>{I(v.t?.getApp)}</button> : null}
         {v.mobile ? <button onClick={v.toggleMenu} aria-label="Menu" aria-expanded={v.menuOpen} style={{marginLeft: v.enOff ? "auto" : undefined, width: "44px", height: "44px", border: "0", background: "none", cursor: "pointer", color: ink, display: "flex", alignItems: "center", justifyContent: "center"}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d={v.menuIcon} /></svg>
           </button> : null}
@@ -34,7 +34,7 @@ export default function Header({ v }: { v: View }) {
           {list(v.navItems).map((_n, _i1) => (
             <a key={_i1} className="gc-nav" href={_n?.href} onClick={_n?.link} aria-current={_n?.on ? "page" : undefined} style={{display: "flex", alignItems: "center", boxSizing: "border-box", height: "48px", padding: "0 14px", border: "0", borderRadius: "12px", cursor: "pointer", fontSize: fs.base, fontWeight: "700", lineHeight: "normal", textDecoration: "none", textAlign: "left", background: _n?.bg, color: _n?.color}}>{I(_n?.label)}</a>
           ))}
-          <button className="gc-pill" onClick={v.goGetApp} style={{...pillDark, marginTop: "8px"}}>{I(v.t?.getApp)}</button>
+          <button className="gc-pill" onClick={v.getAppClick} style={{...pillDark, marginTop: "8px"}}>{I(v.t?.getApp)}</button>
         </nav> : null}
       </div>
     </header>
