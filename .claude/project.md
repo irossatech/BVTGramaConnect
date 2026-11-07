@@ -24,7 +24,12 @@ All in the BackEnd repo:
 - `docs/security-review.md`: security status and open items.
 - `deploy/`: server setup, deploy, backup and restore.
 
-The approved design is the prototype folder "BVT Grama Connect mobile prototype" (ask the project manager for the zip). The approved mobile file is `Grama Connect Mobile V2.dc.html`. It is read-only reference: never edit it.
+The approved design is the prototype folder "BVT Grama Connect mobile prototype" (ask the project manager for the zip). The approved mobile file is `Grama Connect Mobile V2.dc.html`. It is read-only reference: never edit it, and do not copy it into a repo. In the usual folder layout it sits two folders above each repo: `../../BVT Grama Connect mobile prototype`.
+
+## Porting rules
+
+- Website and console: ported as is from the prototypes. Keep the look, page structure, CSS, assets, fonts and behaviour; only the mock data is replaced with data from the API. No redesign. They run on React and Next.js since 2026-10-22 (owner decisions below).
+- Mobile app: rebuilt in Flutter for Android and iOS, matching the prototype's screens, colours, typography and flows as closely as possible.
 
 ## Roles
 
@@ -32,7 +37,7 @@ A user can hold several role assignments, each tied to one area. Areas: State > 
 
 | Role | Area | Posts | Reviews | Creates and blocks |
 |---|---|---|---|---|
-| SUPER_ADMIN | Whole platform | Only if SUPER_ADMIN_CAN_POST | Every post | District, Mandal, Village Admins, Panchayat members |
+| SUPER_ADMIN | Whole platform | While SUPER_ADMIN_CAN_POST is on (the default) | Every post | District, Mandal, Village Admins, Panchayat members |
 | DISTRICT_ADMIN | District | Yes | Posts in the district | Mandal Admins, Village Admins, Panchayat members in the district |
 | MANDAL_ADMIN | Mandal | Yes | Posts in the mandal | Village Admins, Panchayat members in the mandal |
 | VILLAGE_ADMIN | Village | Yes | Posts in the village | Panchayat members in the village |
@@ -55,7 +60,7 @@ States: DRAFT > PENDING > PUBLISHED, RECHECK or DISCARDED; RECHECK > PENDING; PU
 ## Configurable rules
 
 Django settings, overridable by environment variables:
-ADMIN_POSTS_AUTO_PUBLISH=True, REVIEW_FIRST_DECISION_WINS=True, REVIEW_ESCALATION_HOURS=24, SUPER_ADMIN_CAN_POST=False, FORCE_PASSWORD_CHANGE_ON_FIRST_LOGIN=True, MAX_PHOTOS_PER_POST=5. Languages: Telugu (default) and English.
+ADMIN_POSTS_AUTO_PUBLISH=True, REVIEW_FIRST_DECISION_WINS=True, REVIEW_ESCALATION_HOURS=24, SUPER_ADMIN_CAN_POST=True, MAX_PHOTOS_PER_POST=5. Languages: Telugu (default) and English. A changed password at first login is always required; it is not a setting.
 
 ## Non-negotiables
 
@@ -92,6 +97,7 @@ ADMIN_POSTS_AUTO_PUBLISH=True, REVIEW_FIRST_DECISION_WINS=True, REVIEW_ESCALATIO
 - 2026-10-21 · **Console:** "Reset password" sits in the user panel, not in the users table.
 - 2026-10-21 · **/django-admin/** is reachable on the server only from office IP addresses.
 - 2026-10-22 · **Web is React and Next.js; mobile is Flutter.** The website and the console are one Next.js app (React, Pages Router) in BVTGramaConnect, exported as static files and served by Nginx; the mobile app stays Flutter. The conversion kept the approved design pixel for pixel.
+- 2026-11-04 · **The Super Admin may post.** SUPER_ADMIN_CAN_POST is True by default; setting it to False removes "New post" again.
 
 ## Working across repos
 
