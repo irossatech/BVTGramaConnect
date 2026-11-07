@@ -86,7 +86,7 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 - `src/website/Site.tsx` is the approved prototype `Public Website.dc.html` with the allowed port changes.
 - Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `admin`. `go()` pushes `#<page>` (home: no hash) onto the history, and `hashchange` and `popstate` set the page from the hash, so links like `/#faq` open that page and Back and Forward work. Below 820 px a ResizeObserver switches to the mobile layout.
 - Every Telugu and English text is in `src/website/locales/te.json` and `en.json` (loaded by `i18n.ts`); the code holds no visible text. Telugu is the default.
-- Data: on mount `GET /public/site-config/` fills the office details and store links; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
+- Data: the office details are in the locale files and the store links are build settings (`GC_PLAY_STORE_URL`, `GC_APP_STORE_URL`), not fetched; `GET /app-config/` can switch English off; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
 
 ## Console
 

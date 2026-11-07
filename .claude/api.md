@@ -8,7 +8,7 @@ Contract section 9. All calls go through `GCApi` (`src/website/api.ts`) with rel
 
 ### GET /public/site-config/
 
-Called once on page load.
+Not called by the website since 7 Nov 2026 (owner decision): the office address, phone, email and hours are in `src/website/locales/*.json` (`office`, `ui.hours`) and the store links are the build settings `GC_PLAY_STORE_URL` / `GC_APP_STORE_URL`. The mobile app still reads this endpoint. Kept here for reference:
 
 ```json
 {

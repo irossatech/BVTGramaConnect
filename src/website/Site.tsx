@@ -36,18 +36,6 @@ interface Showcase {
   items?: ShowcasePost[];
 }
 
-/** GET /public/site-config/: office details and store links the Super Admin sets. */
-interface SiteConfig {
-  phone?: string;
-  email?: string;
-  play_store_url?: string;
-  app_store_url?: string;
-  office_address_te?: string;
-  office_address_en?: string;
-  hours_te?: string;
-  hours_en?: string;
-}
-
 interface ContactForm {
   name: string;
   mobile: string;
@@ -84,7 +72,6 @@ interface State {
   /** Contact form fields that failed the check on Send; each clears as it is edited. */
   errs: Partial<Record<keyof ContactForm, boolean>>;
   toast: string | null;
-  site: SiteConfig | null;
   sending: boolean;
   scrolled: boolean;
   /** The Super Admin switched English off (GET /app-config/): Telugu only, no language switch. */
@@ -141,7 +128,6 @@ export default class Site extends React.Component<Props, State> {
     formError: false,
     errs: {},
     toast: null,
-    site: null,
     sending: false,
     scrolled: false,
     enOff: false,
@@ -257,12 +243,8 @@ export default class Site extends React.Component<Props, State> {
     });
   }
 
+  // The office details and store links are part of the website (locales/*.json, GC_*_STORE_URL), not fetched.
   private loadSite() {
-    GCApi.get<SiteConfig>("/public/site-config/")
-      .then((site) => {
-        if (!this.dead) this.setState({ site });
-      })
-      .catch(() => {});
     // No answer (not on the server yet) keeps both languages.
     GCApi.get<{ languages?: { en?: boolean } }>("/app-config/")
       .then((c) => {
@@ -393,7 +375,7 @@ export default class Site extends React.Component<Props, State> {
       ] as const
     ).map(([k, bg, dot], i) => ({ n: i + 1, title: t[k], desc: tx[k + "d"], bg, dot }));
     const audiences = [
-      { k: "a1", bg: "#e4f4df", border: "#cfe9c7", accent: "#1F8A3B", go: () => this.openStore(s.site?.play_store_url, t) },
+      { k: "a1", bg: "#e4f4df", border: "#cfe9c7", accent: "#1F8A3B", go: () => this.openStore(config.playStoreUrl, t) },
       { k: "a2", bg: "#fff0dc", border: "#f6ddb8", accent: "#E9791E", go: () => this.go("officials") },
       { k: "a3", bg: "#e3f0fb", border: "#c9dff5", accent: "#0D3B7A", go: () => this.go("officials") },
     ].map((a) => ({ kicker: tx[a.k + "k"], title: tx[a.k + "t"], desc: tx[a.k + "d"], cta: tx[a.k + "c"], bg: a.bg, border: a.border, accent: a.accent, go: a.go }));
@@ -443,14 +425,13 @@ export default class Site extends React.Component<Props, State> {
     const sc = s.showcase[L];
     const feed = (sc?.featured ? [sc.featured, ...(sc.items || [])].slice(0, 3) : (loc.sample as ShowcasePost[])).map(card);
     const f = s.form;
-    const site: SiteConfig = s.site || {};
-    const addr = (site[`office_address_${L}`] || loc.office.address).split("\n");
+    const addr = loc.office.address.split("\n");
     const contact = {
       addr1: addr[0] || "",
       addr2: addr.slice(1).join(" "),
-      phone: site.phone || loc.office.phone,
-      hours: site[`hours_${L}`] || t.hours,
-      email: site.email || loc.office.email,
+      phone: loc.office.phone,
+      hours: t.hours,
+      email: loc.office.email,
     };
     // Hero: the word that changes every few seconds, and the brand line around the photo.
     const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: loc.words[k], color: CAT[k].color, icon: icons[k] }));
@@ -498,8 +479,8 @@ export default class Site extends React.Component<Props, State> {
       getAppClick: () => {
         this.setState({ menuOpen: false });
         const iPhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (site.play_store_url && !iPhone) window.open(site.play_store_url, "_blank", "noopener");
-        else if (site.app_store_url && iPhone) window.open(site.app_store_url, "_blank", "noopener");
+        if (config.playStoreUrl && !iPhone) window.open(config.playStoreUrl, "_blank", "noopener");
+        else if (config.appStoreUrl && iPhone) window.open(config.appStoreUrl, "_blank", "noopener");
         else if (config.androidApkUrl && !iPhone) {
           const a = document.createElement("a");
           a.href = config.androidApkUrl;
@@ -524,13 +505,13 @@ export default class Site extends React.Component<Props, State> {
             })),
           }
         : null,
-      playClick: () => this.openStore(site.play_store_url, t),
-      appClick: () => this.openStore(site.app_store_url, t),
+      playClick: () => this.openStore(config.playStoreUrl, t),
+      appClick: () => this.openStore(config.appStoreUrl, t),
       // No app in a store yet: each button says so in large text until the server has its store link.
       apkUrl: config.androidApkUrl,
       apkLabel: t.apkLabel,
-      playLabel: site.play_store_url ? [t.playPre, t.playName] as const : [t.playName, t.comingSoon] as const,
-      appLabel: site.app_store_url ? [t.appPre, t.appName] as const : [t.appName, t.comingSoon] as const,
+      playLabel: config.playStoreUrl ? [t.playPre, t.playName] as const : [t.playName, t.comingSoon] as const,
+      appLabel: config.appStoreUrl ? [t.appPre, t.appName] as const : [t.appName, t.comingSoon] as const,
       contact,
       features,
       steps,

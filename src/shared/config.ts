@@ -6,6 +6,9 @@ const config = {
   siteUrl: process.env.GC_SITE_URL || "",
   // The Android APK the website's "Direct download" link fetches; empty hides the link.
   androidApkUrl: process.env.GC_ANDROID_APK_URL || "",
+  // The website's store buttons; empty shows "Coming soon". Set them when the app is published, then rebuild.
+  playStoreUrl: process.env.GC_PLAY_STORE_URL || "",
+  appStoreUrl: process.env.GC_APP_STORE_URL || "",
 };
 
 export default config;

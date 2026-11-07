@@ -9,8 +9,8 @@ Open work as of 2026-10-21, most urgent first. Items marked "sign-off" change wh
 ## Website (`src/website/Site.tsx`)
 
 3. **"For officials" login text (sign-off).** The page says an admin adds officials with their email and sends the username and temporary password by email. Since 21 Oct 2026 there is no email: the admin sets or generates a temporary password and hands it over in person. New Telugu and English text for that point (`o3c` in `src/website/strings.ts`) must be agreed with the owner.
-4. **Office details.** Confirm the address, phone, email and hours with the owner and set them through the backend's `SITE_*` settings on the server.
-5. **Store links.** When the app is published, set `PLAY_STORE_URL` and `APP_STORE_URL` on the server. No release of this repo is needed.
+4. **Office details.** Done: the BVT Kandukur address, phone, email and hours are in `src/website/locales/*.json` (the website no longer reads the server's `SITE_*` settings; the mobile app still does).
+5. **Store links.** When the app is published, set `GC_PLAY_STORE_URL` (and `GC_APP_STORE_URL`) in `.env`, rebuild, commit `dist/` and push.
 6. **Showcase photos.** The seed data has no photos, so the live phone picture was only checked with the default village image. Check it once real posts with photos exist.
 7. **Search engines.** Done for `https://www.gramaconnect.com` (`GC_SITE_URL`): a real address per page, the text rendered into the HTML, per-page titles and descriptions, canonical links, share previews, structured data (Organization, WebSite, MobileApplication with the APK download link, FAQPage, breadcrumbs; Telugu brand name and Andhra Pradesh service area), Telugu page names in the titles, `sitemap.xml`, `robots.txt`, `llms.txt`, `<html lang>`, favicon; the console is `noindex` and not linked from the website. After launch: add the site to Google Search Console and Bing Webmaster Tools and submit the sitemap; replace the share image with a 1200×630 one.
 9. **Privacy policy and terms.** The pages exist (`legal` in `src/website/locales/*.json`, `/privacy/` and `/terms/`); have the wording reviewed before launch.

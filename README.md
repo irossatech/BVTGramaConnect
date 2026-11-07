@@ -129,6 +129,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 | `GC_API_BASE` | `/api/v1` | both apps (built in) | Base URL of the API both apps call |
 | `GC_SITE_URL` | `https://www.gramaconnect.com` (production) | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
+| `GC_PLAY_STORE_URL`, `GC_APP_STORE_URL` | empty | website (built in) | The Google Play and App Store buttons. Empty shows "Coming soon" |
 | `GC_ANDROID_APK_URL` | empty | website (built in) | The "Direct download" link under the hero's store buttons, `/downloads/bvt-grama-connect.apk` (committed in `dist/downloads/`). Empty hides the link. See *Android APK download* below |
 
 ## What changed from the prototypes
@@ -136,7 +137,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 **Website**, only the changes allowed by the inventory, section 5.4:
 1. The page runs as a Next.js page; React, the design-system CSS and images load from this site.
 2. Design-system icons load from `/assets/`.
-3. Contact details come from `GET /api/v1/public/site-config/`; the prototype's values are the defaults.
+3. Contact details (office address, phone, email, hours) are in `src/website/locales/te.json` and `en.json`; the website does not fetch them.
 4. Store buttons open `play_store_url` and `app_store_url`; while a URL is empty they show the prototype's "coming soon" toast.
 5. The contact form posts to `POST /api/v1/public/contact-messages/`, with an invisible honeypot input. Two toast texts were added in Telugu and English.
 6. The website has no admin login and no link to the console: officials open `/console/` directly. The console is `noindex`, so it never shows in search results.
@@ -188,7 +189,7 @@ While the app is not in the stores, the website's "Direct download" link downloa
 2. Copy it to `public/downloads/bvt-grama-connect.apk` here (same name; it replaces the old one).
 3. `npm run build` copies it into `dist/downloads/`. Commit `dist/` and push; the next deploy serves it.
 
-`public/downloads/` is git-ignored (only the copy in `dist/` is committed, so the file is in git once per version). Each new APK adds about 27 MB to the repository's history: fine until the app is on Google Play. Then set the server's `PLAY_STORE_URL`, empty `GC_ANDROID_APK_URL`, rebuild, and remove `dist/downloads/`.
+`public/downloads/` is git-ignored (only the copy in `dist/` is committed, so the file is in git once per version). Each new APK adds about 27 MB to the repository's history: fine until the app is on Google Play. Then set `GC_PLAY_STORE_URL` in `.env`, empty `GC_ANDROID_APK_URL`, rebuild, and remove `dist/downloads/`.
 
 ## When the designer changes a prototype
 

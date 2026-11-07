@@ -27,6 +27,8 @@ export default function nextConfig(phase: string): NextConfig {
       GC_API_BASE: process.env.GC_API_BASE || "/api/v1",
       GC_SITE_URL: (process.env.GC_SITE_URL || "https://www.gramaconnect.com").replace(/\/+$/, ""),
       GC_ANDROID_APK_URL: process.env.GC_ANDROID_APK_URL || "",
+      GC_PLAY_STORE_URL: process.env.GC_PLAY_STORE_URL || "",
+      GC_APP_STORE_URL: process.env.GC_APP_STORE_URL || "",
     },
   };
 }
