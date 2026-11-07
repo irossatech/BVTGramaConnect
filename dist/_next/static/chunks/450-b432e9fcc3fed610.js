@@ -73,6 +73,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 @keyframes gc-pulse{0%{box-shadow:0 0 0 0 rgba(143,224,160,.6)}100%{box-shadow:0 0 0 10px rgba(143,224,160,0)}}
 .gc-live{animation:gc-pulse 1.8s ease-out infinite}
 html{scroll-behavior:smooth}
+/* /#get-app (the backend's /app/ invite link lands here): stop below the sticky header. */
+#get-app{scroll-margin-top:80px}
 /* Hero: the word slides up as it changes, the ring turns, the ticker scrolls (pauses on hover). */
 @keyframes gc-word{from{opacity:0;transform:translateY(60%)}to{opacity:1;transform:none}}
 .gc-word{animation:gc-word .55s var(--ease-out)}
