@@ -1,7 +1,8 @@
 // Website pages: start the app's scripts only after the browser has painted the page, which the build already holds
 // in full. Next.js's own <script defer> tags run straight after the HTML is read, and React's start-up then holds
-// the first paint for about a second on budget phones. scripts/defer-hydration.mjs replaces those tags with this
-// file and lists them in data-load (in order); <link rel=preload> already downloads them while the page paints.
+// the first paint for about a second on budget phones. scripts/defer-hydration.mjs publishes this file as
+// /_next/static/boot-<hash>.js (where every server already serves scripts, cached for good), replaces those tags with
+// it and lists them in data-load (in order); <link rel=preload> already downloads them while the page paints.
 (function () {
   var me = document.currentScript;
   var list = me.getAttribute("data-load").split(" ");
