@@ -5,7 +5,7 @@
 Both apps must look and behave exactly like the approved prototypes. Only these changes are allowed (BackEnd repo, `docs/prototype-inventory.md`, section 5.4, adapted for the Next.js app the owner approved on 22 Oct 2026):
 
 1. The prototypes run as a Next.js static export. The markup is the prototype template converted one to one to JSX; the conversion rules live in `src/shared/dc.tsx`.
-2. React, fonts, design-system CSS and images load from this site; Google Fonts stay.
+2. React, fonts, design-system CSS and images load from this site. The fonts are self-hosted (`public/fonts/`, `public/assets/fonts/`); nothing loads from Google.
 3. Data wiring only in the logic class: mock values become `state` filled from the API. Loading and error states reuse what the page already has, such as the toast. No new layout.
 4. Hard-coded values in the markup become `renderVals()` values.
 5. Demo-only controls are removed or pointed at the real target.
@@ -68,8 +68,15 @@ The BackEnd repo's `docs/api-contract.md` is the source of truth. If either app 
 2. Website: click every page in both languages at 375 px and 1280 px wide.
 3. Console: log in as `super.admin` from `seed_sample_data` and click through every screen.
 4. Watch the browser console: there must be no errors or React warnings.
-5. `npm run typecheck` must print nothing (the build runs it too).
+5. `npm run typecheck` must print nothing (the build runs it too), and `npm test` must pass.
+6. `npm run check-dist` must pass before you commit (see Git below). CI (`.github/workflows/ci.yml`) runs steps 5 and 6 and a fresh build on every push.
 
 ## Git
 
-Commit straight to `dev`; this repo uses no feature branches or pull requests (owner decision, 22 Oct 2026). Promote `dev` to `qa` for UAT and `qa` to `main` for release. Never commit `dist/`, `.next/`, `node_modules/` or `.env`. Keep `package-lock.json` committed.
+Commit straight to `dev`; this repo uses no feature branches or pull requests (owner decision, 22 Oct 2026). Promote `dev` to `qa` for UAT and `qa` to `main` for release. Never commit `.next/`, `node_modules/` or `.env`. Keep `package-lock.json` committed.
+
+`dist/` is committed: the BackEnd repo's `deploy/deploy.sh` deploys the committed build as it is and does not rebuild (owner decision, 12 Nov 2026). So every commit that changes the source also carries its rebuilt `dist/`:
+
+1. `npm run build`: the defaults are production's, so no `.env` is needed. It writes `dist/BUILD-STAMP.md` (a fingerprint of the source and the settings used; never deployed) and puts the committed APK back if the build dropped it.
+2. `npm run check-dist`: fails if `dist/` is older than the source, was built with other than the production settings, or misses a page or the APK.
+3. `git add -A dist` (the build renames its chunks, so old files are deleted and new ones added) and commit with the source.

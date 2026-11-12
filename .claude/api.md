@@ -24,6 +24,10 @@ Not called by the website since 7 Nov 2026 (owner decision): the office address,
 - Values come from backend settings `SITE_OFFICE_ADDRESS_TE`, `SITE_OFFICE_ADDRESS_EN`, `SITE_PHONE`, `SITE_EMAIL`, `SITE_HOURS_TE`, `SITE_HOURS_EN`, `PLAY_STORE_URL` and `APP_STORE_URL`. The defaults are the prototype's values. Changing them needs no website release.
 - If the call fails, the page keeps showing the prototype's values.
 
+### GET /app-config/
+
+Called on page load. When `languages.en` is `false` (the Super Admin switched English off), the website shows Telugu only and hides the language switch. If the call fails, both languages stay.
+
 ### POST /public/contact-messages/
 
 Called by the Contact form.
@@ -79,13 +83,20 @@ This section lists what the console calls today, read from `src/console/Console.
 | User panel | `GET /posts/?author={id}&page_size=5` for recent posts; `GET /users/{id}/` after a change; `POST /users/{id}/reset-password/` `{password?}` (without `password` the answer carries `temporary_password`, shown once); `POST /users/{id}/unlock/` when `locked_out` is true; buttons follow the user's `allowed_actions` (`reassign`, `reset_password`, `unlock`, `block` / `unblock`, `add_assignment`, `remove_assignment`); `POST /users/{id}/role-assignments/` `{role, area: {level, id}}` to add a role; `DELETE /users/{id}/role-assignments/{ra_id}/` to remove one |
 | Posts | `GET /posts/?status=&district=&category=&q=&page=&page_size=20` (uses `status_counts` for the tabs); `GET /categories/` for the filter |
 | Post panel | `GET /posts/{id}/`, `GET /posts/{id}/history/`; `POST /posts/{id}/review/` with `{action: publish}`, `{action: recheck, comment}`, `{action: discard, comment}`, `{action: unpublish, comment}` or `{action: reverse, to_status, comment}`; `POST /posts/{id}/urgent/` `{is_urgent}` when `allowed_actions` has `set_urgent`. Shows `event`, `is_urgent` and video media (`kind: "video"`, `url`, `poster_url`) |
-| Profile menu "My profile" | `PATCH /me/` `{name}` |
+| Profile menu "My profile" | `PATCH /me/` `{name, name_te}` |
+| New post (Posts page; shown with `posts.create_post` unless `/me/` `capabilities.can_post` is `false`) | `POST /posts/` `{category, language, title, body, targets: [one area], is_urgent, submit}` (`submit: true` when there are no photos); then `POST /posts/{id}/media/` (multipart, one photo each, up to 5, 10 MB, JPG/PNG/WebP) and `POST /posts/{id}/submit/` |
+| Post panel, citizen posts | `POST /posts/{id}/block-citizen/` `{comment, days}`, `POST /posts/{id}/unblock-citizen/` `{comment}`, `POST /posts/{id}/discard-citizen-posts/` `{comment}` → `{discarded}` |
+| Service requests | `GET /service-requests/?status=&q=&page=&page_size=20`; `GET /service-requests/{id}/` (from a notification); `PATCH /service-requests/{id}/` |
+| Services and bills catalogues | `GET /admin/services/` and `/admin/bills/`; `POST` to add, `PATCH /{key}/` to edit or `{is_active}`; `POST /admin/services/order/` (and `/admin/bills/order/`) `{keys}`. A 404 shows the built-in list read-only |
+| Ads | `GET /admin/ads/?page_size=100`; `POST /admin/ads/` and `PATCH /admin/ads/{id}/` (multipart when a picture or video is attached, JSON otherwise); `DELETE /admin/ads/{id}/` |
+| Notifications (bell, every 60 s while the tab is visible) | `GET /notifications/?cursor=`; `POST /notifications/{id}/read/`; `POST /notifications/read-all/` |
+| Telugu name suggestions | `GET /admin/transliterate/?text=` → `{te}` |
 | User panel "Edit details" (when `allowed_actions` has `edit`) | `PATCH /users/{id}/` `{name, name_te, email, mobile}` (empty email or mobile sent as `null`) |
 | Reports | `GET /admin/reports/summary/` (the four cards at the top), `GET /admin/reports/posts-by-area/`, `GET /admin/reports/review-time/`, `GET /admin/reports/admin-activity/?page_size=8`; CSV only, one per report: `GET /admin/reports/{posts-by-area,review-time,admin-activity}/export/?format=csv` |
-| Audit log | `GET /audit/?q=&page=&page_size=20`; CSV: `GET /audit/export/?q=` |
+| Audit log | `GET /audit/?q=&type=&page=&page_size=20` (`type` from the tabs); CSV: `GET /audit/export/?q=&type=&format=csv` |
 | Contact messages | `GET /admin/contact-messages/?status=new\|handled&q=&page=&page_size=20` (no `status` for All); `PATCH /admin/contact-messages/{id}/` `{handled}` |
 | Important numbers | `GET /contact-types/` for the type choices; `GET /admin/contacts/?section=AREA\|HELPLINE&type=&q=&page=&page_size=20` (tabs "For you" and "Government helplines"); `POST /admin/contacts/` `{type, custom_type?, name, name_te, phone, email, area: {level, id}, sort_order, consent_recorded}` (helplines use `area: {level: STATE}`); `PATCH /admin/contacts/{id}/` (same fields, or `{verified: true}`); `DELETE /admin/contacts/{id}/`; buttons follow `allowed_actions` (`edit`, `verify`, `remove`); CSV: `POST /admin/contacts/import/?dry_run=1` (multipart `file`), then without `dry_run`. Types tab: `GET /admin/contact-types/`, `POST /admin/contact-types/` `{key, section, name_en, name_te}`, `PATCH /admin/contact-types/{id}/` `{is_active}`. The area list comes from the geography tree (the console is Super Admin only), not `/admin/contacts/targets/` |
-| Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}` or `{languages: {en}}`; `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}` |
+| Settings | `GET /admin/settings/`, `PATCH /admin/settings/` `{review_escalation_hours}`, `{languages: {en}}` or `{citizen_posts_per_day}` (0: no limit); `GET /admin/categories/`, `POST /admin/categories/` `{key, name_te, name_en}`, `PATCH /admin/categories/{id}/` `{is_active}`; `GET /admin/notification-templates/`, `PATCH /admin/notification-templates/{key}/` `{text_te, text_en}` |
 
 CSV downloads go through `GC_API.download` (`src/console/api.ts`), which fetches with the session cookie and saves the file under a dated name.
 

@@ -769,6 +769,9 @@ export default class Component extends React.Component<Props, State> {
       const v = Array.isArray(first) ? first[0] : first;
       if (v && typeof v === 'string' && !text.includes(v)) text = text + ' ' + v;
     }
+    // A server error (500) names its request, so the backend team can find it in the logs.
+    const ref = err?.body.request_id;
+    if (typeof ref === 'string' && ref) text = text + ' (ref. ' + ref.slice(0, 8) + ')';
     this.toast(text, '#b3261e');
   }
 

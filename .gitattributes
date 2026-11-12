@@ -1,0 +1,7 @@
+# Text files are stored with LF line endings whatever the contributor's OS; git detects binaries itself.
+* text=auto eol=lf
+*.apk binary
+*.woff2 binary
+*.webp binary
+*.png binary
+*.jpg binary

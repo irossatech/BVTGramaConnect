@@ -4,9 +4,15 @@
 // serves that folder (a root-level /boot.js was not served on dev.gramaconnect.com) and caches it for good.
 // plus <link rel=preload fetchpriority=low> so they still download at once without holding up the fonts and the hero photo. Same-site scripts only, so the production CSP still holds.
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const PAGES = ["index", "404", "howitworks/index", "officials/index", "faq/index", "contact/index", "privacy/index", "terms/index"];
+// Every exported website page: each .html file in dist/ except the console's (a new page is picked up by itself).
+const PAGES = readdirSync("dist", { recursive: true })
+  .map((f) => String(f).replace(/\\/g, "/"))
+  .filter((f) => f.endsWith(".html") && !f.startsWith("console/"))
+  .map((f) => f.slice(0, -".html".length))
+  .sort();
+if (!PAGES.includes("index")) throw new Error("dist/index.html not found: run next build first");
 const code = readFileSync("scripts/boot.js");
 const BOOT = `/_next/static/boot-${createHash("sha256").update(code).digest("hex").slice(0, 12)}.js`;
 writeFileSync("dist" + BOOT, code);

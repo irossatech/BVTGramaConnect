@@ -60,7 +60,8 @@ export default function PageHead({ css, title, description, robots, path = "/", 
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={imageAlt} />
         <meta name="twitter:card" content="summary_large_image" />
-        {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
+        {/* "<" escaped so no text in the data can close the <script> tag early. */}
+        {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} /> : null}
       </> : null}
       <style dangerouslySetInnerHTML={{ __html: imports + css }} />
     </Head>

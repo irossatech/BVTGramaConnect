@@ -1,5 +1,5 @@
 // The <html lang> in the exported HTML: the website opens in Telugu, the console is in English.
-// The website switches it as the visitor changes language (Site.jsx).
+// The website switches it as the visitor changes language (Site.tsx).
 // The website has its own Telugu/English switch, so browsers must not offer to machine-translate it
 // (Chrome's "Translate this page?"): translate="no" plus Google's notranslate tag.
 import { Html, Head, Main, NextScript, type DocumentProps } from "next/document";

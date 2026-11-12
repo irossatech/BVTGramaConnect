@@ -8,7 +8,9 @@
 // Settings come from the environment or .env (see .env.example):
 //   GC_API_BASE     API base URL both apps call (default "/api/v1")
 //   GC_SITE_URL     the website's public address (default "https://www.gramaconnect.com", production)
+//   GC_ANDROID_APK_URL  the "Direct download" link (default "/downloads/bvt-grama-connect.apk", production)
 //   GC_DEV_API      server `npm run dev` forwards /api/ and /media/ to (default: the live server)
+// The defaults are production's: the committed dist/ is what the server deploys (`npm run check-dist`).
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
@@ -26,7 +28,8 @@ export default function nextConfig(phase: string): NextConfig {
     env: {
       GC_API_BASE: process.env.GC_API_BASE || "/api/v1",
       GC_SITE_URL: (process.env.GC_SITE_URL || "https://www.gramaconnect.com").replace(/\/+$/, ""),
-      GC_ANDROID_APK_URL: process.env.GC_ANDROID_APK_URL || "",
+      // Production's APK unless set; GC_ANDROID_APK_URL= (empty) hides the link. Same rule in scripts/build-info.mjs.
+      GC_ANDROID_APK_URL: process.env.GC_ANDROID_APK_URL ?? "/downloads/bvt-grama-connect.apk",
       GC_PLAY_STORE_URL: process.env.GC_PLAY_STORE_URL || "",
       GC_APP_STORE_URL: process.env.GC_APP_STORE_URL || "",
     },

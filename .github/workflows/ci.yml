@@ -1,0 +1,35 @@
+# Checks every push to dev, qa and main, and every pull request:
+#   1. the TypeScript check and the unit tests (tests/) pass;
+#   2. the committed dist/ is what the server will deploy: built from this exact source with the production
+#      settings (npm run check-dist, which reads dist/BUILD-STAMP.md);
+#   3. a fresh build still succeeds.
+# Read-only: nothing is committed or deployed from here.
+name: CI
+
+on:
+  push:
+    branches: [dev, qa, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # the tests run the .ts files directly (Node 22.18+)
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Committed dist/ matches the source
+        run: npm run check-dist
+      - name: Fresh build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build
