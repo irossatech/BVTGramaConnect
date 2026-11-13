@@ -30,7 +30,6 @@ export default function Messages({ v }: { v: View }) {
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Name</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Mobile</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Village / Mandal</th>
-              <th style={{padding: "12px 16px", fontWeight: "600"}}>Message</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Status</th>
               <th style={{padding: "12px 16px"}} />
             </tr>
@@ -43,17 +42,17 @@ export default function Messages({ v }: { v: View }) {
                   <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</td>
                   <td style={{padding: "10px 16px", color: "#3b4a5c", whiteSpace: "nowrap"}}>{I(_c?.mobile)}</td>
                   <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.village)}</td>
-                  <td className="sa-c-full" style={{padding: "10px 16px", color: "#17212e", lineHeight: "1.5"}}>{I(_c?.message)}</td>
                   <td style={{padding: "10px 16px"}}>
                     <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.sbg ?? ""};color: ${_c?.scolor ?? ""}`)}>{I(_c?.status)}</span>
                   </td>
                   <td style={{padding: "10px 16px", textAlign: "right", whiteSpace: "nowrap"}}>
-                    <button onClick={_c?.toggle} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{I(_c?.toggleLabel)}</button>
+                    <button onClick={_c?.view} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>View</button>
+                    <button onClick={_c?.toggle} style={{height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12px", marginLeft: "6px"}}>{I(_c?.toggleLabel)}</button>
                   </td>
                 </tr>
               </React.Fragment>
             ))}
-            {v.contactEmpty ? <tr><td colSpan={7} style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.contactEmptyText)}</td></tr> : null}
+            {v.contactEmpty ? <tr><td colSpan={6} style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.contactEmptyText)}</td></tr> : null}
           </tbody>
         </table>
         {v.contactPager?.show ? <Pager p={v.contactPager} /> : null}

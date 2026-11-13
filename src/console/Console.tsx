@@ -25,6 +25,7 @@ import SettingsScreen from "./screens/Settings";
 import DetailPanel from "./panels/DetailPanel";
 import UserDrawer from "./panels/UserDrawer";
 import RequestPanel from "./panels/RequestPanel";
+import ContactPanel from "./panels/ContactPanel";
 import ServiceFormPanel from "./panels/ServiceForm";
 import AdFormPanel from "./panels/AdForm";
 import ComposeFormPanel from "./panels/ComposeForm";
@@ -34,7 +35,7 @@ import ConfirmModal from "./panels/ConfirmModal";
 import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import { decodeUtf8, planParts, fileLine, type CsvPart } from "./csv-parts";
-import { maskMobile } from "./mask";
+import { maskMobile, mobileDigits } from "./mask";
 import type {
   Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError,
   ContactImportResult, ContactMessage, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
@@ -453,6 +454,8 @@ interface State {
   reqCounts: Record<string, number>;
   reqUnavailable: boolean;
   rq: { r: ServiceRequest } | null;
+  /** The contact message open in its View panel, read in full from GET /admin/contact-messages/{id}/. */
+  cm: ContactMessage | null;
   rqAssignees: Option[];
   uf: { role: string; district: string; status: string; q: string };
   posts: PostRow[];
@@ -519,7 +522,7 @@ interface State {
 }
 
 /** The forms Escape closes, top first. */
-const FORMS = ["tf", "nf", "sf", "af", "rq", "cf"] as const;
+const FORMS = ["tf", "nf", "sf", "af", "rq", "cm", "cf"] as const;
 /** The forms whose Telugu name is suggested from the English one. */
 type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf";
 
@@ -666,7 +669,7 @@ export default class Component extends React.Component<Props, State> {
     users: [], userCount: 0, userPage: 1, userPages: 1, usersLoading: false,
     reqs: [], reqCount: 0, reqPage: 1, reqPages: 1, reqLoading: false, reqFilter: 'NEW', svcView: 'requests', ads: [], adsLoading: false, adsUnavailable: false, af: null,
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
-    rq: null, rqAssignees: [], uf: {role: '', district: '', status: '', q: ''},
+    rq: null, cm: null, rqAssignees: [], uf: {role: '', district: '', status: '', q: ''},
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
     numSel: [], adSel: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
@@ -903,7 +906,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private goPage(p: PageKey) {
-    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, af: null, cf: null});
+    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, cm: null, af: null, cf: null});
     if (this.scrollEl) this.scrollEl.scrollTop = 0;
     this.loadPage(p);
   }
@@ -1612,7 +1615,8 @@ export default class Component extends React.Component<Props, State> {
     const s = this.state;
     const latest = this.ticket('contacts');
     this.setState({contactLoading: true});
-    this.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, page, page_size: Component.PAGE})
+    // contact=0: rows with the mobile's last 4 digits and no message (audit WEB-DP-001); View reads the message in full.
+    this.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, contact: '0', page, page_size: Component.PAGE})
       .then((d) => latest() && this.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
       .catch((e: unknown) => {
         if (!latest()) return;
@@ -1625,9 +1629,16 @@ export default class Component extends React.Component<Props, State> {
     return c.status ? String(c.status).toUpperCase() === 'HANDLED' : !!c.handled;
   }
 
+  // "View": the row has no full mobile or message, so the panel shows the message as the server sends it alone.
+  private openContact(c: ContactMessage) {
+    const latest = this.ticket('cmOpen');
+    this.api.get<ContactMessage>('/admin/contact-messages/' + c.id + '/').then((full) => latest() && this.setState({cm: full})).catch((e: unknown) => latest() && this.fail(e));
+  }
+
   private toggleContact(c: ContactMessage) {
     const done = !this.isHandled(c);
-    this.api.patch('/admin/contact-messages/' + c.id + '/', {handled: done}).then(() => {
+    this.api.patch<ContactMessage | null>('/admin/contact-messages/' + c.id + '/', {handled: done}).then((n) => {
+      this.setState((x) => x.cm && x.cm.id === c.id ? {cm: n || {...x.cm, handled: done}} : null);
       this.toast(done ? 'Marked handled' : 'Marked new', done ? '#6cc04a' : '#E9791E');
       this.loadContacts(this.state.contactPage);
     }).catch((e: unknown) => this.fail(e));
@@ -3070,7 +3081,9 @@ export default class Component extends React.Component<Props, State> {
       contactFilter: s.contactFilter, contactFilters: [{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}], onContactFilter: (e: FieldChange) => this.setState({contactFilter: e.target.value}, () => this.loadContacts(1)),
       contactRows: s.contacts.map((c) => {
         const done = this.isHandled(c);
-        return {time: this.fmt(c.created_at, false), name: c.name, mobile: c.mobile ? '+91 ' + c.mobile : '—', village: c.village_text || '—', message: c.message, status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => this.toggleContact(c)};
+        // Mobile masked and no message in the table (audit WEB-DP-001); View shows both in full.
+        const mobile = c.mobile_last4 ? '+91 ******' + c.mobile_last4 : maskMobile(c.mobile);
+        return {time: this.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => this.toggleContact(c), view: () => this.openContact(c)};
       }),
       contactCount: s.contactCount + (s.contactCount === 1 ? ' message' : ' messages'), contactEmpty: !s.contacts.length, contactEmptyText: s.contactLoading ? 'Loading…' : 'No messages match.', contactPager: pager(s.contactPage, s.contactPages, (p) => this.loadContacts(p)),
       reqTabs: [...Object.keys(Component.SVC_STATUS), 'ALL'].map((k) => {
@@ -3205,6 +3218,13 @@ export default class Component extends React.Component<Props, State> {
       svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, on: s.svcView === k, go: () => this.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#6b7a8c', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
       imp: s.imp ? {...s.imp, pct: Math.round(s.imp.done * 100 / s.imp.total), label: s.imp.phase + (s.imp.total > 1 ? ' part ' + Math.min(s.imp.done + 1, s.imp.total) + ' of ' + s.imp.total : '') + '…'} : null,
       rqShow: !!rq, closeRQ: () => this.setState({rq: null}),
+      cmShow: !!s.cm, closeCM: () => this.setState({cm: null}),
+      cm: orEmpty(s.cm ? (() => {
+        const c = s.cm, done = this.isHandled(c), digits = mobileDigits(c.mobile);
+        return {name: c.name, time: this.fmt(c.created_at, true), statusLabel: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e',
+          mobile: digits.length === 10 ? '+91 ' + digits : (c.mobile || '—'), tel: digits ? 'tel:' + (digits.length === 10 ? '+91' : '') + digits : '', village: c.village_text || '—', message: c.message || '',
+          toggleLabel: done ? 'Mark new' : 'Mark handled', toggleColor: done ? '#b35a0e' : '#1d7a33', toggle: () => this.toggleContact(c)};
+      })() : null),
       rq: orEmpty(rq ? (() => {
         const r = rq.r, st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW, al = r.allowed_actions || [];
         return {service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: this.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: '+91 ' + (r.phone || ''), tel: 'tel:+91' + (r.phone || ''), email: r.email || '', mailto: 'mailto:' + (r.email || ''),
@@ -3350,6 +3370,7 @@ export default class Component extends React.Component<Props, State> {
           {v.drawerOpen ? <UserDrawer v={v} /> : null}
           {/* IMPORTANT NUMBER DRAWER */}
           {v.rqShow ? <RequestPanel v={v} /> : null}
+          {v.cmShow ? <ContactPanel v={v} /> : null}
           {v.sfShow ? <ServiceFormPanel v={v} /> : null}
           {v.afShow ? <AdFormPanel v={v} /> : null}
           {v.cfShow ? <ComposeFormPanel v={v} /> : null}

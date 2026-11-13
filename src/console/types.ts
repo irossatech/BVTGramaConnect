@@ -294,9 +294,11 @@ export interface NotificationTemplate {
 export interface ContactMessage {
   id: number;
   name: string;
+  /** mobile and message: absent in the list with contact=0 (mobile_last4 instead); GET /admin/contact-messages/{id}/ has them. */
   mobile?: string;
+  mobile_last4?: string;
   village_text?: string;
-  message: string;
+  message?: string;
   created_at: string;
   status?: string;
   handled?: boolean;
