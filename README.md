@@ -73,7 +73,7 @@ Next.js 16 (Pages Router, static export, webpack) on React 19.2, in TypeScript (
 
 ## Requirements
 
-- **Node 20.9 or newer**, for Next.js; **22.18 or newer** for `npm test` (CI uses 24).
+- **Node 20.9 or newer**, for Next.js; **22.18 or newer** for `npm test` (CI uses 24, as does `.nvmrc`).
 - **Git.**
 
 ## Run against the live server (everyday work)

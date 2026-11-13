@@ -24,10 +24,10 @@ export default function Posts({ v }: { v: View }) {
           <option value="official">Officials' posts</option>
           <option value="citizen">Citizens' posts</option>
         </select>
-        <select name="district" value={val(v.pf?.district, "")} onChange={v.onPF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
+        <select name="district" aria-label="District" value={val(v.pf?.district, "")} onChange={v.onPF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "170px"}}>
           <DistrictOptions v={v} />
         </select>
-        <select name="cat" value={val(v.pf?.cat, "")} onChange={v.onPF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "190px"}}>
+        <select name="cat" aria-label="Category" value={val(v.pf?.cat, "")} onChange={v.onPF} style={{height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "190px"}}>
           <option value="">All categories</option>
           {list(v.catOpts).map((_c, _i1) => (
             <React.Fragment key={_i1}>
@@ -55,7 +55,7 @@ export default function Posts({ v }: { v: View }) {
           <tbody>
             {v.postEmpty ? <tr><td colSpan={7} style={{padding: "40px", textAlign: "center", color: "#6b7a8c"}}>{I(v.postEmptyText)}</td></tr> : null}
             {list(v.postRows).map((_p, _i1) => (
-              <React.Fragment key={_i1}>
+              <React.Fragment key={_p?.rowKey ?? _i1}>
                 <tr onClick={_p?.open} style={css(`border-top:1px solid #f3f5f8;cursor:pointer;background: ${_p?.rowBg ?? ""}`)}>
                   <td style={{padding: "10px 16px", maxWidth: "380px"}}>
                     <div style={{fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(_p?.titleTe)}</div>

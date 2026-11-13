@@ -14,8 +14,8 @@ export default function Audit({ v }: { v: View }) {
       </div>
       <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <div style={{display: "flex", alignItems: "center", gap: "8px", height: "40px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", width: "min(360px, 100%)", color: "#6b7a8c"}}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-          <input value={val(v.auditQ, "")} onChange={v.onAuditQ} placeholder="Search user, action, target, area…" style={{flex: "1", border: "0", outline: "none", fontSize: "13px", background: "transparent"}} />
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+          <input aria-label="Search the audit log" value={val(v.auditQ, "")} onChange={v.onAuditQ} placeholder="Search user, action, target, area…" style={{flex: "1", border: "0", outline: "none", fontSize: "13px", background: "transparent"}} />
         </div>
         <span style={{fontSize: "13px", color: "#6b7a8c"}}>{I(v.auditCount)}{" entries"}</span>
         {v.canExportAudit ? <button onClick={v.exportCsv} disabled={!!v.exporting} aria-busy={v.exporting === "audit"} style={{marginLeft: "auto", height: "40px", padding: "0 16px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>{v.exporting === "audit" ? "Exporting…" : "Export CSV"}</button> : null}

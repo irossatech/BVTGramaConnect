@@ -15,11 +15,11 @@ export default function PostDetail({ v }: { v: View }) {
         <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(v.sp?.area)}{" · "}{I(v.sp?.date)}</span>
       </div>
       <div>
-        <div style={{fontFamily: "'Rubik','Noto Sans Telugu',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(v.sp?.titleTe)}</div>
-        <div style={{fontSize: "14px", color: "#6b7a8c", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
+        <div lang={v.sp?.lang} style={{fontFamily: "'Rubik','Noto Sans Telugu',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(v.sp?.titleTe)}</div>
+        <div lang={v.sp?.langEn} style={{fontSize: "14px", color: "#6b7a8c", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
       </div>
-      <p style={{margin: "0", fontSize: "15px", lineHeight: "1.65", color: "#3b4a5c"}}>{I(v.sp?.bodyTe)}</p>
-      <p style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#6b7a8c", background: "#f7f9fb", borderRadius: "10px", padding: "10px 12px"}}>{I(v.sp?.bodyEn)}</p>
+      <p lang={v.sp?.lang} style={{margin: "0", fontSize: "15px", lineHeight: "1.65", color: "#3b4a5c"}}>{I(v.sp?.bodyTe)}</p>
+      <p lang={v.sp?.langEn} style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#6b7a8c", background: "#f7f9fb", borderRadius: "10px", padding: "10px 12px"}}>{I(v.sp?.bodyEn)}</p>
       {v.sp?.hasVideo ? <>
         {list(v.sp?.videos).map((_v, _i1) => (
           <React.Fragment key={_i1}>

@@ -31,7 +31,7 @@ export default function Notifications({ v }: { v: View }) {
             <React.Fragment key={_n.id}>
               <button className="sa-notif-row" onClick={_n.open} style={{display: "flex", gap: "12px", width: "100%", padding: "12px 16px", border: "0", borderBottom: "1px solid #f3f5f8", background: _n.unread ? "#f5f9ff" : "#fff", textAlign: "left", cursor: _n.linked ? "pointer" : "default"}}>
                 <span aria-hidden="true" style={{flexShrink: "0", width: "34px", height: "34px", borderRadius: "50%", background: _n.bg, color: _n.color, display: "flex", alignItems: "center", justifyContent: "center"}}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d={_n.d} /></svg>
+                  <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d={_n.d} /></svg>
                 </span>
                 <span style={{flex: "1", minWidth: "0", display: "flex", flexDirection: "column", gap: "3px"}}>
                   <span style={{display: "flex", alignItems: "baseline", gap: "8px"}}>

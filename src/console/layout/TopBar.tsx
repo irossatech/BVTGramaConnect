@@ -11,7 +11,7 @@ export default function TopBar({ v }: { v: View }) {
       </button>
       <div className="sa-title" style={{fontFamily: "'Rubik',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", flex: "1", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(v.pageTitle)}</div>
       <div className="sa-search" style={{display: "flex", alignItems: "center", gap: "8px", height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#f7f9fb", width: "280px", color: "#6b7a8c"}}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input value={val(v.gsearch, "")} onChange={v.onGSearch} placeholder="Search posts…" aria-label="Search posts" style={{flex: "1", border: "0", background: "transparent", outline: "none", fontSize: "13px"}} />
       </div>
       <span style={{position: "relative", display: "flex"}}>
@@ -27,7 +27,7 @@ export default function TopBar({ v }: { v: View }) {
           <span style={{display: "block", fontWeight: "700", fontSize: "13px", color: "#0A2550"}}>{I(v.meName)}</span>
           <span style={{display: "block", fontSize: "11px", color: "#6b7a8c"}}>Super Admin</span>
         </span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {/* Click anywhere outside the account menu closes it. */}
       {v.menuOpen ? <div aria-hidden="true" onClick={v.toggleMenu} style={{position: "fixed", inset: "0", zIndex: "38"}} /> : null}

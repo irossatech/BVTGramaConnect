@@ -93,6 +93,10 @@ const formErrs = (f: ContactForm): Partial<Record<keyof ContactForm, boolean>> =
   const bad = { name: !f.name.trim(), mobile: !/^[6-9]\d{9}$/.test(f.mobile), village: !f.village.trim(), message: !f.message.trim() };
   return Object.fromEntries(Object.entries(bad).filter(([, b]) => b));
 };
+/** The form fields a 400 answer names (`error.fields`, API names: village_text is the village field). */
+const API_FIELD: Readonly<Record<string, keyof ContactForm>> = { name: "name", mobile: "mobile", village_text: "village", message: "message" };
+const serverFieldErrs = (err: SiteApiError): Partial<Record<keyof ContactForm, boolean>> =>
+  Object.fromEntries(Object.keys(err.fields || {}).flatMap((k) => (API_FIELD[k] ? [[API_FIELD[k], true]] : [])));
 
 /** The page the address names: /faq/ style, or an old #faq style link. */
 function pageFromUrl(): Page {
@@ -297,8 +301,19 @@ export default class Site extends React.Component<Props, State> {
       .catch((err: SiteApiError) => {
         if (this.dead) return;
         this.setState({ sending: false });
-        if (err.status === 400) this.setState({ formError: true });
-        else this.toast(err.status === 429 ? t.toastBusy : t.toastFail);
+        if (err.status !== 400) {
+          this.toast(err.status === 429 ? t.toastBusy : t.toastFail);
+          return;
+        }
+        // The server names the fields it refused: mark those (the page's own messages) and go to the first one.
+        const errs = serverFieldErrs(err);
+        const first = Object.keys(errs)[0];
+        if (!first) {
+          this.setState({ formError: true });
+          return;
+        }
+        this.setState({ errs, formError: false });
+        this.el?.querySelector<HTMLElement>(`[name=${first}]`)?.focus();
       });
   }
 
