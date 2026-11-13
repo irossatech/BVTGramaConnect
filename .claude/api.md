@@ -88,7 +88,7 @@ This section lists what the console calls today, read from `src/console/Console.
 | Post panel, citizen posts | `POST /posts/{id}/block-citizen/` `{comment, days}`, `POST /posts/{id}/unblock-citizen/` `{comment}`, `POST /posts/{id}/discard-citizen-posts/` `{comment}` → `{discarded}` |
 | Service requests | `GET /service-requests/?status=&q=&contact=0&page=&page_size=20` (completed and rejected requests drop out after 180 days, `closed_visible_days`, also from `status_counts`; `contact=0`: rows without the citizen's phone, email and address, so the table shows the name only); `GET /service-requests/{id}/` (on Open and from a notification: the panel's phone, email and address); `PATCH /service-requests/{id}/` |
 | Services and bills catalogues | `GET /admin/services/` and `/admin/bills/`; `POST` to add, `PATCH /{key}/` to edit or `{is_active}`; `POST /admin/services/order/` (and `/admin/bills/order/`) `{keys}`. A 404 shows the built-in list read-only |
-| Ads | `GET /admin/ads/?page_size=100`; `POST /admin/ads/` and `PATCH /admin/ads/{id}/` (multipart when a picture or video is attached, JSON otherwise); `DELETE /admin/ads/{id}/` |
+| Ads | `GET /admin/ads/?page_size=100`; `POST /admin/ads/` and `PATCH /admin/ads/{id}/` (multipart when a picture or video is attached, JSON otherwise; `link` empty or `https://` only, since 13 Nov 2026); `DELETE /admin/ads/{id}/` |
 | Notifications (bell, every 60 s while the tab is visible) | `GET /notifications/?cursor=`; `POST /notifications/{id}/read/`; `POST /notifications/read-all/` |
 | Telugu name suggestions | `GET /admin/transliterate/?text=` → `{te}` |
 | User panel "Edit details" (when `allowed_actions` has `edit`) | `PATCH /users/{id}/` `{name, name_te, email, mobile}` (empty email or mobile sent as `null`) |

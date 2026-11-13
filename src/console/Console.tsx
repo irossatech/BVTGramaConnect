@@ -1464,7 +1464,8 @@ export default class Component extends React.Component<Props, State> {
     if (!f.title.trim()) e.title = 'Enter a name for the ad.';
     if (f.kind === 'image' ? !f.preview : !f.vpreview) e.image = 'Choose a picture or video for the banner.';
     const l = f.link.trim();
-    if (l && !/^https?:\/\/[^\s/]+\.[^\s]+$/.test(l)) e.link = 'Enter a full link starting with https://';
+    // https only, as the server (audit WEB-SEC-010): a plain http:// page can be changed on its way to the citizen.
+    if (l && !/^https:\/\/[^\s/]+\.[^\s]+$/i.test(l)) e.link = 'Enter a full link starting with https://';
     if (f.start && f.end && f.end < f.start) e.end = 'The end date must be on or after the start date.';
     return e;
   }
