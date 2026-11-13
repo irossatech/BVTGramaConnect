@@ -1,5 +1,5 @@
 // New post: the app's Compose in the console. Category, language, title and message, who sees it,
-// urgent, up to 5 photos. An admin's post is published at once (the server decides).
+// urgent, any number of photos and videos, mixed. An admin's post is published at once (the server decides).
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -48,23 +48,29 @@ export default function ComposeForm({ v }: { v: View }) {
             {f.errBody ? <span style={errText}>{I(f.errBody)}</span> : null}
           </label>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-            <span style={label}>Photos <span style={{fontWeight: "400", color: "#6b7a8c"}}>(optional · {I(f.photoCount)})</span></span>
+            <span style={label}>Photos and videos <span style={{fontWeight: "400", color: "#6b7a8c"}}>(optional · {I(f.photoCount)})</span></span>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
               {list(f.photos).map((_p, _i1) => (
-                <span key={_i1} style={{position: "relative", width: "88px", height: "88px", borderRadius: "10px", overflow: "hidden", background: "#f7f9fb"}}>
-                  <img src={_p.src} alt={"Photo " + (_i1 + 1)} style={{width: "100%", height: "100%", objectFit: "cover"}} />
-                  <button onClick={_p.remove} aria-label={"Remove photo " + (_i1 + 1)} style={{position: "absolute", top: "4px", right: "4px", width: "24px", height: "24px", border: "0", borderRadius: "50%", background: "rgba(10,37,80,.7)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+                <span key={_i1} style={{position: "relative", width: "88px", height: "88px", borderRadius: "10px", overflow: "hidden", background: _p.isVideo ? "#0A2550" : "#f7f9fb"}}>
+                  {_p.isVideo ? <>
+                      <video src={_p.src} muted={true} preload="metadata" aria-label={"Video " + (_i1 + 1)} style={{width: "100%", height: "100%", objectFit: "cover"}} />
+                      <span aria-hidden="true" style={{position: "absolute", left: "6px", bottom: "6px", display: "flex", alignItems: "center", gap: "3px", padding: "2px 6px", borderRadius: "999px", background: "rgba(10,37,80,.75)", color: "#fff", fontSize: "11px", fontWeight: "700"}}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z" /></svg>
+                        {I(_p.dur)}
+                      </span>
+                    </> : <img src={_p.src} alt={"Photo " + (_i1 + 1)} style={{width: "100%", height: "100%", objectFit: "cover"}} />}
+                  <button onClick={_p.remove} aria-label={(_p.isVideo ? "Remove video " : "Remove photo ") + (_i1 + 1)} style={{position: "absolute", top: "4px", right: "4px", width: "24px", height: "24px", border: "0", borderRadius: "50%", background: "rgba(10,37,80,.7)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
                   </button>
                 </span>
               ))}
               {f.canAddPhoto ? <label style={{position: "relative", width: "88px", height: "88px", borderRadius: "10px", border: "1.5px dashed #cfd8e3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer", color: "#0D3B7A", fontSize: "12px", fontWeight: "700"}}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-                  Add photo
-                  <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={v.pickCFPhotos} style={{position: "absolute", width: "1px", height: "1px", opacity: "0"}} />
+                  Add
+                  <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" multiple onChange={v.pickCFPhotos} aria-label="Add photos or videos" style={{position: "absolute", width: "1px", height: "1px", opacity: "0"}} />
                 </label> : null}
             </div>
-            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>JPG, PNG or WebP, up to 10 MB each.</span>}
+            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>As many as you like. Photos: JPG, PNG or WebP, up to 10 MB each. Videos: MP4 or MOV, up to 50 MB and 60 seconds each.</span>}
           </div>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
             <span style={label}>Who sees it</span>
