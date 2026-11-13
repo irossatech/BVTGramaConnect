@@ -389,7 +389,8 @@ export interface ServiceRequest {
   service: string;
   service_name?: string;
   name: string;
-  phone: string;
+  /** phone, email and address: absent in the list with contact=0; GET /service-requests/{id}/ has them. */
+  phone?: string;
   email?: string;
   address?: string;
   details?: string;
