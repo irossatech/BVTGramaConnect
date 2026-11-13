@@ -1759,12 +1759,12 @@ export default class Component extends React.Component<Props, State> {
   }
 
   // ---- new post (the app's Compose) ----
-  // Any number of photos and videos, mixed (lead's decision of 2026-11-11; the server's
-  // MAX_PHOTOS_PER_POST is 0, no limit). Each file keeps the server's own limits:
-  // MAX_IMAGE_UPLOAD_MB, MAX_VIDEO_UPLOAD_MB and VIDEO_MAX_SECONDS. Change them together.
+  // Up to 3 photos, or one video, never both (lead's decision of 2026-11-13, for everyone who posts).
+  // The same numbers as the server: MAX_PHOTOS_PER_POST, MAX_IMAGE_UPLOAD_MB and MAX_VIDEO_UPLOAD_MB
+  // (a video of any length). Change them together.
+  private static readonly CF_MAX_PHOTOS = 3;
   private static readonly CF_MAX_MB = 10;
-  private static readonly CF_VIDEO_MAX_MB = 50;
-  private static readonly CF_VIDEO_MAX_S = 60;
+  private static readonly CF_VIDEO_MAX_MB = 60;
 
   private openCompose() {
     const cats = this.state.categories.filter((c) => c.is_active);
@@ -1840,41 +1840,44 @@ export default class Component extends React.Component<Props, State> {
     });
   }
 
-  // Photos are added at once; videos after their length is read, so one over 60 seconds is refused here.
+  // Up to 3 photos, or one video, never both. Photos are added at once; a video after its length and
+  // first frame are read (sent as duration_s and poster for a server without ffmpeg). Any length.
   private pickCFMedia(e: React.ChangeEvent<HTMLInputElement>) {
     const f = this.state.cf;
     const picked = Array.from(e.target.files || []);
     e.target.value = '';
     if (!f || !picked.length) return;
-    this.setState({cf: {...f, photoErr: ''}});
-    picked.forEach((file) => {
-      if (/^image\/(jpeg|png|webp)$/.test(file.type)) {
-        if (file.size > Component.CF_MAX_MB * 1024 * 1024) {
-          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is larger than ' + Component.CF_MAX_MB + ' MB.'}} : null);
-        }
-        return this.addCFItem(file, 'image', URL.createObjectURL(file), 0, null);
-      }
-      if (!/^video\/(mp4|quicktime)$/.test(file.type)) {
-        return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: 'Only JPG, PNG or WebP photos and MP4 or MOV videos are added.'}} : null);
-      }
-      if (file.size > Component.CF_VIDEO_MAX_MB * 1024 * 1024) {
-        return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is larger than ' + Component.CF_VIDEO_MAX_MB + ' MB.'}} : null);
-      }
+    const setErr = (photoErr: string) => this.setState((st) => st.cf ? {cf: {...st.cf, photoErr}} : null);
+    const isPhoto = (x: File) => /^image\/(jpeg|png|webp)$/.test(x.type);
+    const isVideo = (x: File) => /^video\/(mp4|quicktime)$/.test(x.type);
+    const both = 'A post has up to ' + Component.CF_MAX_PHOTOS + ' photos or one video, not both.';
+    if (f.kinds.includes('video') || f.checking) return setErr(both + ' Remove the video first.');
+    if (picked.some((x) => !isPhoto(x) && !isVideo(x))) return setErr('Choose JPG, PNG or WebP photos, or an MP4 or MOV video.');
+    const videos = picked.filter(isVideo), photos = picked.filter(isPhoto);
+    if (videos.length) {
+      if (photos.length || f.files.length) return setErr(both + (f.files.length ? ' Remove the photos first.' : ''));
+      if (videos.length > 1) return setErr('A post can have one video.');
+      const file = videos[0];
+      if (file.size > Component.CF_VIDEO_MAX_MB * 1024 * 1024) return setErr(file.name + ' is larger than ' + Component.CF_VIDEO_MAX_MB + ' MB.');
       const url = URL.createObjectURL(file);
-      this.setState((st) => st.cf ? {cf: {...st.cf, checking: st.cf.checking + 1}} : null);
+      this.setState({cf: {...f, photoErr: '', checking: 1}});
       this.readVideo(url).then((read) => {
-        this.setState((st) => st.cf ? {cf: {...st.cf, checking: Math.max(0, st.cf.checking - 1)}} : null);
+        this.setState((st) => st.cf ? {cf: {...st.cf, checking: 0}} : null);
         if (!read) {
           URL.revokeObjectURL(url);
-          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' could not be read. Try an MP4 file.'}} : null);
-        }
-        if (read.secs > Component.CF_VIDEO_MAX_S + 0.5) {
-          URL.revokeObjectURL(url);
-          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is longer than ' + Component.CF_VIDEO_MAX_S + ' seconds.'}} : null);
+          return setErr(file.name + ' could not be read. Try an MP4 file.');
         }
         this.addCFItem(file, 'video', url, Math.round(read.secs), read.poster);
       });
-    });
+      return;
+    }
+    const room = Math.max(0, Component.CF_MAX_PHOTOS - f.files.length);
+    const small = photos.filter((x) => x.size <= Component.CF_MAX_MB * 1024 * 1024);
+    const added = small.slice(0, room);
+    const err = small.length < photos.length ? 'Photos larger than ' + Component.CF_MAX_MB + ' MB were not added.'
+      : added.length < small.length ? 'Up to ' + Component.CF_MAX_PHOTOS + ' photos per post.' : '';
+    this.setState({cf: {...f, photoErr: err}});
+    added.forEach((x) => this.addCFItem(x, 'image', URL.createObjectURL(x), 0, null));
   }
 
   private removeCFPhoto(i: number) {
@@ -3013,12 +3016,13 @@ export default class Component extends React.Component<Props, State> {
           errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
           titleCount: f.title.length + ' / 150', bodyCount: f.body.length + ' / 5000',
           photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => this.removeCFPhoto(i)})),
-          canAddPhoto: !f.saving, photoErr: f.photoErr,
-          photoCount: (() => {
-            const videos = f.kinds.filter((k) => k === 'video').length, photos = f.files.length - videos;
-            const parts = [photos + (photos === 1 ? ' photo' : ' photos'), videos + (videos === 1 ? ' video' : ' videos')];
-            return parts.join(', ') + (f.checking ? ', checking ' + f.checking + '…' : '');
-          })(),
+          canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < Component.CF_MAX_PHOTOS,
+          photoErr: f.photoErr,
+          // With photos already there only photos can be added; an empty form takes either.
+          accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
+          addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
+          photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
+            : f.files.length + ' of ' + Component.CF_MAX_PHOTOS + ' photos, or one video',
           toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
           showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
           where: vl && m ? vl.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village (everyone)',

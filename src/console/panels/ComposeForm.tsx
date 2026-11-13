@@ -1,5 +1,5 @@
 // New post: the app's Compose in the console. Category, language, title and message, who sees it,
-// urgent, any number of photos and videos, mixed. An admin's post is published at once (the server decides).
+// urgent, up to 3 photos or one video. An admin's post is published at once (the server decides).
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -48,7 +48,7 @@ export default function ComposeForm({ v }: { v: View }) {
             {f.errBody ? <span style={errText}>{I(f.errBody)}</span> : null}
           </label>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-            <span style={label}>Photos and videos <span style={{fontWeight: "400", color: "#6b7a8c"}}>(optional · {I(f.photoCount)})</span></span>
+            <span style={label}>Photos or a video <span style={{fontWeight: "400", color: "#6b7a8c"}}>(optional · {I(f.photoCount)})</span></span>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
               {list(f.photos).map((_p, _i1) => (
                 <span key={_i1} style={{position: "relative", width: "88px", height: "88px", borderRadius: "10px", overflow: "hidden", background: _p.isVideo ? "#0A2550" : "#f7f9fb"}}>
@@ -66,11 +66,11 @@ export default function ComposeForm({ v }: { v: View }) {
               ))}
               {f.canAddPhoto ? <label style={{position: "relative", width: "88px", height: "88px", borderRadius: "10px", border: "1.5px dashed #cfd8e3", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer", color: "#0D3B7A", fontSize: "12px", fontWeight: "700"}}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-                  Add
-                  <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" multiple onChange={v.pickCFPhotos} aria-label="Add photos or videos" style={{position: "absolute", width: "1px", height: "1px", opacity: "0"}} />
+                  {I(f.addLabel)}
+                  <input type="file" accept={f.accept} multiple onChange={v.pickCFPhotos} aria-label={f.addLabel} style={{position: "absolute", width: "1px", height: "1px", opacity: "0"}} />
                 </label> : null}
             </div>
-            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>As many as you like. Photos: JPG, PNG or WebP, up to 10 MB each. Videos: MP4 or MOV, up to 50 MB and 60 seconds each.</span>}
+            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>Up to 3 photos (JPG, PNG or WebP, up to 10 MB each), or one video (MP4 or MOV, up to 60 MB, any length). Not both.</span>}
           </div>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
             <span style={label}>Who sees it</span>
