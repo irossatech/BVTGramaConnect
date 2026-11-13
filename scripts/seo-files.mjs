@@ -2,23 +2,30 @@
 // GC_SITE_URL (the environment, then .env; default as in next.config.ts), so they always name the address the
 // site is built for. Written into dist/ only: the deploy refuses to pull when tracked files have changed.
 import { execSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 try {
   process.loadEnvFile(".env"); // never overrides real environment variables
 } catch {}
 const site = (process.env.GC_SITE_URL || "https://www.gramaconnect.com").replace(/\/+$/, "");
 
-// The website's pages (src/website/routes.ts): path, llms.txt label.
-const PAGES = [
-  ["/", "Home: what the app does and how to get it"],
-  ["/howitworks/", "How it works"],
-  ["/officials/", "For officials"],
-  ["/faq/", "FAQ"],
-  ["/contact/", "Contact"],
-  ["/privacy/", "Privacy policy"],
-  ["/terms/", "Terms"],
-];
+// The website's pages come from src/website/routes.ts (its SLUG table), so the sitemap never misses one.
+// Each page needs a label for llms.txt below; the build stops if routes.ts gains a page without one.
+const LABEL = {
+  home: "Home: what the app does and how to get it",
+  how: "How it works",
+  officials: "For officials",
+  faq: "FAQ",
+  contact: "Contact",
+  privacy: "Privacy policy",
+  terms: "Terms",
+};
+const slugTable = readFileSync("src/website/routes.ts", "utf8").match(/const SLUG[^{]*\{([^}]*)\}/);
+if (!slugTable) throw new Error("src/website/routes.ts: SLUG table not found");
+const PAGES = [...slugTable[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map(([, page, slug]) => {
+  if (!LABEL[page]) throw new Error(`scripts/seo-files.mjs: add an llms.txt label for the page "${page}"`);
+  return [slug ? `/${slug}/` : "/", LABEL[page]];
+});
 
 let lastmod;
 try {

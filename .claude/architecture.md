@@ -51,7 +51,7 @@ src/
     ds.tsx                  Badge and IconBadge from the design system
 
   shared/                   used by both apps
-    PageHead.tsx            <head>: viewport, design-system stylesheets, Google Fonts, SEO tags
+    PageHead.tsx            <head>: viewport, design-system stylesheets, self-hosted fonts, SEO tags
     dc.tsx                  I(), css(), list(), val(): the rendering rules of the old runtime
     config.ts               { apiBase, siteUrl } from GC_API_BASE / GC_SITE_URL at build time
   types/react-css.d.ts      lets inline styles set CSS custom properties ("--d")
@@ -59,7 +59,13 @@ src/
 public/
   _ds/grama-connect/        design-system CSS and tokens from the prototype (never edit)
   assets/                   logo, photos, icons, share image (og-image.jpg), fonts/
-scripts/seo-files.mjs       after the build: dist/robots.txt, sitemap.xml, llms.txt for GC_SITE_URL
+scripts/seo-files.mjs       after the build: dist/robots.txt, sitemap.xml, llms.txt for GC_SITE_URL (pages from routes.ts)
+scripts/defer-hydration.mjs after the build: website pages load their scripts after the first paint (scripts/boot.js)
+scripts/build-stamp.mjs     last build step: dist/BUILD-STAMP.md, and the committed APK put back if the build dropped it
+scripts/check-dist.mjs      `npm run check-dist`: the committed dist/ matches the source and production settings
+scripts/build-info.mjs      shared by the two above: settings, source fingerprint
+tests/                      `npm test`: unit tests (node:test) for csv-parts.ts and routes.ts
+.github/workflows/ci.yml    on every push: typecheck, tests, check-dist, fresh build
 next.config.ts              static export to dist/, build settings
 tsconfig.json               TypeScript, strict
 ```
@@ -79,7 +85,7 @@ Each component is one React class component, in the prototype's shape:
 
 Data enters only through the logic class (`state`, `renderVals()`). Markup reads `v.<key>`. Do not compute in the JSX what belongs in `renderVals()`.
 
-The console renders client-only (`next/dynamic` with `ssr: false`), as the prototype did. The website is rendered at build time (for search engines): its HTML holds the page's text at the desktop width, kept hidden (`html:not(.gc-ready) .gc-site`) until `Site.tsx` has measured the real width on mount, so phones never see the desktop layout. Code in `Site.tsx` that runs while rendering must not touch `window` or `document`. Each page's global CSS (`:root`, `body`, links, inputs) sits in its own `<style>`, and each page is its own HTML document, so the two never meet. Animation names differ (`mk-` for the website, `sa-` for the console).
+The console renders client-only (`next/dynamic` with `ssr: false`), as the prototype did. The website is rendered at build time (for search engines): its HTML is complete and right at every width (phone/wide differences are CSS; see "First paint before React" below), and `Site.tsx` adds `gc-ready` to `<html>` on mount, which switches on scroll reveal and the other effects. Code in `Site.tsx` that runs while rendering must not touch `window` or `document`. Each page's global CSS (`:root`, `body`, links, inputs) sits in its own `<style>`, and each page is its own HTML document, so the two never meet. Animation names differ (`mk-` for the website, `sa-` for the console).
 
 ## Website
 
@@ -100,8 +106,8 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 
 - **First paint before React (website):** the exported HTML is complete and right at every width (phone/wide differences are CSS: `rsp()` in `src/website/ui/theme.ts`), so `scripts/defer-hydration.mjs` swaps Next.js's `<script defer>` tags for `scripts/boot.js` (published as `/_next/static/boot-<hash>.js`), which loads them in order once the browser reports its first contentful paint (3 s at most), with `<link rel=preload fetchpriority=low>` so they download meanwhile. The page shows at once; scroll reveal and the other effects switch on when React starts (`.gc-ready`). The console is unchanged.
 
-- `npm run build` runs `next build --webpack` with `output: "export"`: it writes `dist/index.html`, `dist/console/index.html`, `dist/_next/` (scripts and chunks) and copies `public/` into `dist/`. `GC_API_BASE` and `GC_SITE_URL` (environment first, then `.env`) are built into the scripts. `dist/` is git-ignored.
+- `npm run build` runs `next build --webpack` with `output: "export"`: it writes `dist/index.html`, `dist/console/index.html`, `dist/_next/` (scripts and chunks) and copies `public/` into `dist/`. The `GC_*` settings (environment first, then `.env`, then production defaults) are built into the scripts. `dist/` is committed, with `dist/BUILD-STAMP.md` recording the source fingerprint and settings it was built from (`conventions.md`, "Git").
 - **Webpack and the Pages Router on purpose:** their pages carry only external `<script src="/_next/…">` tags plus a JSON data block, so the production Content-Security-Policy works without `'unsafe-inline'`. The App Router and Turbopack add inline scripts that the CSP would block.
 - All paths are absolute (`/_next/`, `/_ds/`, `/assets/`): the console page loads its scripts from the site root, so `/` and `/console/` must be served from the same `dist/` build.
 - **Development:** the BackEnd repo serves `dist/` at `/` (`web_public` app, `WEB_PUBLIC_DIR`, default `../BVTGramaConnect/dist`) and `dist/console/` at `/console/` (`web_admin` app, `WEB_ADMIN_DIR`, default `../BVTGramaConnect/dist/console`) while DEBUG is on.
-- **Production:** the BackEnd repo's `deploy/deploy.sh` clones this repo to `/srv/gramaconnect/web` (setting `REPO_WEB`), builds it once, and copies `dist/` (without `console/`) to the web root's `public` folder and `dist/console/` to its `console` folder. Nginx serves `/` and `/console/` from those two folders and proxies `/api/` to Gunicorn. Everything is on one domain, so both apps call the API with relative URLs and need no CORS.
+- **Production:** the BackEnd repo's `deploy/deploy.sh` clones this repo to `/srv/gramaconnect/web` (setting `REPO_WEB`), uses the committed `dist/` as it is (its `WEB_API_BASE` is then ignored; it runs `npm ci` and `npm run build` only when `dist/` is not committed), and copies `dist/` (without `console/`) to the web root's `public` folder and `dist/console/` to its `console` folder. Nginx serves `/` and `/console/` from those two folders and proxies `/api/` to Gunicorn. Everything is on one domain, so both apps call the API with relative URLs and need no CORS.

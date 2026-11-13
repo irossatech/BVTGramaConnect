@@ -7,6 +7,9 @@
 //   seo         page titles (English name | Telugu name), descriptions, share-image alt text, the noscript summary
 //   legal       Privacy policy and Terms: a section body string is a paragraph, an array is a bullet list;
 //               {email} and {phone} are filled from `office`. Update `updated` whenever the wording changes.
+// Three values are empty on purpose: en `ui.wordPost` (the Telugu hero line needs a closing phrase, the English one
+// does not; Hero.tsx skips it when empty), en `legal.note` (the "English wins if the texts differ" note is shown in
+// Telugu only; Legal.tsx skips it when empty) and te `seo.home` (page titles read only the English `seo.home`).
 import te from "./locales/te.json";
 import en from "./locales/en.json";
 

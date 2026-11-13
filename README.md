@@ -73,7 +73,7 @@ Next.js 16 (Pages Router, static export, webpack) on React 19.2, in TypeScript (
 
 ## Requirements
 
-- **Node 20.9 or newer**, for Next.js.
+- **Node 20.9 or newer**, for Next.js; **22.18 or newer** for `npm test` (CI uses 24).
 - **Git.**
 
 ## Run against the live server (everyday work)
@@ -98,7 +98,18 @@ Open http://localhost:3000/ (website) and http://localhost:3000/console/ (consol
 npm run build
 ```
 
-This writes `dist/` (website) and `dist/console/` (console) as static files. To work against a local API instead of the live server, set `GC_DEV_API=http://127.0.0.1:8000` in `.env` and restart `npm run dev`.
+This writes `dist/` (website) and `dist/console/` (console) as static files, with the production settings by default.
+
+`dist/` is **committed**, because the server deploys the committed build as it is. With every source change:
+
+```
+npm run build
+npm run check-dist     # fails if dist/ is older than the source, or not built with the production settings
+npm test
+git add -A dist        # plus your source changes, in the same commit
+```
+
+CI (`.github/workflows/ci.yml`) runs the type check, the tests, `check-dist` and a fresh build on every push.
 
 ### Quick look without an API
 
@@ -122,7 +133,7 @@ Open http://localhost:8080/ (website) or http://localhost:8080/console/ (console
 
 ## Settings
 
-Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env` are git-ignored, so never commit them. No secrets are needed: the console logs in with a session cookie, and the apps hold no API keys.
+Set them in the environment, or copy `.env.example` to `.env`; the defaults are production's, so a release build needs no `.env`. `.env` is git-ignored; never commit it. No secrets are needed: the console logs in with a session cookie, and the apps hold no API keys.
 
 | Variable | Default | Used by | Meaning |
 |---|---|---|---|
@@ -130,7 +141,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 | `GC_SITE_URL` | `https://www.gramaconnect.com` (production) | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
 | `GC_PLAY_STORE_URL`, `GC_APP_STORE_URL` | empty | website (built in) | The Google Play and App Store buttons. Empty shows "Coming soon" |
-| `GC_ANDROID_APK_URL` | empty | website (built in) | The "Direct download" link under the hero's store buttons, `/downloads/bvt-grama-connect.apk` (committed in `dist/downloads/`). Empty hides the link. See *Android APK download* below |
+| `GC_ANDROID_APK_URL` | `/downloads/bvt-grama-connect.apk` | website (built in) | The "Direct download" link under the hero's store buttons (the APK is committed in `dist/downloads/`). Set it empty to hide the link. See *Android APK download* below |
 
 ## What changed from the prototypes
 
@@ -141,7 +152,7 @@ Set them in the environment, or copy `.env.example` to `.env`. `dist/` and `.env
 4. Store buttons open `play_store_url` and `app_store_url`; while a URL is empty they show the prototype's "coming soon" toast.
 5. The contact form posts to `POST /api/v1/public/contact-messages/`, with an invisible honeypot input. Two toast texts were added in Telugu and English.
 6. The website has no admin login and no link to the console: officials open `/console/` directly. The console is `noindex`, so it never shows in search results.
-7. Each page has its own address, for search engines: `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/` and `/terms/` (`src/website/routes.ts`); old `#faq`-style links still open the right page. The Privacy policy and Terms text lives in `src/website/legal.ts` (Telugu and English); update its date when the wording changes. Back and Forward move between pages (owner decision Q16).
+7. Each page has its own address, for search engines: `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/` and `/terms/` (`src/website/routes.ts`); old `#faq`-style links still open the right page. The Privacy policy and Terms text lives under `legal` in `src/website/locales/te.json` and `en.json`; update that page's `updated` line when its wording changes. Back and Forward move between pages (owner decision Q16).
 8. The hero's news ticker ("Latest news" / "చాటింపులు") shows the newest posts from `GET /api/v1/public/showcase/`. On the English page a post shows its English title when the server has a translation, otherwise its Telugu title (marked `lang="te"`). Without data it shows three sample notices.
 
 **Console:** every mock dataset now comes from the API. Additions, in the prototype's own inline styles: username and password login, a change-password screen (forced at first login, and from the profile menu), server-side paging, loading and empty rows, Add User with username, optional email and mobile and a temporary password (typed or generated), Reset password and Unlock in the user panel, a dialog that shows a temporary password once with Copy, menus and buttons that follow the signed-in user's permissions, CSV import for villages, and an "Already decided by …" toast for review conflicts. From the owner's decisions: a Contact messages page, second roles and Reset password in the user panel, Urgent and event chips, video and Mark urgent in the post panel, one CSV export per report with no PDF, and readable audit labels. Full list: `.claude/architecture.md`.
@@ -189,7 +200,7 @@ While the app is not in the stores, the website's "Direct download" link downloa
 2. Copy it to `public/downloads/bvt-grama-connect.apk` here (same name; it replaces the old one).
 3. `npm run build` copies it into `dist/downloads/`. Commit `dist/` and push; the next deploy serves it.
 
-`public/downloads/` is git-ignored (only the copy in `dist/` is committed, so the file is in git once per version). Each new APK adds about 27 MB to the repository's history: fine until the app is on Google Play. Then set `GC_PLAY_STORE_URL` in `.env`, empty `GC_ANDROID_APK_URL`, rebuild, and remove `dist/downloads/`.
+`public/downloads/` is git-ignored (only the copy in `dist/` is committed, so the file is in git once per version). On a machine without `public/downloads/`, `npm run build` puts the committed APK back into `dist/` from git, so a rebuild never drops it. Each new APK adds about 27 MB to the repository's history: fine until the app is on Google Play. Then set `GC_PLAY_STORE_URL` in `.env`, empty `GC_ANDROID_APK_URL`, rebuild, and remove `dist/downloads/`.
 
 ## When the designer changes a prototype
 
@@ -205,4 +216,4 @@ The components are now the source; a new prototype export is not copied in. Appl
 
 ## Deploy
 
-Run `npm run build` and publish `dist/` at `/` and `dist/console/` at `/console/` as static files. The APK is not part of the deploy (see *Android APK download*). The server needs Node 20.9 or newer to build. The pages need a Content-Security-Policy with `script-src 'self'`, `style-src 'self' 'unsafe-inline'` and `font-src 'self'`. They load nothing from Google.
+The BackEnd repo's `deploy/deploy.sh` publishes the **committed** `dist/` (no build on the server): `dist/` at `/` and `dist/console/` at `/console/`, as static files, including the APK in `dist/downloads/`. So build, run `npm run check-dist` and commit `dist/` before deploying (*Build* above). The pages need a Content-Security-Policy with `script-src 'self'`, `style-src 'self' 'unsafe-inline'` and `font-src 'self'`. They load nothing from Google.

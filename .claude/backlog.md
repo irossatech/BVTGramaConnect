@@ -1,14 +1,16 @@
 # Backlog: website and console
 
-Open work as of 2026-10-21, most urgent first. Items marked "sign-off" change what people see and need the owner's approval first. Remove an item when it is done.
+Open work as of 2026-11-12, most urgent first. Items marked "sign-off" change what people see and need the owner's approval first. Remove an item when it is done.
 
 ## Both apps
 
 1. **Finish the click-through against the real backend.** On 21 Oct 2026 the console's login and permission flows passed in a browser against the real backend: session login errors (wrong password, lockout, blocked, not a console user), forced and voluntary password change, reset password with a generated password, unlock, Add User, logout and idle expiry. Still to click: the 409 "already decided" toast (decide one post from two sessions), CSV import with a real file (dry run and import), every CSV download, and every website page.
+14. **Drop `'unsafe-eval'` from the production CSP (backend team; audit WEB-SEC-001).** BackEnd `deploy/templates/nginx-security.conf` still allows it for the old Design Canvas runtime; the Next.js pages use no `eval`. Check both apps in a staging browser without it, then update BackEnd `docs/security-review.md`.
+15. **Move the APK out of git (audit WEB-OPS-002).** Each new APK adds about 27 MB to history. Options: a server folder or object storage named by `GC_ANDROID_APK_URL`, or Git LFS; needs a deploy.sh change, so agree it with the backend team. Moot once the app is on Google Play.
 
 ## Website (`src/website/Site.tsx`)
 
-3. **"For officials" login text (sign-off).** The page says an admin adds officials with their email and sends the username and temporary password by email. Since 21 Oct 2026 there is no email: the admin sets or generates a temporary password and hands it over in person. New Telugu and English text for that point (`o3c` in `src/website/strings.ts`) must be agreed with the owner.
+3. **"For officials" login text (sign-off).** The page says an admin adds officials with their email and sends the username and temporary password by email. Since 21 Oct 2026 there is no email: the admin sets or generates a temporary password and hands it over in person. New Telugu and English text for that point (`ui.o3c` in `src/website/locales/*.json`) must be agreed with the owner.
 4. **Office details.** Done: the BVT Kandukur address, phone, email and hours are in `src/website/locales/*.json` (the website no longer reads the server's `SITE_*` settings; the mobile app still does).
 5. **Store links.** When the app is published, set `GC_PLAY_STORE_URL` (and `GC_APP_STORE_URL`) in `.env`, rebuild, commit `dist/` and push.
 6. **Showcase photos.** The seed data has no photos, so the live phone picture was only checked with the default village image. Check it once real posts with photos exist.
@@ -18,6 +20,14 @@ Open work as of 2026-10-21, most urgent first. Items marked "sign-off" change wh
 ## Console (`src/console/Console.tsx`)
 
 12. **Video playback.** The post panel's video player was checked with a poster only. Play a real MP4 once uploads work end to end.
+16. **Backend branches not yet merged (as of 12 Nov 2026).** Build against each only after it reaches BackEnd `dev` and `docs/api-contract.md`:
+    - `feature/console-totp` (sign-off): with `CONSOLE_OTP_REQUIRED`, `POST /auth/session/login/` answers `{otp_required, otp_enrolled}` and no session; the console needs a set-up screen (`POST /auth/session/otp/setup/`: `secret`, `otpauth_url` for a QR code) and a code screen (`POST /auth/session/otp/verify/` `{code}`; `invalid_otp` with `tries_left`, `otp_expired` back to the password step). New UI, and a QR code needs a library or a drawing routine: owner's sign-off first.
+    - `feature/officials-media-no-limit`: `rules.max_photos_per_post` 0 means no limit, and any number of videos. New post still caps photos at 5 (`CF_MAX_PHOTOS`); `project.md` still says MAX_PHOTOS_PER_POST=5.
+    - `feature/audit-date-window`: `GET /audit/` shows the last 90 days unless `from`/`to` are sent, and returns `window`. A date filter on the Audit page would be new UI (sign-off).
+    - `feature/request-id`: done ahead of the merge, `fail()` adds "(ref. …)" when a 500 carries `error.request_id`.
+    - `audit/be01-all-fixes`: the geography import answers `413 file_too_large` over 20 MB (the toast shows the server's message); objects outside the area answer 404 instead of 403 (nothing in the console depends on 403).
+17. **New post to several areas (sign-off; audit WEB-FUNC-001).** The 28 Oct 2026 rule allows 1 to 200 areas in any mix; New post sends one (`targets: [target]`). A multi-area picker is new UI.
+18. **Split `Console.tsx` (owner's view; audit WEB-ARCH-001).** 3,130 lines in one class. Moving each screen's loaders and adapters into modules the class calls would keep the "logic class + `renderVals()`" rule; it is a large change with no visible effect, so agree it first.
 
 Inherited from the console prototype, change only with the owner's sign-off:
 - Fixed 1440 px canvas; narrower windows clip it.
