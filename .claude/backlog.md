@@ -22,7 +22,6 @@ Open work as of 2026-11-12, most urgent first. Items marked "sign-off" change wh
 12. **Video playback.** The post panel's video player was checked with a poster only. Play a real MP4 once uploads work end to end.
 16. **Backend branches not yet merged (as of 12 Nov 2026).** Build against each only after it reaches BackEnd `dev` and `docs/api-contract.md`:
     - `feature/console-totp` (sign-off): with `CONSOLE_OTP_REQUIRED`, `POST /auth/session/login/` answers `{otp_required, otp_enrolled}` and no session; the console needs a set-up screen (`POST /auth/session/otp/setup/`: `secret`, `otpauth_url` for a QR code) and a code screen (`POST /auth/session/otp/verify/` `{code}`; `invalid_otp` with `tries_left`, `otp_expired` back to the password step). New UI, and a QR code needs a library or a drawing routine: owner's sign-off first.
-    - `feature/officials-media-no-limit`: `rules.max_photos_per_post` 0 means no limit, and any number of videos. New post still caps photos at 5 (`CF_MAX_PHOTOS`); `project.md` still says MAX_PHOTOS_PER_POST=5.
     - `feature/audit-date-window`: `GET /audit/` shows the last 90 days unless `from`/`to` are sent, and returns `window`. A date filter on the Audit page would be new UI (sign-off).
     - `feature/request-id`: done ahead of the merge, `fail()` adds "(ref. …)" when a 500 carries `error.request_id`.
     - `audit/be01-all-fixes`: the geography import answers `413 file_too_large` over 20 MB (the toast shows the server's message); objects outside the area answer 404 instead of 403 (nothing in the console depends on 403).
