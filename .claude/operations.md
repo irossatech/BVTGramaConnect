@@ -49,6 +49,6 @@ So a release is: build, `npm run check-dist`, commit `dist/` with the source, pu
 
 - The console page loads its scripts from `/_next/`, which lives in `public`; both folders must come from the same build.
 - `index.html` files: `no-cache`. `/_next/static/` file names carry a content hash, so they can be cached for a year; `_ds/` and `assets/` with long cache times.
-- Content-Security-Policy: these pages need only `script-src 'self'` (no inline scripts, no `eval`), `style-src 'self' 'unsafe-inline'` (inline styles) and `font-src 'self'` (fonts are self-hosted; nothing loads from Google). The server's template (`deploy/templates/nginx-security.conf`) still adds `'unsafe-eval'`, left over from the old Design Canvas runtime; removing it is with the backend team (`backlog.md`).
+- Content-Security-Policy: these pages need only `script-src 'self'` (no inline scripts, no `eval`), `style-src 'self' 'unsafe-inline'` (inline styles) and `font-src 'self'` (fonts are self-hosted; nothing loads from Google). The server's template (BackEnd `deploy/templates/nginx-security.conf`) is exactly that since 12 Nov 2026 (`'unsafe-eval'` removed, audit WEB-SEC-001), and every nested Nginx location (`/_next/static/`, `/assets/`, the console's folders) re-includes it. So never add inline scripts or `eval`: the browser would block them.
 
 Nginx templates: BackEnd repo, `deploy/templates/`.

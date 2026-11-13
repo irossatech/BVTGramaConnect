@@ -3021,6 +3021,7 @@ export default class Component extends React.Component<Props, State> {
           // With photos already there only photos can be added; an empty form takes either.
           accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
           addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
+          mediaHelp: 'Up to ' + Component.CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + Component.CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + Component.CF_VIDEO_MAX_MB + ' MB, any length). Not both.',
           photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
             : f.files.length + ' of ' + Component.CF_MAX_PHOTOS + ' photos, or one video',
           toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
