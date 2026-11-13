@@ -34,6 +34,7 @@ import ConfirmModal from "./panels/ConfirmModal";
 import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import { decodeUtf8, planParts, fileLine, type CsvPart } from "./csv-parts";
+import { maskMobile } from "./mask";
 import type {
   Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError,
   ContactImportResult, ContactMessage, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
@@ -2819,7 +2820,8 @@ export default class Component extends React.Component<Props, State> {
     // users
     const uf = s.uf;
     // Second line under the name: the Telugu name, else the login username (never the English name twice).
-    const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: u.mobile ? '+91 ' + u.mobile : (u.email || '—'), roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
+    // Mobile masked in the table (audit WEB-DP-001); the user panel ("View") shows it in full.
+    const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || u.email || '—', roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
       statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
       canReassign: !!u.raId && this.userCan(u, 'reassign'), canToggle: this.userCan(u, u.active ? 'block' : 'unblock'), view: () => this.openUser(u), reassign: () => this.reassignUser(u), toggle: () => this.toggleUser(u)}));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
