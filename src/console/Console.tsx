@@ -110,13 +110,21 @@ interface ComposeForm {
   m: string;
   v: string;
   urgent: boolean;
+  /** Photos and videos in the order picked; previews, kinds, durs and posters line up with them. */
   files: File[];
   previews: string[];
+  kinds: ('image' | 'video')[];
+  /** A video's length in seconds (0 for a photo), read in the browser. */
+  durs: number[];
+  /** A video's first frame as a JPEG (null for a photo, or when the browser could not draw it). */
+  posters: (Blob | null)[];
+  /** Videos still being read before they are added. */
+  checking: number;
   saving: boolean;
   tried: boolean;
-  /** What is happening while saving ("Uploading photo 2 of 3…"). */
+  /** What is happening while saving ("Uploading 2 of 3…"). */
   step: string;
-  /** Set once the post exists, so a retry after a failed photo upload does not create it twice. */
+  /** Set once the post exists, so a retry after a failed upload does not create it twice. */
   postId: string;
   uploaded: number;
   photoErr: string;
@@ -1751,12 +1759,16 @@ export default class Component extends React.Component<Props, State> {
   }
 
   // ---- new post (the app's Compose) ----
-  private static readonly CF_MAX_PHOTOS = 5;
+  // Any number of photos and videos, mixed (lead's decision of 2026-11-11; the server's
+  // MAX_PHOTOS_PER_POST is 0, no limit). Each file keeps the server's own limits:
+  // MAX_IMAGE_UPLOAD_MB, MAX_VIDEO_UPLOAD_MB and VIDEO_MAX_SECONDS. Change them together.
   private static readonly CF_MAX_MB = 10;
+  private static readonly CF_VIDEO_MAX_MB = 50;
+  private static readonly CF_VIDEO_MAX_S = 60;
 
   private openCompose() {
     const cats = this.state.categories.filter((c) => c.is_active);
-    this.setState({cf: {cat: cats[0]?.key || '', lang: 'te', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
+    this.setState({cf: {cat: cats[0]?.key || '', lang: 'te', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
   }
 
   private closeCompose() {
@@ -1783,23 +1795,94 @@ export default class Component extends React.Component<Props, State> {
     });
   }
 
-  private pickCFPhotos(e: React.ChangeEvent<HTMLInputElement>) {
+  /** Add one file to the form, at the end. */
+  private addCFItem(file: File, kind: 'image' | 'video', url: string, dur: number, poster: Blob | null, err = '') {
+    this.setState((st) => {
+      const f = st.cf;
+      if (!f) {
+        URL.revokeObjectURL(url);
+        return null;
+      }
+      return {cf: {...f, files: [...f.files, file], previews: [...f.previews, url], kinds: [...f.kinds, kind], durs: [...f.durs, dur], posters: [...f.posters, poster], photoErr: err || f.photoErr}};
+    });
+  }
+
+  /** A video's length and first frame, read in the browser. Null when the browser cannot play it. */
+  private readVideo(url: string): Promise<{secs: number; poster: Blob | null} | null> {
+    return new Promise((resolve) => {
+      const probe = document.createElement('video');
+      probe.preload = 'auto';
+      probe.muted = true;
+      let secs = 0;
+      // A browser that never seeks still gets an answer: the length without a poster.
+      setTimeout(() => resolve(secs > 0 ? {secs, poster: null} : null), 8000);
+      const posterNow = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = probe.videoWidth;
+          canvas.height = probe.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (!ctx || !canvas.width || !canvas.height) return resolve({secs, poster: null});
+          ctx.drawImage(probe, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => resolve({secs, poster: blob}), 'image/jpeg', 0.85);
+        } catch {
+          resolve({secs, poster: null});
+        }
+      };
+      probe.onloadedmetadata = () => {
+        secs = probe.duration;
+        if (!isFinite(secs) || secs <= 0) return resolve(null);
+        probe.currentTime = Math.min(1, secs / 2); // the first second, as the server's poster
+      };
+      probe.onseeked = posterNow;
+      probe.onerror = () => resolve(secs > 0 ? {secs, poster: null} : null);
+      probe.src = url;
+    });
+  }
+
+  // Photos are added at once; videos after their length is read, so one over 60 seconds is refused here.
+  private pickCFMedia(e: React.ChangeEvent<HTMLInputElement>) {
     const f = this.state.cf;
     const picked = Array.from(e.target.files || []);
     e.target.value = '';
     if (!f || !picked.length) return;
-    const room = Component.CF_MAX_PHOTOS - f.files.length;
-    const ok = picked.filter((x) => /^image\/(jpeg|png|webp)$/.test(x.type) && x.size <= Component.CF_MAX_MB * 1024 * 1024).slice(0, Math.max(0, room));
-    const skipped = picked.length - ok.length;
-    const photoErr = skipped ? (room < picked.length ? 'Up to ' + Component.CF_MAX_PHOTOS + ' photos. ' : '') + 'Only JPG, PNG or WebP photos up to ' + Component.CF_MAX_MB + ' MB are added.' : '';
-    this.setState({cf: {...f, files: [...f.files, ...ok], previews: [...f.previews, ...ok.map((x) => URL.createObjectURL(x))], photoErr}});
+    this.setState({cf: {...f, photoErr: ''}});
+    picked.forEach((file) => {
+      if (/^image\/(jpeg|png|webp)$/.test(file.type)) {
+        if (file.size > Component.CF_MAX_MB * 1024 * 1024) {
+          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is larger than ' + Component.CF_MAX_MB + ' MB.'}} : null);
+        }
+        return this.addCFItem(file, 'image', URL.createObjectURL(file), 0, null);
+      }
+      if (!/^video\/(mp4|quicktime)$/.test(file.type)) {
+        return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: 'Only JPG, PNG or WebP photos and MP4 or MOV videos are added.'}} : null);
+      }
+      if (file.size > Component.CF_VIDEO_MAX_MB * 1024 * 1024) {
+        return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is larger than ' + Component.CF_VIDEO_MAX_MB + ' MB.'}} : null);
+      }
+      const url = URL.createObjectURL(file);
+      this.setState((st) => st.cf ? {cf: {...st.cf, checking: st.cf.checking + 1}} : null);
+      this.readVideo(url).then((read) => {
+        this.setState((st) => st.cf ? {cf: {...st.cf, checking: Math.max(0, st.cf.checking - 1)}} : null);
+        if (!read) {
+          URL.revokeObjectURL(url);
+          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' could not be read. Try an MP4 file.'}} : null);
+        }
+        if (read.secs > Component.CF_VIDEO_MAX_S + 0.5) {
+          URL.revokeObjectURL(url);
+          return this.setState((st) => st.cf ? {cf: {...st.cf, photoErr: file.name + ' is longer than ' + Component.CF_VIDEO_MAX_S + ' seconds.'}} : null);
+        }
+        this.addCFItem(file, 'video', url, Math.round(read.secs), read.poster);
+      });
+    });
   }
 
   private removeCFPhoto(i: number) {
     const f = this.state.cf;
     if (!f || f.saving) return;
     URL.revokeObjectURL(f.previews[i]);
-    this.setState({cf: {...f, files: f.files.filter((_, k) => k !== i), previews: f.previews.filter((_, k) => k !== i), photoErr: ''}});
+    const keep = (_: unknown, k: number) => k !== i;
+    this.setState({cf: {...f, files: f.files.filter(keep), previews: f.previews.filter(keep), kinds: f.kinds.filter(keep), durs: f.durs.filter(keep), posters: f.posters.filter(keep), photoErr: ''}});
   }
 
   private saveCompose() {
@@ -1815,20 +1898,32 @@ export default class Component extends React.Component<Props, State> {
       this.toast('Areas are still loading. Try again in a moment.', '#b3261e');
       return;
     }
+    if (f.checking) {
+      this.toast('A video is still being checked. Try again in a moment.', '#b3261e');
+      return;
+    }
     const setF = (p: Partial<ComposeForm>) => this.setState((x) => ({cf: x.cf && {...x.cf, ...p}}));
-    const photos = f.files.length;
+    const count = f.files.length;
     setF({saving: true, step: 'Saving…'});
     const created: Promise<Post> = f.postId
       ? Promise.resolve({id: f.postId} as Post)
-      : this.api.post<Post>('/posts/', {category: f.cat, language: f.lang, title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !photos});
+      : this.api.post<Post>('/posts/', {category: f.cat, language: f.lang, title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count});
     created.then(async (p) => {
-      if (!photos) return p;
+      if (!count) return p;
       setF({postId: p.id});
-      for (let i = this.state.cf?.uploaded || 0; i < photos; i++) {
-        setF({step: 'Uploading photo ' + (i + 1) + ' of ' + photos + '…'});
+      // One file per request, in the order picked; each goes after those already on the post.
+      for (let i = this.state.cf?.uploaded || 0; i < count; i++) {
+        const video = f.kinds[i] === 'video';
+        setF({step: 'Uploading ' + (video ? 'video' : 'photo') + ' ' + (i + 1) + ' of ' + count + '…'});
         const form = new FormData();
-        form.append('kind', 'image');
+        form.append('kind', f.kinds[i]);
         form.append('file', f.files[i]);
+        if (video) {
+          // Used only by a server without ffmpeg; one with it measures and cuts its own poster.
+          if (f.durs[i]) form.append('duration_s', String(f.durs[i]));
+          const poster = f.posters[i];
+          if (poster) form.append('poster', poster, 'poster.jpg');
+        }
         await this.api.upload('/posts/' + p.id + '/media/', form);
         setF({uploaded: i + 1});
       }
@@ -2484,7 +2579,7 @@ export default class Component extends React.Component<Props, State> {
       const evs = ev ? (C.EVENT[ev.kind] || [ev.kind, '#e3f0fb', '#0D3B7A']) : null;
       const evDates = ev ? (this.fmt(ev.start_date + 'T00:00:00+05:30', true).slice(0, 11) + (ev.end_date ? ' – ' + this.fmt(ev.end_date + 'T00:00:00+05:30', true).slice(0, 11) : '')) : '';
       return {cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, area: p.area, date: p.date, author: p.author, authorRole: czLine || rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
-        st: {bg: st.bg, color: st.color, label: st.label}, hasPhoto: p.media.length > 0, photos: p.media.slice(0, 5).map((m) => ({src: m.thumb_url || m.url, pos: 'center'})), urgent: !!p.urgent,
+        st: {bg: st.bg, color: st.color, label: st.label}, hasPhoto: p.media.length > 0, photos: p.media.map((m) => ({src: m.thumb_url || m.url, pos: 'center'})), urgent: !!p.urgent,
         hasEvent: !!ev, eventLabel: evs ? evs[0] + ' · ' + evDates : '', eventBg: evs ? evs[1] : '', eventColor: evs ? evs[2] : '',
         hasVideo: (p.videos || []).length > 0, videos: (p.videos || []).map((v) => ({src: v.url, poster: v.poster_url || v.thumb_url || ''})), rowBg: s.panel && s.panel.type === 'post' && s.panel.id === p.id ? '#f0f6fd' : '#fff',
         history: withHistory ? s.panelHistory.map(hist) : [], open: () => this.openPost(p), actions: acts.map(([label, k, border, bg, color]) => ({label, border, bg, color, go: () => this.postAction(k, p)}))};
@@ -2907,7 +3002,7 @@ export default class Component extends React.Component<Props, State> {
           dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : []};
       })() : null,
       canCompose: this.can('posts.create_post') && s.me?.capabilities?.can_post !== false, openCompose: () => this.openCompose(),
-      cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFPhotos(e), saveCF: () => this.saveCompose(),
+      cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFMedia(e), saveCF: () => this.saveCompose(),
       cf: s.cf ? (() => {
         const f = s.cf;
         const err = f.tried ? this.cfErrors(f) : {};
@@ -2917,8 +3012,13 @@ export default class Component extends React.Component<Props, State> {
           catOpts: s.categories.filter((c) => c.is_active).map((c) => ({id: c.key, label: (c.name_en || c.key) + (c.name_te ? ' · ' + c.name_te : '')})),
           errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
           titleCount: f.title.length + ' / 150', bodyCount: f.body.length + ' / 5000',
-          photos: f.previews.map((src, i) => ({src, remove: () => this.removeCFPhoto(i)})),
-          canAddPhoto: f.files.length < Component.CF_MAX_PHOTOS && !f.saving, photoCount: f.files.length + ' of ' + Component.CF_MAX_PHOTOS, photoErr: f.photoErr,
+          photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => this.removeCFPhoto(i)})),
+          canAddPhoto: !f.saving, photoErr: f.photoErr,
+          photoCount: (() => {
+            const videos = f.kinds.filter((k) => k === 'video').length, photos = f.files.length - videos;
+            const parts = [photos + (photos === 1 ? ' photo' : ' photos'), videos + (videos === 1 ? ' video' : ' videos')];
+            return parts.join(', ') + (f.checking ? ', checking ' + f.checking + '…' : '');
+          })(),
           toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
           showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
           where: vl && m ? vl.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village (everyone)',
