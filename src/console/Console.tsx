@@ -1272,7 +1272,8 @@ export default class Component extends React.Component<Props, State> {
     const s = this.state;
     const latest = this.ticket('reqs');
     this.setState({reqLoading: true});
-    this.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, page, page_size: Component.PAGE})
+    // contact=0: the rows come without the citizen's phone, email and address (audit WEB-DP-001); openRequestRow reads them.
+    this.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: Component.PAGE})
       .then((d) => latest() && this.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
       .catch((e: unknown) => {
         if (!latest()) return;
@@ -1558,6 +1559,12 @@ export default class Component extends React.Component<Props, State> {
       this.toast('Ad deleted · ' + a.title);
       this.loadAds();
     }).catch((e: unknown) => this.fail(e))});
+  }
+
+  // "Open" in the table: the row has no contact details, so the panel shows the request as the server sends it alone.
+  private openRequestRow(r: ServiceRequest) {
+    const latest = this.ticket('rqOpen');
+    this.api.get<ServiceRequest>('/service-requests/' + r.id + '/').then((full) => latest() && this.openRequest(full)).catch((e: unknown) => latest() && this.fail(e));
   }
 
   // One request in the side panel; the people it can be assigned to are the active officials this admin sees.
@@ -3080,8 +3087,9 @@ export default class Component extends React.Component<Props, State> {
       },
       reqRows: s.reqs.map((r) => {
         const st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW;
-        return {address: r.address || '', time: this.fmt(r.created_at, false), service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '+91 ' + r.phone,
-          place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => this.openRequest(r)};
+        // Citizen column: the name only; phone and address are in the panel ("Open").
+        return {address: '', time: this.fmt(r.created_at, false), service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
+          place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => this.openRequestRow(r)};
       }),
       reqCountLabel: s.reqCount + (s.reqCount === 1 ? ' request' : ' requests'), reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Service requests will show here once the server is updated.' : 'No requests here. Citizens send them from Services in the app.', reqPager: pager(s.reqPage, s.reqPages, (p) => this.loadRequests(p)),
       newAd: () => this.openAd(null), adsCountLabel: s.ads.filter((a) => this.adStatus(a) === 'live').length + ' running · ' + s.ads.length + ' in all', adsEmpty: !s.ads.length, adsUnavailable: s.adsUnavailable,
@@ -3199,7 +3207,7 @@ export default class Component extends React.Component<Props, State> {
       rqShow: !!rq, closeRQ: () => this.setState({rq: null}),
       rq: orEmpty(rq ? (() => {
         const r = rq.r, st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW, al = r.allowed_actions || [];
-        return {service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: this.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: '+91 ' + r.phone, tel: 'tel:+91' + r.phone, email: r.email || '', mailto: 'mailto:' + (r.email || ''),
+        return {service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: this.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: '+91 ' + (r.phone || ''), tel: 'tel:+91' + (r.phone || ''), email: r.email || '', mailto: 'mailto:' + (r.email || ''),
           place: [r.village && r.village.name, r.mandal && r.mandal.name, r.district && r.district.name].filter(Boolean).join(', '), details: r.details || '', address: r.address || '', canAssign: al.includes('assign'), assigned: r.assigned_to ? String(r.assigned_to.id) : ''};
       })() : null),
       rqView: orEmpty(rq ? (() => {
