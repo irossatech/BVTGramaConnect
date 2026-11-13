@@ -1,11 +1,11 @@
 # Backlog: website and console
 
-Open work as of 2026-11-12, most urgent first. Items marked "sign-off" change what people see and need the owner's approval first. Remove an item when it is done.
+Open work as of 2026-11-13, most urgent first. Items marked "sign-off" change what people see and need the owner's approval first. Remove an item when it is done.
 
 ## Both apps
 
 1. **Finish the click-through against the real backend.** On 21 Oct 2026 the console's login and permission flows passed in a browser against the real backend: session login errors (wrong password, lockout, blocked, not a console user), forced and voluntary password change, reset password with a generated password, unlock, Add User, logout and idle expiry. Still to click: the 409 "already decided" toast (decide one post from two sessions), CSV import with a real file (dry run and import), every CSV download, and every website page.
-14. **Drop `'unsafe-eval'` from the production CSP (backend team; audit WEB-SEC-001).** BackEnd `deploy/templates/nginx-security.conf` still allows it for the old Design Canvas runtime; the Next.js pages use no `eval`. Check both apps in a staging browser without it, then update BackEnd `docs/security-review.md`.
+14. **Check both apps under the stricter CSP.** The backend removed `'unsafe-eval'` on 12 Nov 2026 (audit WEB-SEC-001, BackEnd PR #86). After the next deploy, click through the website and the console with the browser console open: there must be no "Refused to…" Content-Security-Policy errors.
 15. **Move the APK out of git (audit WEB-OPS-002).** Each new APK adds about 27 MB to history. Options: a server folder or object storage named by `GC_ANDROID_APK_URL`, or Git LFS; needs a deploy.sh change, so agree it with the backend team. Moot once the app is on Google Play.
 
 ## Website (`src/website/Site.tsx`)
@@ -20,11 +20,8 @@ Open work as of 2026-11-12, most urgent first. Items marked "sign-off" change wh
 ## Console (`src/console/Console.tsx`)
 
 12. **Video playback.** The post panel's video player was checked with a poster only. Play a real MP4 once uploads work end to end.
-16. **Backend branches not yet merged (as of 12 Nov 2026).** Build against each only after it reaches BackEnd `dev` and `docs/api-contract.md`:
-    - `feature/console-totp` (sign-off): with `CONSOLE_OTP_REQUIRED`, `POST /auth/session/login/` answers `{otp_required, otp_enrolled}` and no session; the console needs a set-up screen (`POST /auth/session/otp/setup/`: `secret`, `otpauth_url` for a QR code) and a code screen (`POST /auth/session/otp/verify/` `{code}`; `invalid_otp` with `tries_left`, `otp_expired` back to the password step). New UI, and a QR code needs a library or a drawing routine: owner's sign-off first.
-    - `feature/audit-date-window`: `GET /audit/` shows the last 90 days unless `from`/`to` are sent, and returns `window`. A date filter on the Audit page would be new UI (sign-off).
-    - `feature/request-id`: done ahead of the merge, `fail()` adds "(ref. …)" when a 500 carries `error.request_id`.
-    - `audit/be01-all-fixes`: the geography import answers `413 file_too_large` over 20 MB (the toast shows the server's message); objects outside the area answer 404 instead of 403 (nothing in the console depends on 403).
+16. **Console sign-in code (sign-off; BackEnd `feature/console-totp`, not merged as of 13 Nov 2026).** Build only after it reaches BackEnd `dev`. With `CONSOLE_OTP_REQUIRED`, `POST /auth/session/login/` answers `{otp_required, otp_enrolled}` and no session; the console needs a set-up screen (`POST /auth/session/otp/setup/`: `secret`, `otpauth_url` for a QR code) and a code screen (`POST /auth/session/otp/verify/` `{code}`; `invalid_otp` with `tries_left`, `otp_expired` back to the password step). New UI, and a QR code needs a library or a drawing routine: owner's sign-off first.
+19. **Audit log dates (sign-off).** Since 12 Nov 2026 `GET /audit/` shows the last 90 days unless `from`/`to` are sent (at most 180 days back) and returns `window`. The Audit page sends no dates, so it shows 90 days and does not say so; a date filter or a "last 90 days" note would be new UI.
 17. **New post to several areas (sign-off; audit WEB-FUNC-001).** The 28 Oct 2026 rule allows 1 to 200 areas in any mix; New post sends one (`targets: [target]`). A multi-area picker is new UI.
 18. **Split `Console.tsx` (owner's view; audit WEB-ARCH-001).** 3,130 lines in one class. Moving each screen's loaders and adapters into modules the class calls would keep the "logic class + `renderVals()`" rule; it is a large change with no visible effect, so agree it first.
 

@@ -70,7 +70,7 @@ export default function ComposeForm({ v }: { v: View }) {
                   <input type="file" accept={f.accept} multiple onChange={v.pickCFPhotos} aria-label={f.addLabel} style={{position: "absolute", width: "1px", height: "1px", opacity: "0"}} />
                 </label> : null}
             </div>
-            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>Up to 3 photos (JPG, PNG or WebP, up to 10 MB each), or one video (MP4 or MOV, up to 60 MB, any length). Not both.</span>}
+            {f.photoErr ? <span style={errText}>{I(f.photoErr)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(f.mediaHelp)}</span>}
           </div>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
             <span style={label}>Who sees it</span>

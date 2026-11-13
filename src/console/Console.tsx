@@ -4,7 +4,7 @@
 import React from "react";
 import { css } from "../shared/dc";
 import * as ds from "./ds";
-import GC_API, { ApiError, type Query } from "./api";
+import GC_API, { ApiError, saveFile, type Query } from "./api";
 import Checking from "./screens/Checking";
 import AuthLayout from "./layout/AuthLayout";
 import Sidebar from "./layout/Sidebar";
@@ -533,6 +533,55 @@ const orEmpty = <T extends object>(x: T | null): Partial<T> => x || {};
 
 const isStatus = (e: unknown, status: number): boolean => e instanceof ApiError && e.status === status;
 
+/** Rows per page in every paged list (the server's page_size). */
+const PAGE_SIZE = 20;
+
+/** Pages in a list of `count` rows; at least one. */
+const pageCount = (count: number | null | undefined): number => Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+
+/** The rows of an answer that is either a plain list or a page ({results}). */
+const rows = <T,>(d: ListOrPage<T>): T[] => (Array.isArray(d) ? d : d.results || []);
+
+/** The local (blob:) previews the service and ad forms show; New post frees its own. */
+const blobPreviews = (s: State): string[] => [s.sf?.image, s.af?.preview, s.af?.vpreview].filter((u): u is string => !!u && u.startsWith("blob:"));
+
+/** Opens the browser's file picker and hands over the chosen file. */
+function pickFile(accept: string, onFile: (file: File) => void): void {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = accept;
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    if (file) onFile(file);
+  };
+  input.click();
+}
+
+/** Reads a picture's width in pixels; 0 when the browser cannot decode it (the server then decides). */
+function imageWidth(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img.naturalWidth);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(0);
+    };
+    img.src = url;
+  });
+}
+
+/** Text cells that start like a formula (=, +, -, @, tab, CR) get a leading apostrophe, so Excel shows them as text
+ * (the server's grama/csvsafe.py rule). Plain numbers, such as coordinates, stay as they are. */
+function csvCell(x: string | number | null | undefined): string {
+  let t = String(x ?? "");
+  if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t;
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+
 // error.report.errors of a CSV import refused with 400 (contract sections 4 and 14).
 function reportErrors(e: unknown): unknown[] {
   const rep = e instanceof ApiError ? e.body.report : undefined;
@@ -583,7 +632,7 @@ export default class Component extends React.Component<Props, State> {
   private static readonly HIST: Readonly<Record<string, string>> = {SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
   private static readonly ACT: Readonly<Record<string, string>> = {'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','user.super_admin_created':'added a Super Admin','user.super_admin_role_added':'gave the Super Admin role','user.super_admin_role_removed':'removed the Super Admin role','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
-  private static readonly PAGE = 20;
+  private static readonly PAGE = PAGE_SIZE;
   // Home banner ads (docs/api-contract.md section 17): status worked out from the dates and the switch.
   private static readonly AD_STATUS: Readonly<Record<AdStatus, Tone>> = {live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#6b7a8c'}};
   // Service request: what the citizen is told when it moves to each status.
@@ -594,12 +643,23 @@ export default class Component extends React.Component<Props, State> {
   private static readonly SERVICES: Readonly<Record<string, string>> = {aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
   private static readonly LVROLE: Readonly<Record<string, string>> = {DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills','service_requests.manage_services'],services:['service_requests.manage_services','web_admin.access_web_console'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services','posts.view_review_queue'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   private static readonly MANAGE: Readonly<Partial<Record<string, string>>> = {super:'accounts.manage_super_admin',district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   private static readonly CONSOLE_PERM = 'web_admin.access_web_console';
   private static readonly LOGIN_ERR: Readonly<Record<string, string>> = {invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
-  state: State = {
+  // The console signs out after this long without a key press, click, scroll or pointer move (owner decision of
+  // 2026-10-21: 30-minute idle timeout). The bell's background poll does not count, though it keeps the server
+  // session fresh, so the console itself ends an unattended session.
+  private static readonly IDLE_MS = 30 * 60 * 1000;
+  private static readonly ACTIVITY: readonly string[] = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
+  // Largest villages CSV the console reads (the server takes at most GEO_IMPORT_MAX_BYTES, 20 MB, per part).
+  private static readonly GEO_CSV_MAX_MB = 20;
+  // Smallest banner picture the server accepts (ADS_MIN_WIDTH_PX).
+  private static readonly AD_MIN_WIDTH_PX = 800;
+
+  // Everything the console shows starts from here, and goes back here on sign-out (nothing of the last session stays).
+  private static readonly INITIAL: State = {
     screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, navOpen: false, exporting: null, notifOpen: false, notifs: [], notifUnread: 0, notifNext: null, notifLoading: false, notifError: false, gsearch: '', me: null,
     geo: [], stateRow: null, expanded: {}, geoQ: '', geoForm: null,
     users: [], userCount: 0, userPage: 1, userPages: 1, usersLoading: false,
@@ -616,6 +676,20 @@ export default class Component extends React.Component<Props, State> {
     settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},
     modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', toasts: [], imp: null,
   };
+
+  state: State = {...Component.INITIAL};
+
+  /** When the user last pressed a key, clicked, scrolled or moved the pointer. */
+  private lastActive = Date.now();
+  private readonly onActivity = (): void => {
+    this.lastActive = Date.now();
+  };
+  private readonly onVisible = (): void => {
+    if (document.visibilityState === 'visible') this.checkIdle();
+  };
+  /** The latest request number per list or panel: an older answer that arrives late is dropped. */
+  private seq: Record<string, number> = {};
+  private seqNo = 0;
 
   private toastTimers: Timer[] = [];
   private contactTimer: Timer | undefined;
@@ -667,6 +741,8 @@ export default class Component extends React.Component<Props, State> {
     this.api.start<Me>().then((me) => this.afterLogin(me, true)).catch(() => this.setState({screen: 'login'}));
     window.addEventListener('popstate', this.onPop);
     window.addEventListener('keydown', this.onKey);
+    Component.ACTIVITY.forEach((t) => window.addEventListener(t, this.onActivity, {passive: true, capture: true}));
+    document.addEventListener('visibilitychange', this.onVisible);
   }
 
   // Browser history: each console page is its own entry (#users, #reports…), so Back and the swipe gesture move
@@ -674,6 +750,11 @@ export default class Component extends React.Component<Props, State> {
   // open and asks before leaving, so no one leaves the console signed in by accident.
   componentDidUpdate(_: Props, prev: State) {
     const s = this.state;
+    // A logo, banner picture or banner video preview is freed once its form no longer shows it (replaced or closed).
+    const shown = blobPreviews(s);
+    blobPreviews(prev).forEach((u) => {
+      if (!shown.includes(u)) URL.revokeObjectURL(u);
+    });
     if (s.screen === 'app' && (prev.screen !== 'app' || prev.page !== s.page)) {
       const h = '#' + s.page;
       try {
@@ -741,7 +822,13 @@ export default class Component extends React.Component<Props, State> {
   componentWillUnmount() {
     window.removeEventListener('popstate', this.onPop);
     window.removeEventListener('keydown', this.onKey);
+    Component.ACTIVITY.forEach((t) => window.removeEventListener(t, this.onActivity, {capture: true}));
+    document.removeEventListener('visibilitychange', this.onVisible);
     this.toastTimers.forEach(clearTimeout);
+    this.stopTimers();
+  }
+
+  private stopTimers() {
     clearTimeout(this.contactTimer);
     clearTimeout(this.numTimer);
     clearTimeout(this.userTimer);
@@ -750,6 +837,37 @@ export default class Component extends React.Component<Props, State> {
     clearTimeout(this.reqTimer);
     clearTimeout(this.teTimer);
     clearInterval(this.notifTimer);
+    this.notifTimer = undefined;
+  }
+
+  // Back to the login screen with nothing of the last session left: every list, panel, form and timer goes, and
+  // answers still on their way are dropped (their request numbers no longer match). The username stays after a
+  // timeout, so signing in again is quick; a deliberate logout clears it.
+  private resetSession(keepUsername: boolean) {
+    this.stopTimers();
+    this.seq = {};
+    this.teNames = {};
+    this.teAuto = undefined;
+    this.nuGen = undefined;
+    this.setState((s) => ({...Component.INITIAL, screen: 'login', toasts: s.toasts, username: keepUsername ? s.username : ''}));
+  }
+
+  // Tags a request for one list or panel; the returned check is false once a newer request for it has started.
+  private ticket(key: string) {
+    const n = (this.seqNo = this.seqNo + 1);
+    this.seq[key] = n;
+    return () => this.seq[key] === n;
+  }
+
+  // No key press, click, scroll or pointer move for IDLE_MS while signed in: end the session on the server too.
+  private checkIdle() {
+    const s = this.state;
+    if (s.screen !== 'app' && s.screen !== 'change_password') return false;
+    if (Date.now() - this.lastActive < Component.IDLE_MS) return false;
+    this.api.logout();
+    this.resetSession(true);
+    this.toast('Your session has ended. Log in again.', '#E9791E');
+    return true;
   }
 
   private toast(text: string, dot?: string) {
@@ -766,7 +884,7 @@ export default class Component extends React.Component<Props, State> {
       return;
     }
     if (err?.status === 401 && this.state.screen !== 'login') {
-      this.setState({screen: 'login', me: null, menuOpen: false, panel: null, drawerOpen: false, nf: null, cpVoluntary: false, cpCurrent: '', cpNext: ''});
+      this.resetSession(true);
       this.toast('Your session has ended. Log in again.', '#E9791E');
       return;
     }
@@ -812,8 +930,9 @@ export default class Component extends React.Component<Props, State> {
     return this.canAny(Component.NAV_PERM[k], me);
   }
 
+  // The server lists what this admin may do to the user (allowed_actions); no list means no buttons.
   private userCan(u: AdminUser, a: string) {
-    return !u.allowed || u.allowed.includes(a);
+    return !!u.allowed && u.allowed.includes(a);
   }
 
   private roleChoices(): Option[] {
@@ -940,8 +1059,11 @@ export default class Component extends React.Component<Props, State> {
     this.loadCategories();
     this.loadPage(page);
     this.loadNotifs();
+    this.lastActive = Date.now();
     clearInterval(this.notifTimer);
     this.notifTimer = setInterval(() => {
+      // An unattended console signs out after IDLE_MS; the poll itself must not keep it signed in.
+      if (this.checkIdle()) return;
       // Only while signed in, the tab is visible and the list is closed (an open list is not reshuffled under the cursor).
       if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') this.loadNotifs();
     }, 60000);
@@ -1014,7 +1136,7 @@ export default class Component extends React.Component<Props, State> {
         window.location.replace('/');
         return;
       }
-      this.setState({screen: 'login', menuOpen: false, panel: null, drawerOpen: false, modal: null, username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, me: null});
+      this.resetSession(false);
       this.toast('Signed out');
     });
   }
@@ -1067,10 +1189,9 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private loadCategories() {
-    return this.api.get<ListOrPage<Category>>('/admin/categories/').then((d) => {
-      const categories = Array.isArray(d) ? d : (d.results || []);
-      this.setState({categories});
-    }).catch(() => {});
+    // Settings needs posts.manage_categories; without it the list stays empty and nobody is told (nothing to fix).
+    if (!this.can('posts.manage_categories')) return Promise.resolve();
+    return this.api.get<ListOrPage<Category>>('/admin/categories/').then((d) => this.setState({categories: rows(d)})).catch((e: unknown) => this.fail(e));
   }
 
   private loadDash() {
@@ -1092,10 +1213,12 @@ export default class Component extends React.Component<Props, State> {
 
   private loadUsers(page: number) {
     const uf = this.state.uf;
+    const latest = this.ticket('users');
     this.setState({usersLoading: true});
     this.api.get<Paged<User>>('/users/', {role: uf.role ? Component.RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', is_active: uf.status ? String(uf.status === 'active') : '', q: uf.q, page, page_size: Component.PAGE})
-      .then((d) => this.setState({users: d.results.map((u) => this.adaptUser(u)), userCount: d.count, userPage: page, userPages: Math.max(1, Math.ceil(d.count / Component.PAGE)), usersLoading: false}))
+      .then((d) => latest() && this.setState({users: d.results.map((u) => this.adaptUser(u)), userCount: d.count, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({usersLoading: false});
         this.fail(e);
       });
@@ -1120,20 +1243,25 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private loadPosts(page: number) {
+    const latest = this.ticket('posts');
     this.setState({postsLoading: true});
     this.api.get<PostsPage>('/posts/', this.postQuery(page))
-      .then((d) => this.setState({posts: d.results.map((p) => this.adaptPost(p)), postCount: d.count, postPage: page, postPages: Math.max(1, Math.ceil(d.count / Component.PAGE)), statusCounts: d.status_counts || {}, pendingCount: (d.status_counts || {}).PENDING || 0, postsLoading: false}))
+      .then((d) => latest() && this.setState({posts: d.results.map((p) => this.adaptPost(p)), postCount: d.count, postPage: page, postPages: pageCount(d.count), statusCounts: d.status_counts || {}, pendingCount: (d.status_counts || {}).PENDING || 0, postsLoading: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({postsLoading: false});
         this.fail(e);
       });
   }
 
   private loadAudit(page: number) {
+    const latest = this.ticket('audit');
     this.setState({auditLoading: true});
     this.api.get<Paged<AuditEntry>>('/audit/', {q: this.state.auditQ, type: this.state.auditType, page, page_size: Component.PAGE})
-      .then((d) => this.setState({audit: d.results, auditCount: d.count, auditPage: page, auditPages: Math.max(1, Math.ceil(d.count / Component.PAGE)), auditLoading: false}))
+      // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
+      .then((d) => latest() && this.setState({audit: d.results.map(({data: _, ...a}) => a), auditCount: d.count, auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({auditLoading: false});
         this.fail(e);
       });
@@ -1141,10 +1269,12 @@ export default class Component extends React.Component<Props, State> {
 
   private loadRequests(page: number) {
     const s = this.state;
+    const latest = this.ticket('reqs');
     this.setState({reqLoading: true});
     this.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, page, page_size: Component.PAGE})
-      .then((d) => this.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: Math.max(1, Math.ceil((d.count || 0) / Component.PAGE)), reqLoading: false, reqUnavailable: false}))
+      .then((d) => latest() && this.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({reqLoading: false, reqs: [], reqCount: 0, reqCounts: {}, reqUnavailable: isStatus(e, 404)});
         if (!isStatus(e, 404)) this.fail(e);
       });
@@ -1183,7 +1313,7 @@ export default class Component extends React.Component<Props, State> {
     const c = this.cat(b);
     this.setState(one(c.ld, true));
     this.api.get<ListOrPage<CatalogItem>>(c.path)
-      .then((d) => this.setState({...one(c.l, Array.isArray(d) ? d : (d.results || [])), ...one(c.ld, false), ...one(c.un, false)}))
+      .then((d) => this.setState({...one(c.l, rows(d)), ...one(c.ld, false), ...one(c.un, false)}))
       .catch((e: unknown) => {
         const nf = isStatus(e, 404);
         this.setState({...one(c.ld, false), ...one(c.un, nf), ...one(c.l, nf ? c.seed : [])});
@@ -1201,19 +1331,13 @@ export default class Component extends React.Component<Props, State> {
 
   // The Super Admin's own logo (contract section 16: `logo`): PNG, JPG or WebP up to 2 MB.
   private pickServiceIcon() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/webp';
-    input.onchange = () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
+    pickFile('image/png,image/jpeg,image/webp', (file) => {
       if (file.size > 2 * 1024 * 1024) {
         this.toast('The logo is larger than 2 MB', '#E9791E');
         return;
       }
       this.setState((st) => ({sf: st.sf && {...st.sf, file, image: URL.createObjectURL(file)}}));
-    };
-    input.click();
+    });
   }
 
   private svcErr(f: ServiceForm) {
@@ -1284,7 +1408,7 @@ export default class Component extends React.Component<Props, State> {
     this.setState({adsLoading: true});
     if (!this.state.geo.length) this.loadGeo();
     this.api.get<ListOrPage<Ad>>('/admin/ads/', {page_size: 100})
-      .then((d) => this.setState({ads: Array.isArray(d) ? d : (d.results || []), adsLoading: false, adsUnavailable: false}))
+      .then((d) => this.setState({ads: rows(d), adsLoading: false, adsUnavailable: false}))
       .catch((e: unknown) => {
         this.setState({adsLoading: false, ads: [], adsUnavailable: isStatus(e, 404)});
         if (!isStatus(e, 404)) this.fail(e);
@@ -1346,16 +1470,16 @@ export default class Component extends React.Component<Props, State> {
 
   // One picker for both: a picture is used as it is, a video is checked for size and length first.
   private pickAdMedia() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime';
-    input.onchange = () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
+    pickFile('image/jpeg,image/png,image/webp,video/mp4,video/quicktime', (file) => {
       const setF = (p: Partial<AdForm>) => this.setState((st) => ({af: st.af && {...st.af, ...p}}));
       if (file.type.startsWith('image/')) {
         if (file.size > 5 * 1024 * 1024) return setF({verr: 'The picture is larger than 5 MB.'});
-        return setF({kind: 'image', file, preview: URL.createObjectURL(file), verr: ''});
+        // The server refuses a picture narrower than ADS_MIN_WIDTH_PX: say so before the upload, not after it.
+        imageWidth(file).then((w) => {
+          if (w && w < Component.AD_MIN_WIDTH_PX) setF({verr: 'The picture must be at least ' + Component.AD_MIN_WIDTH_PX + ' pixels wide.'});
+          else setF({kind: 'image', file, preview: URL.createObjectURL(file), verr: ''});
+        });
+        return;
       }
       if (!file.type.startsWith('video/')) return setF({verr: 'Choose a picture (JPG, PNG) or a video (MP4, MOV).'});
       if (file.size > Component.AD_VIDEO_MAX_MB * 1024 * 1024) return setF({verr: 'The video is larger than ' + Component.AD_VIDEO_MAX_MB + ' MB.'});
@@ -1376,8 +1500,7 @@ export default class Component extends React.Component<Props, State> {
         setF({vchecking: false, verr: 'This video could not be read. Try an MP4 file.'});
       };
       probe.src = url;
-    };
-    input.click();
+    });
   }
 
   private saveAd() {
@@ -1440,11 +1563,12 @@ export default class Component extends React.Component<Props, State> {
   private openRequest(r: ServiceRequest) {
     this.setState({rq: {r}, rqAssignees: []});
     if ((r.allowed_actions || []).includes('assign')) {
-      this.api.get<Paged<User>>('/users/', {is_active: 'true', page: 1, page_size: 100}).then((d) => this.setState({rqAssignees: (d.results || []).map((u) => {
+      const latest = this.ticket('rqAssignees');
+      this.api.get<Paged<User>>('/users/', {is_active: 'true', page: 1, page_size: 100}).then((d) => latest() && this.state.rq?.r.id === r.id && this.setState({rqAssignees: (d.results || []).map((u) => {
         const ra = (u.role_assignments || [])[0];
         const role = (Component.ROLE[Component.RK[ra?.role ?? '']] || {label: ''}).label;
         return {id: String(u.id), label: !role || u.name.toLowerCase() === role.toLowerCase() ? u.name : u.name + ' · ' + role};
-      })})).catch(() => {});
+      })})).catch((e: unknown) => latest() && this.fail(e));
     }
   }
 
@@ -1478,10 +1602,12 @@ export default class Component extends React.Component<Props, State> {
 
   private loadContacts(page: number) {
     const s = this.state;
+    const latest = this.ticket('contacts');
     this.setState({contactLoading: true});
     this.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, page, page_size: Component.PAGE})
-      .then((d) => this.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: Math.max(1, Math.ceil((d.count || 0) / Component.PAGE)), contactLoading: false}))
+      .then((d) => latest() && this.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({contactLoading: false, contacts: [], contactCount: 0});
         this.fail(e);
       });
@@ -1502,10 +1628,12 @@ export default class Component extends React.Component<Props, State> {
   // ---- important numbers (contract section 14) ----
   private loadNumbers(page: number) {
     const s = this.state;
+    const latest = this.ticket('nums');
     this.setState({numLoading: true});
     this.api.get<Paged<AdminContact>>('/admin/contacts/', {section: s.numTab, type: s.numType, q: s.numQ, ...(s.numTab === 'AREA' && s.numDistrict ? {level: 'DISTRICT', area_id: s.numDistrict} : {}), page, page_size: Component.PAGE})
-      .then((d) => this.setState({nums: d.results || [], numCount: d.count || 0, numPage: page, numPages: Math.max(1, Math.ceil((d.count || 0) / Component.PAGE)), numLoading: false}))
+      .then((d) => latest() && this.setState({nums: d.results || [], numCount: d.count || 0, numPage: page, numPages: pageCount(d.count), numLoading: false}))
       .catch((e: unknown) => {
+        if (!latest()) return;
         this.setState({numLoading: false, nums: [], numCount: 0});
         this.fail(e);
       });
@@ -1513,8 +1641,9 @@ export default class Component extends React.Component<Props, State> {
 
   // adminOnly: after adding a type, the public list may still be the cached one, so only the admin list reloads.
   private loadTypes(adminOnly?: boolean) {
-    if (!adminOnly) this.api.get<ListOrPage<ContactTypeRef>>('/contact-types/').then((d) => this.setState({ctypes: Array.isArray(d) ? d : (d.results || [])})).catch(() => {});
-    if (this.can('contacts.manage_contact_types')) this.api.get<ListOrPage<AdminContactType>>('/admin/contact-types/').then((d) => this.setState({ctypesAdmin: Array.isArray(d) ? d : (d.results || [])})).catch((e: unknown) => this.fail(e));
+    // The number form's type list: without it no number can be added, so a failure is said.
+    if (!adminOnly) this.api.get<ListOrPage<ContactTypeRef>>('/contact-types/').then((d) => this.setState({ctypes: rows(d)})).catch((e: unknown) => this.fail(e));
+    if (this.can('contacts.manage_contact_types')) this.api.get<ListOrPage<AdminContactType>>('/admin/contact-types/').then((d) => this.setState({ctypesAdmin: rows(d)})).catch((e: unknown) => this.fail(e));
   }
 
   // The server's phone grammar: drop spaces, dashes, brackets and a leading +91 (or 91 before 10 digits).
@@ -1593,6 +1722,14 @@ export default class Component extends React.Component<Props, State> {
           await this.api.del(o.url(ids[i]));
           ok++;
         } catch (e) {
+          // The session ended or this admin may not remove these: the rest would fail too, so stop here.
+          if (isStatus(e, 401) || isStatus(e, 403)) {
+            this.setState({bulk: '', ...one(key, [])});
+            // A plain 403 reloads the list (some may be gone); a 401 or a forced password change leaves the page.
+            if (isStatus(e, 403) && !(e instanceof ApiError && e.code === 'password_change_required')) o.done();
+            this.fail(e);
+            return;
+          }
           why = why || (e instanceof Error && e.message) || 'the server did not answer';
         }
       }
@@ -1612,12 +1749,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private importNumbers() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv,text/csv';
-    input.onchange = () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
+    pickFile('.csv,text/csv', (file) => {
       const form = () => {
         const fd = new FormData();
         fd.append('file', file);
@@ -1633,8 +1765,7 @@ export default class Component extends React.Component<Props, State> {
           this.ask({title: 'File has errors', body: errors.slice(0, 5).map((x) => 'Row ' + x.row + (x.field ? ' · ' + x.field : '') + ': ' + x.message).join(' · ') + (errors.length > 5 ? ' · and ' + (errors.length - 5) + ' more.' : ''), confirmLabel: 'Close', bg: '#3b4a5c', onConfirm: () => {}});
         } else this.fail(e);
       });
-    };
-    input.click();
+    });
   }
 
   // Add a contact type: one form (section, English and Telugu names); the key is made from the English name.
@@ -1752,10 +1883,10 @@ export default class Component extends React.Component<Props, State> {
   private loadSettings() {
     this.loadCategories();
     this.api.get<Settings>('/admin/settings/').then((st) => this.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => this.fail(e));
-    this.api.get<ListOrPage<NotificationTemplate>>('/admin/notification-templates/').then((d) => {
-      const templates = Array.isArray(d) ? d : (d.results || []);
+    if (this.can('notifications.manage_templates')) this.api.get<ListOrPage<NotificationTemplate>>('/admin/notification-templates/').then((d) => {
+      const templates = rows(d);
       this.setState((s) => ({settings: {...s.settings, templates}}));
-    }).catch(() => {});
+    }).catch((e: unknown) => this.fail(e));
   }
 
   // ---- new post (the app's Compose) ----
@@ -2002,9 +2133,10 @@ export default class Component extends React.Component<Props, State> {
 
   private openPost(p: PostRow) {
     this.setState({panel: {type: 'post', id: p.id}, panelPost: p, panelHistory: []});
+    const latest = this.ticket('panel');
     this.api.get<ReviewAction[]>('/posts/' + p.id + '/history/').then((h) => {
-      if (this.state.panel && this.state.panel.id === p.id) this.setState({panelHistory: h});
-    }).catch(() => {});
+      if (latest()) this.setState({panelHistory: h});
+    }).catch((e: unknown) => latest() && this.fail(e));
   }
 
   private refreshPost(id: string) {
@@ -2014,12 +2146,16 @@ export default class Component extends React.Component<Props, State> {
       return this.api.get<ReviewAction[]>('/posts/' + id + '/history/').then((h) => {
         if (this.state.panel && this.state.panel.id === id) this.setState({panelHistory: h});
       });
-    }).catch(() => {});
+    }).catch((e: unknown) => this.fail(e));
   }
 
+  // The user's recent posts: dropped if another user's panel opened meanwhile (no one else's posts under this name).
   private openUser(u: AdminUser) {
     this.setState({panel: {type: 'user', id: u.id}, panelUser: u, panelUserPosts: []});
-    this.api.get<Paged<Post>>('/posts/', {author: u.id, page_size: 5}).then((d) => this.setState({panelUserPosts: d.results.map((p) => this.adaptPost(p))})).catch(() => {});
+    const latest = this.ticket('panel');
+    this.api.get<Paged<Post>>('/posts/', {author: u.id, page_size: 5}).then((d) => {
+      if (latest()) this.setState({panelUserPosts: d.results.map((p) => this.adaptPost(p))});
+    }).catch((e: unknown) => latest() && this.fail(e));
   }
 
   // ---- posts actions ----
@@ -2398,17 +2534,13 @@ export default class Component extends React.Component<Props, State> {
   private exportGeo() {
     const st = this.state.stateRow;
     const cols = ['state', 'state_te', 'district', 'district_te', 'mandal', 'mandal_te', 'village', 'village_te', 'latitude', 'longitude', 'pin_code', 'district_lgd_code', 'mandal_lgd_code', 'village_lgd_code'];
-    const cell = (x: string | null | undefined) => {
-      const t = String(x ?? '');
-      return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
-    };
     const lines = [cols.join(',')];
     let empty = 0;
     for (const d of this.state.geo) {
       for (const m of d.mandals) {
         if (!m.villages.length) empty++;
         for (const v of m.villages) {
-          lines.push([st ? st.name_en : 'Andhra Pradesh', st ? st.name_te : '', d.name, d.te, m.name, m.te, v.name, v.te, v.lat, v.lng, v.pin, d.lgd, m.lgd, v.lgd].map(cell).join(','));
+          lines.push([st ? st.name_en : 'Andhra Pradesh', st ? st.name_te : '', d.name, d.te, m.name, m.te, v.name, v.te, v.lat, v.lng, v.pin, d.lgd, m.lgd, v.lgd].map(csvCell).join(','));
         }
       }
     }
@@ -2417,30 +2549,21 @@ export default class Component extends React.Component<Props, State> {
       return;
     }
     const stamp = new Date().toISOString().slice(0, 10);
-    const url = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n') + '\r\n'], {type: 'text/csv;charset=utf-8'}));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'grama-geography-' + stamp + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    saveFile(new Blob(['\ufeff' + lines.join('\r\n') + '\r\n'], {type: 'text/csv;charset=utf-8'}), 'grama-geography-' + stamp + '.csv');
     this.toast('Exported ' + (lines.length - 1).toLocaleString('en-IN') + ' villages' + (empty ? ' · ' + empty + ' mandal' + (empty === 1 ? '' : 's') + ' without villages left out' : ''));
   }
 
   private importCsv() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv,text/csv';
-    input.onchange = () => {
-      const file = input.files && input.files[0];
-      if (file) this.importParts(file);
-    };
-    input.click();
+    pickFile('.csv,text/csv', (file) => this.importParts(file));
   }
 
   private async importParts(file: File) {
     const info = (title: string, body: string) => this.ask({title, body, confirmLabel: 'Close', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+    // A huge file would freeze the tab while it is read; every village of the state fits in a few MB.
+    if (file.size > Component.GEO_CSV_MAX_MB * 1024 * 1024) {
+      info('This file cannot be imported', 'The file is larger than ' + Component.GEO_CSV_MAX_MB + ' MB. Check that it is the villages list, or split it into smaller files.');
+      return;
+    }
     const text = decodeUtf8(await file.arrayBuffer());
     if (text === null) {
       info('Save the file as UTF-8', 'This file is not saved as UTF-8, so Telugu names would be lost. In Excel choose File › Save As › "CSV UTF-8 (Comma delimited)" and import that file.');
@@ -2497,6 +2620,7 @@ export default class Component extends React.Component<Props, State> {
           last = await send(plan.parts[i], false);
         } catch (e) {
           this.setState({imp: null});
+          if (isStatus(e, 401)) return this.fail(e);
           this.loadGeo();
           info('Import stopped at part ' + (i + 1) + ' of ' + n, (i ? 'Parts 1' + (i > 1 ? '–' + i : '') + ' are saved. ' : '') + 'Nothing in part ' + (i + 1) + ' was saved (' + ((e instanceof Error && e.message) || 'the server did not answer') + '). Importing the same file again is safe: villages already there stay as they are.');
           return;
@@ -2581,7 +2705,8 @@ export default class Component extends React.Component<Props, State> {
       const ev = p.event;
       const evs = ev ? (C.EVENT[ev.kind] || [ev.kind, '#e3f0fb', '#0D3B7A']) : null;
       const evDates = ev ? (this.fmt(ev.start_date + 'T00:00:00+05:30', true).slice(0, 11) + (ev.end_date ? ' – ' + this.fmt(ev.end_date + 'T00:00:00+05:30', true).slice(0, 11) : '')) : '';
-      return {cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, area: p.area, date: p.date, author: p.author, authorRole: czLine || rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
+      // The post's own language and its translation's, so screen readers and fonts treat Telugu text as Telugu.
+      return {rowKey: p.id, cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, lang: p.raw?.language || undefined, langEn: p.raw?.translation?.language || undefined, area: p.area, date: p.date, author: p.author, authorRole: czLine || rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
         st: {bg: st.bg, color: st.color, label: st.label}, hasPhoto: p.media.length > 0, photos: p.media.map((m) => ({src: m.thumb_url || m.url, pos: 'center'})), urgent: !!p.urgent,
         hasEvent: !!ev, eventLabel: evs ? evs[0] + ' · ' + evDates : '', eventBg: evs ? evs[1] : '', eventColor: evs ? evs[2] : '',
         hasVideo: (p.videos || []).length > 0, videos: (p.videos || []).map((v) => ({src: v.url, poster: v.poster_url || v.thumb_url || ''})), rowBg: s.panel && s.panel.type === 'post' && s.panel.id === p.id ? '#f0f6fd' : '#fff',
@@ -2619,7 +2744,7 @@ export default class Component extends React.Component<Props, State> {
     const treeRow = (node: GeoNode, kind: GeoKind, depth: number, parentId: number | null, parentName: string | null, parentKey: string | null, meta: string, key: string, open: boolean) => {
       const hasKids = kind !== 'village';
       const sel = s.geoForm && s.geoForm.id === node.id && s.geoForm.kind === kind;
-      return {kind, name: node.name, te: node.te && node.te !== node.name ? node.te : '', indent: (8 + depth * 28) + 'px', rowBg: sel ? '#f0f6fd' : 'transparent', opacity: node.active ? 1 : .55, toggleVis: hasKids ? 'visible' : 'hidden', chev: open ? 'M6 9l6 6 6-6' : 'M9 6l6 6-6 6',
+      return {kind, name: node.name, te: node.te && node.te !== node.name ? node.te : '', indent: (8 + depth * 28) + 'px', rowBg: sel ? '#f0f6fd' : 'transparent', opacity: node.active ? 1 : .55, toggleVis: hasKids ? 'visible' : 'hidden', chev: open ? 'M6 9l6 6 6-6' : 'M9 6l6 6-6 6', open: hasKids ? open : undefined, toggleLabel: (open ? 'Collapse ' : 'Expand ') + node.name,
         tagBg: tag[kind][0], tagColor: tag[kind][1], inactive: !node.active, meta, canAdd: hasKids, childKind: kind === 'district' ? 'Mandal' : 'Village',
         toggle: () => this.setState((st) => ({expanded: {...st.expanded, [key]: !st.expanded[key]}})),
         select: () => this.setState({geoForm: {kind, id: node.id, parentId, parentName, parentKey, parent: parentName || (s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh'), name: node.name, te: node.te || '', lgd: node.lgd || '', lat: node.lat || '', lng: node.lng || '', pin: node.pin || '', active: node.active, wasActive: node.active, isVillage: kind === 'village'}}),
@@ -2694,7 +2819,7 @@ export default class Component extends React.Component<Props, State> {
     // users
     const uf = s.uf;
     // Second line under the name: the Telugu name, else the login username (never the English name twice).
-    const userRows = s.users.map((u) => ({name: u.name, te: u.nameTe || u.username, mobile: u.mobile ? '+91 ' + u.mobile : (u.email || '—'), roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
+    const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: u.mobile ? '+91 ' + u.mobile : (u.email || '—'), roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
       statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
       canReassign: !!u.raId && this.userCan(u, 'reassign'), canToggle: this.userCan(u, u.active ? 'block' : 'unblock'), view: () => this.openUser(u), reassign: () => this.reassignUser(u), toggle: () => this.toggleUser(u)}));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
@@ -3021,6 +3146,7 @@ export default class Component extends React.Component<Props, State> {
           // With photos already there only photos can be added; an empty form takes either.
           accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
           addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
+          mediaHelp: 'Up to ' + Component.CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + Component.CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + Component.CF_VIDEO_MAX_MB + ' MB, any length). Not both.',
           photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
             : f.files.length + ' of ' + Component.CF_MAX_PHOTOS + ' photos, or one video',
           toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),

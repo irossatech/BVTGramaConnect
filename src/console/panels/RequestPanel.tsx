@@ -15,7 +15,7 @@ export default function RequestPanel({ v }: { v: View }) {
           </div>
           <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${v.rq?.sbg ?? ""};color: ${v.rq?.scolor ?? ""}`)}>{I(v.rq?.statusLabel)}</span>
           <button onClick={v.closeRQ} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center"}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>
         <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px"}}>

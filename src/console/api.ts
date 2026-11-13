@@ -105,7 +105,13 @@ async function send(method: Method, path: string, opts: RequestOptions = {}): Pr
     extra["Content-Type"] = "application/json";
     payload = JSON.stringify(opts.body);
   }
-  const response = await fetch(buildUrl(path, opts.query), { method, headers: headers(method, extra), body: payload, credentials: "same-origin" });
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, opts.query), { method, headers: headers(method, extra), body: payload, credentials: "same-origin" });
+  } catch {
+    // No answer at all (offline, server down): a plain message instead of the browser's "Failed to fetch".
+    throw new ApiError("The server could not be reached. Check the connection and try again.", 0, "network", {});
+  }
   if (!response.ok) throw await toError(response);
   return response;
 }
@@ -115,8 +121,8 @@ async function request<T>(method: Method, path: string, opts?: RequestOptions): 
   return (response.status === 204 ? null : await response.json()) as T;
 }
 
-async function download(path: string, query: Query, filename: string): Promise<void> {
-  const blob = await (await send("GET", path, { query })).blob();
+/** Hands a file to the browser's download, under `filename`. */
+export function saveFile(blob: Blob, filename: string): void {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = filename;
@@ -124,6 +130,10 @@ async function download(path: string, query: Query, filename: string): Promise<v
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+async function download(path: string, query: Query, filename: string): Promise<void> {
+  saveFile(await (await send("GET", path, { query })).blob(), filename);
 }
 
 const GC_API = {

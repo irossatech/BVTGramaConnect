@@ -27,7 +27,7 @@ export default function Header({ v }: { v: View }) {
         </button>}
         <button className="gc-pill gc-wide" onClick={v.getAppClick} style={{...pillDark, height: "40px", padding: "0 18px", fontSize: fs.base}}>{I(v.t?.getApp)}</button>
         <button className="gc-phone" onClick={v.toggleMenu} aria-label={v.t?.ariaMenu} aria-expanded={v.menuOpen} style={{marginLeft: v.enOff ? "auto" : undefined, width: "44px", height: "44px", border: "0", background: "none", cursor: "pointer", color: ink, display: "flex", alignItems: "center", justifyContent: "center"}}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d={v.menuIcon} /></svg>
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d={v.menuIcon} /></svg>
           </button>
       </div>
       {v.menuOpen ? <nav aria-label={v.t?.ariaMain} style={{display: "flex", flexDirection: "column", padding: "8px 16px 16px", gap: "2px", borderTop: "1px solid " + line, animation: "mk-fade .15s ease-out"}}>

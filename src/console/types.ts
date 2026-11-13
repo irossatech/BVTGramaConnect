@@ -168,9 +168,11 @@ export interface Post {
   id: string;
   status: string;
   category?: { key: string; name: string } | null;
+  /** The language the post is written in: "te" or "en". */
+  language?: string;
   title: string;
   body: string;
-  translation?: { title: string; body: string } | null;
+  translation?: { language?: string; title: string; body: string } | null;
   target_area?: Area | null;
   targets?: Area[];
   event?: PostEvent | null;
@@ -211,6 +213,8 @@ export interface AuditEntry {
   action: string;
   target_label?: string;
   area?: Area | null;
+  /** The changed fields (may hold emails and mobiles). The console never shows them and drops them on load. */
+  data?: unknown;
 }
 
 export interface Dashboard {

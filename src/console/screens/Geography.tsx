@@ -17,7 +17,7 @@ export default function Geography({ v }: { v: View }) {
           </div>
           {" "}
           <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "12px 8px", fontWeight: "700", color: "#0A2550", fontSize: "15px"}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             {I(v.stateName)}{" "}
             <span style={{fontWeight: "500", color: "#6b7a8c"}}>{I(v.stateTe)}</span>
             <span style={{marginLeft: "auto"}}><button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add district</button></span>
@@ -29,7 +29,7 @@ export default function Geography({ v }: { v: View }) {
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
               <input type="text" inputMode="search" enterKeyHint="search" spellCheck={false} autoCorrect="off" autoCapitalize="off" value={val(v.geoQ, "")} onChange={v.onGeoQ} onKeyDown={(e) => { if (e.key === "Escape") v.clearGeoQ(); }} placeholder="Search a district, mandal or village (English or Telugu, or LGD code)" autoComplete="off" style={{width: "100%", boxSizing: "border-box", height: "44px", padding: "0 44px 0 40px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#f9fbfd", outlineColor: "#0D3B7A"}} />
               {v.geoQ ? <button type="button" onClick={v.clearGeoQ} aria-label="Clear search" title="Clear search" style={{position: "absolute", right: "6px", top: "50%", transform: "translateY(-50%)", width: "32px", height: "32px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button> : null}
             </label>
             {v.geoSearch?.on ? <div role="status" aria-live="polite" style={{marginTop: "8px", fontSize: "13px", color: "#3b4a5c", display: "flex", flexDirection: "column", gap: "4px"}}>
@@ -43,8 +43,8 @@ export default function Geography({ v }: { v: View }) {
             <React.Fragment key={_i1}>
               {" "}
               <div className="sa-geo-row" style={css(`display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid #f3f5f8;padding-right:8px;padding-left: ${_n?.indent ?? ""};background: ${_n?.rowBg ?? ""};opacity: ${_n?.opacity ?? ""}`)}>
-                <button onClick={_n?.toggle} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#6b7a8c;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={_n?.chev} /></svg>
+                <button onClick={_n?.toggle} aria-label={_n?.toggleLabel} aria-expanded={_n?.open} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#6b7a8c;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={_n?.chev} /></svg>
                 </button>
                 <button onClick={_n?.select} style={{flex: "1", minWidth: "0", overflow: "hidden", display: "flex", alignItems: "center", gap: "10px", background: "none", border: "0", padding: "6px 0", cursor: "pointer", textAlign: "left"}}>
                   <span style={css(`padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background: ${_n?.tagBg ?? ""};color: ${_n?.tagColor ?? ""}`)}>{I(_n?.kind)}</span>
