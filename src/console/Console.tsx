@@ -43,13 +43,13 @@ import { auditRow, auditView, loadAudit } from "./logic/audit";
 import { loadReports, reportsView } from "./logic/reports";
 import { loadCategories, loadSettings, settingsView } from "./logic/settings";
 import { loadServices, servicesView } from "./logic/services";
-import type { AdminContact, AdminContactType, Area, AreaLevel,
-  ContactImportResult, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
-  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, TemporaryPassword, User, UserResponse,
+import { loadNumbers, loadTypes, numbersView } from "./logic/numbers";
+import type { Area, AreaLevel, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
+  ConsoleNotification, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, TemporaryPassword, User, UserResponse,
 } from "./types";
 
-import { FORMS, ROLE, RK, pager, one, orEmpty, isStatus, PAGE_SIZE, pageCount, rows, blobPreviews, pickFile, csvCell, reportErrors, isActor, isRowError, historyPage, EMPTY_NU } from "./model";
-import type { Props, PageKey, NavKey, NumTab, GeoKind, FieldChange, Timer, Option, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, GeoNode, GeoForm, GeoErrs, AdminUser, NewUserForm, PostRow, TypeForm, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
+import { FORMS, ROLE, RK, pager, one, isStatus, PAGE_SIZE, pageCount, blobPreviews, pickFile, csvCell, reportErrors, isActor, historyPage, EMPTY_NU } from "./model";
+import type { Props, PageKey, NavKey, GeoKind, FieldChange, Timer, Option, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, GeoNode, GeoForm, GeoErrs, AdminUser, NewUserForm, PostRow, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
 export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
@@ -68,7 +68,6 @@ export default class Component extends React.Component<Props, State> {
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   private static readonly PAGE = PAGE_SIZE;
   private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
-  private static readonly LVROLE: Readonly<Record<string, string>> = {DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
   private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   private static readonly MANAGE: Readonly<Partial<Record<string, string>>> = {super:'accounts.manage_super_admin',district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
@@ -119,7 +118,6 @@ export default class Component extends React.Component<Props, State> {
   private toastTimers: Timer[] = [];
   /** The screen modules' waiting search boxes (ConsoleHost.later), by key. */
   private timers: Record<string, Timer> = {};
-  private numTimer: Timer | undefined;
   private userTimer: Timer | undefined;
   /** Refreshes the bell every minute while the console is open. */
   private notifTimer: ReturnType<typeof setInterval> | undefined;
@@ -157,6 +155,7 @@ export default class Component extends React.Component<Props, State> {
     fmt: (iso, withYear) => c.fmt(iso, withYear),
     fmtLast: (iso) => c.fmtLast(iso),
     can: (code) => c.can(code),
+    areaOptions: (role) => c.areaOptions(role),
     navOk: (key) => c.navOk(key),
     suggestTe: (form, english) => c.suggestTe(form, english),
     later: (key, run, ms) => {
@@ -283,7 +282,6 @@ export default class Component extends React.Component<Props, State> {
   private stopTimers() {
     Object.values(this.timers).forEach(clearTimeout);
     this.timers = {};
-    clearTimeout(this.numTimer);
     clearTimeout(this.userTimer);
     clearTimeout(this.searchTimer);
     clearTimeout(this.teTimer);
@@ -606,8 +604,8 @@ export default class Component extends React.Component<Props, State> {
       if (this.navOk('services')) loadServices(this.host);
     }
     if (p === 'numbers') {
-      this.loadTypes();
-      if (this.state.numTab !== 'TYPES') this.loadNumbers(1);
+      loadTypes(this.host);
+      if (this.state.numTab !== 'TYPES') loadNumbers(this.host, 1);
     }
     if (p === 'reports') loadReports(this.host);
     if (p === 'settings') loadSettings(this.host);
@@ -701,84 +699,6 @@ export default class Component extends React.Component<Props, State> {
 
 
 
-  // ---- important numbers (contract section 14) ----
-  private loadNumbers(page: number) {
-    const s = this.state;
-    const latest = this.ticket('nums');
-    this.setState({numLoading: true});
-    this.api.get<Paged<AdminContact>>('/admin/contacts/', {section: s.numTab, type: s.numType, q: s.numQ, ...(s.numTab === 'AREA' && s.numDistrict ? {level: 'DISTRICT', area_id: s.numDistrict} : {}), page, page_size: Component.PAGE})
-      .then((d) => latest() && this.setState({nums: d.results || [], numCount: d.count || 0, numPage: page, numPages: pageCount(d.count), numLoading: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({numLoading: false, nums: [], numCount: 0});
-        this.fail(e);
-      });
-  }
-
-  // adminOnly: after adding a type, the public list may still be the cached one, so only the admin list reloads.
-  private loadTypes(adminOnly?: boolean) {
-    // The number form's type list: without it no number can be added, so a failure is said.
-    if (!adminOnly) this.api.get<ListOrPage<ContactTypeRef>>('/contact-types/').then((d) => this.setState({ctypes: rows(d)})).catch((e: unknown) => this.fail(e));
-    if (this.can('contacts.manage_contact_types')) this.api.get<ListOrPage<AdminContactType>>('/admin/contact-types/').then((d) => this.setState({ctypesAdmin: rows(d)})).catch((e: unknown) => this.fail(e));
-  }
-
-  // The server's phone grammar: drop spaces, dashes, brackets and a leading +91 (or 91 before 10 digits).
-  private phoneDigits(p: string) {
-    const d = String(p || '').replace(/[\s\-()]/g, '');
-    return d.startsWith('+91') ? d.slice(3) : /^91\d{10}$/.test(d) ? d.slice(2) : d;
-  }
-
-  private openNumber(c: AdminContact | null) {
-    const a = c && c.area && c.area.level !== 'STATE' ? c.area : null;
-    this.setState({nf: c
-      ? {id: c.id, section: c.type.section, type: c.type.key, typeObj: {...c.type, is_other: !!c.custom_type}, custom: c.custom_type || '', name: c.name, te: c.name_te || '', phone: c.phone, email: c.email || '', level: a ? a.level : 'VILLAGE', area: a ? String(a.id) : '', sort: String(c.sort_order == null ? 100 : c.sort_order), consent: !!c.consent_recorded}
-      : {id: null, section: this.state.numTab === 'HELPLINE' ? 'HELPLINE' : 'AREA', type: '', custom: '', name: '', te: '', phone: '', email: '', level: 'VILLAGE', area: '', sort: '100', consent: false}});
-  }
-
-  private nfView() {
-    const f = this.state.nf;
-    if (!f) return null;
-    // "Other" is not a type: new kinds come from Add type; a number already "Other" keeps it (typeObj below)
-    const types = this.state.ctypes.filter((x) => x.section === f.section && !x.is_other);
-    const own = f.typeObj;
-    if (own && !types.some((x) => x.key === own.key)) types.unshift(own);
-    const type = types.find((x) => x.key === f.type) || types[0] || null;
-    const areas = f.section === 'AREA' ? this.areaOptions(Component.LVROLE[f.level]) : [];
-    const area = areas.find((x) => x.id === f.area) || areas[0] || null;
-    const mobile = /^[6-9]\d{9}$/.test(this.phoneDigits(f.phone));
-    const ok = !!(f.name.trim() && this.phoneDigits(f.phone) && type && (!type.is_other || f.custom.trim()) && (f.section !== 'AREA' || area) && (!mobile || f.consent) && (!f.email.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())));
-    return {f, types, type, areas, area, mobile, ok};
-  }
-
-  private saveNumber() {
-    const n = this.nfView();
-    // ok implies a type (and an area for AREA numbers); the checks below only tell TypeScript so.
-    if (!n || !n.ok || !n.type) return;
-    const f = n.f;
-    const body = {type: n.type.key, name: f.name.trim(), name_te: f.te.trim(), phone: f.phone.trim(), email: f.email.trim(), sort_order: f.sort === '' ? 100 : Number(f.sort), consent_recorded: n.mobile && f.consent,
-      area: f.section === 'AREA' && n.area ? {level: n.area.level, id: Number(n.area.id)} : {level: 'STATE', id: this.state.stateRow && this.state.stateRow.id},
-      ...(n.type.is_other ? {custom_type: f.custom.trim()} : {})};
-    (f.id ? this.api.patch('/admin/contacts/' + f.id + '/', body) : this.api.post('/admin/contacts/', body)).then(() => {
-      this.setState({nf: null});
-      this.toast((f.id ? 'Number updated · ' : 'Number added · ') + body.name);
-      this.loadNumbers(f.id ? this.state.numPage : 1);
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  private verifyNumber(c: AdminContact) {
-    this.api.patch('/admin/contacts/' + c.id + '/', {verified: true}).then(() => {
-      this.toast('Marked verified · ' + c.name);
-      this.loadNumbers(this.state.numPage);
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  private removeNumber(c: AdminContact) {
-    this.ask({title: 'Remove number', body: 'Remove ' + c.name + ' (' + c.phone + ')? Citizens stop seeing it at once. The audit log keeps a record.', confirmLabel: 'Remove', bg: '#b3261e', onConfirm: () => this.api.del('/admin/contacts/' + c.id + '/').then(() => {
-      this.toast('Number removed', '#E9791E');
-      this.loadNumbers(this.state.numPage);
-    }).catch((e: unknown) => this.fail(e))});
-  }
-
   // ---- select several and remove them at once (the server removes one per request, so one by one with progress) ----
   private toggleSel(key: SelKey, id: SelId) {
     this.setState((s) => one(key, s[key].includes(id) ? s[key].filter((x) => x !== id) : [...s[key], id]));
@@ -824,53 +744,6 @@ export default class Component extends React.Component<Props, State> {
       toggleAll: () => this.selAll(key, ids), clear: () => this.setState(one(key, [])), remove: () => this.bulkRemove(key, picked, o(n))};
   }
 
-  private importNumbers() {
-    pickFile('.csv,text/csv', (file) => {
-      const form = () => {
-        const fd = new FormData();
-        fd.append('file', file);
-        return fd;
-      };
-      this.api.upload<ContactImportResult>('/admin/contacts/import/', form(), {dry_run: 1}).then((r) => this.ask({title: 'Import important numbers', body: 'File checked: ' + r.created + ' new, ' + r.updated + ' updated, ' + r.skipped + ' unchanged.', confirmLabel: 'Import', bg: '#0D3B7A',
-        onConfirm: () => this.api.upload<ContactImportResult>('/admin/contacts/import/', form()).then((d) => {
-          this.toast('Imported · ' + d.created + ' new, ' + d.updated + ' updated');
-          this.loadNumbers(1);
-        }).catch((e: unknown) => this.fail(e))})).catch((e: unknown) => {
-        const errors = reportErrors(e).filter(isRowError);
-        if (errors.length) {
-          this.ask({title: 'File has errors', body: errors.slice(0, 5).map((x) => 'Row ' + x.row + (x.field ? ' · ' + x.field : '') + ': ' + x.message).join(' · ') + (errors.length > 5 ? ' · and ' + (errors.length - 5) + ' more.' : ''), confirmLabel: 'Close', bg: '#3b4a5c', onConfirm: () => {}});
-        } else this.fail(e);
-      });
-    });
-  }
-
-  // Add a contact type: one form (section, English and Telugu names); the key is made from the English name.
-  private addType(section?: string, forNumber?: boolean) {
-    this.setState({tf: {section: section || (this.state.numTab === 'HELPLINE' ? 'HELPLINE' : 'AREA'), forNumber: !!forNumber, en: '', te: '', tried: false, saving: false}});
-  }
-
-  // Edit a type: the same form; the names change, the section and key stay (the server keeps them).
-  private editType(t: AdminContactType) {
-    this.setState({tf: {id: t.id, section: t.section, en: t.name_en || '', te: t.name_te && t.name_te !== t.name_en ? t.name_te : '', tried: false, saving: false}});
-  }
-
-  // Delete a type nobody uses. One with numbers cannot go: move or remove them first, or switch it off.
-  private deleteType(t: AdminContactType) {
-    const n = t.contact_count || 0;
-    if (n) {
-      this.ask({title: 'This type is in use', body: n + ' number' + (n === 1 ? ' uses' : 's use') + ' "' + t.name_en + '". Change ' + (n === 1 ? 'its' : 'their') + ' type, or remove ' + (n === 1 ? 'it' : 'them') + ', then delete the type. Or switch the type off: it is hidden from citizens and its numbers stay.', confirmLabel: 'OK', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
-      return;
-    }
-    this.ask({title: 'Delete "' + t.name_en + '"?', body: 'No number uses this type. It is removed from the list for good.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => this.api.del('/admin/contact-types/' + t.id + '/').then(() => {
-      this.setState((st) => ({ctypesAdmin: st.ctypesAdmin.filter((x) => x.id !== t.id), ctypes: st.ctypes.filter((x) => x.key !== t.key)}));
-      this.toast('Type deleted · ' + t.name_en, '#E9791E');
-    }).catch((e: unknown) => {
-      // Until the server can delete types (backend plan: contact-type-delete), it answers 405.
-      if (isStatus(e, 405)) this.ask({title: 'Not available yet', body: 'Deleting a type needs a server update, which is planned. For now, switch the type off: citizens stop seeing it.', confirmLabel: 'OK', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
-      else this.fail(e);
-    })});
-  }
-
   // Fills a form's Telugu name from its English name as the admin types (the server's spelling
   // suggestion, `/admin/transliterate/`: "Ravi Kumar" → "రవి కుమార్"). Only while the Telugu box is empty or
   // still holds the last suggestion, so Telugu typed by hand is never overwritten. No suggestion: nothing happens.
@@ -897,49 +770,6 @@ export default class Component extends React.Component<Props, State> {
       .then((r) => {
         if (r?.te && mine()) put(r.te);
       }).catch(() => {}), 400);
-  }
-
-  private tfErrs(f: TypeForm) {
-    return {en: !f.en.trim() ? 'Enter the English name.' : '', te: ''};
-  }
-
-  private saveType() {
-    const f = this.state.tf;
-    if (!f || f.saving) return;
-    const e = this.tfErrs(f);
-    if (e.en || e.te) {
-      this.setState({tf: {...f, tried: true}});
-      return;
-    }
-    const en = f.en.trim(), key = (en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'type').slice(0, 40);
-    this.setState({tf: {...f, saving: true}});
-    if (f.id) {
-      this.api.patch<AdminContactType | null>('/admin/contact-types/' + f.id + '/', {name_en: en, name_te: f.te.trim() || en}).then((x) => {
-        this.setState((st) => ({tf: null, ctypesAdmin: st.ctypesAdmin.map((c) => c.id === f.id ? {...c, ...(x || {}), name_en: en, name_te: f.te.trim() || en} : c), ctypes: st.ctypes.map((c) => x && c.key === x.key ? {...c, name: en} : c)}));
-        this.toast('Type saved · ' + en);
-      }).catch((err: unknown) => {
-        this.setState((st) => ({tf: st.tf && {...st.tf, saving: false}}));
-        this.fail(err);
-      });
-      return;
-    }
-    this.api.post<AdminContactType | null>('/admin/contact-types/', {key, section: f.section, name_en: en, name_te: f.te.trim() || en}).then((x) => {
-      const k = (x && x.key) || key;
-      // the public types list can come back cached for a moment: add the new type here
-      this.setState((st) => ({tf: null, ctypes: st.ctypes.some((c) => c.key === k) ? st.ctypes : [...st.ctypes, {key: k, section: f.section, name: en, is_other: false}], nf: f.forNumber && st.nf ? {...st.nf, type: k, custom: ''} : st.nf}));
-      this.toast('Type added · ' + en);
-      this.loadTypes(true);
-    }).catch((err: unknown) => {
-      this.setState((x) => ({tf: x.tf && {...x.tf, saving: false}}));
-      this.fail(err);
-    });
-  }
-
-  private toggleType(t: AdminContactType) {
-    this.api.patch('/admin/contact-types/' + t.id + '/', {is_active: !t.is_active}).then(() => {
-      this.toast(t.name_en + (t.is_active ? ' switched off' : ' switched on'), t.is_active ? '#E9791E' : '#6cc04a');
-      this.loadTypes();
-    }).catch((e: unknown) => this.fail(e));
   }
 
   // ---- new post (the app's Compose) ----
@@ -1873,24 +1703,6 @@ export default class Component extends React.Component<Props, State> {
     const pf = s.pf;
     const postRows = s.posts.map((p) => dp(p));
     const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
-    // important numbers
-    const sw = (on: boolean) => ({swBg: on ? '#1F8A3B' : '#cfd8e3', swLeft: on ? '21px' : '3px'});
-    const numTabList: {id: NumTab; label: string}[] = [{id: 'AREA', label: 'For villages'}, {id: 'HELPLINE', label: 'Government helplines'}, ...(this.can('contacts.manage_contact_types') ? [{id: 'TYPES' as const, label: 'Types'}] : [])];
-    const numTabs = numTabList.map((t) => {
-      const on = s.numTab === t.id;
-      return {label: t.label, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', go: () => this.setState({numTab: t.id, numType: '', nf: null}, () => { if (t.id === 'TYPES') this.loadTypes(); else this.loadNumbers(1); })};
-    });
-    const numIds = s.nums.filter((c) => (c.allowed_actions || []).includes('remove')).map((c) => c.id);
-    const numRows = s.nums.map((c) => {
-      const al = c.allowed_actions || [];
-      const rc = c.needs_recheck;
-      return {rowKey: String(c.id), canSel: al.includes('remove'), sel: s.numSel.includes(c.id), toggleSel: () => this.toggleSel('numSel', c.id), type: c.custom_type || c.type.name, name: c.name, te: c.name_te && c.name_te !== c.name ? c.name_te : '',
-        phone: c.phone_kind === 'MOBILE' ? '+91 ' + c.phone.slice(0, 5) + ' ' + c.phone.slice(5) : c.phone, email: c.email || '', area: c.area ? (c.area.path || c.area.name) : '—', status: rc ? 'Needs check' : 'Verified ' + this.fmt(c.verified_at, true).slice(0, 11),
-        sbg: rc ? '#fff0dc' : '#e4f4df', scolor: rc ? '#b35a0e' : '#1d7a33', canEdit: al.includes('edit'), canVerify: al.includes('verify'), canRemove: al.includes('remove'), edit: () => this.openNumber(c), verify: () => this.verifyNumber(c), remove: () => this.removeNumber(c)};
-    });
-    // "Other" is not a type: not listed
-    const typeRows = s.ctypesAdmin.filter((t) => !t.is_other).map((t) => ({key: t.key, section: t.section === 'HELPLINE' ? 'Government helplines' : 'For villages', en: t.name_en, te: t.name_te, count: String(t.contact_count), ...sw(t.is_active), toggle: () => this.toggleType(t), edit: () => this.editType(t), del: () => this.deleteType(t)}));
-    const nv = this.nfView();
     // panel
     const panel = s.panel ? {show: true, isPost: s.panel.type === 'post', isUser: s.panel.type === 'user', title: s.panel.type === 'post' ? 'Post review' : 'User details'} : {show: false};
     const empty: PostRow = {id: '', cat: 'updates', catLabel: '', titleTe: '', titleEn: '', bodyTe: '', bodyEn: '', area: '', areaName: '', date: '', author: '', role: 'panchayat', status: 'Pending', media: [], videos: [], urgent: false, event: null, allowed: [], citizen: null};
@@ -1919,8 +1731,6 @@ export default class Component extends React.Component<Props, State> {
     const nuSteps = this.areaSteps(nu);
     const nuPlace = this.areaSummary(nu);
     const me = s.me || {name: '', username: '', email: ''};
-    const tf: Partial<TypeForm> = s.tf || {};
-    const tfErr: Partial<{en: string; te: string}> = s.tf && s.tf.tried ? this.tfErrs(s.tf) : {};
     // The bell: one row per notification, coloured by what it is about.
     const NK: Record<string, {label: string; color: string; bg: string; d: string}> = {POST_PUBLISHED: {label: 'Published', color: '#1F8A3B', bg: '#e4f4df', d: 'M20 6L9 17l-5-5'},
       POST_RECHECK: {label: 'Needs changes', color: '#8f4bb4', bg: '#f1e6f7', d: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'},
@@ -2054,44 +1864,7 @@ export default class Component extends React.Component<Props, State> {
       ...servicesView(this.host),
       imp: s.imp ? {...s.imp, pct: Math.round(s.imp.done * 100 / s.imp.total), label: s.imp.phase + (s.imp.total > 1 ? ' part ' + Math.min(s.imp.done + 1, s.imp.total) + ' of ' + s.imp.total : '') + '…'} : null,
       ...requestPanelView(this.host), ...contactPanelView(this.host),
-      numSel: this.selView('numSel', numIds, (n) => ({title: 'Remove ' + n + ' number' + (n === 1 ? '' : 's') + '?', body: 'Citizens stop seeing them at once. The audit log keeps a record.', confirm: 'Remove ' + n, url: (id) => '/admin/contacts/' + id + '/', done: () => this.loadNumbers(this.state.numPage)})),
-      numTabs, numRows, isTypesTab: s.numTab === 'TYPES', typeRows, numQ: s.numQ,
-      onNumQ: (e: FieldChange) => {
-        this.setState({numQ: e.target.value});
-        clearTimeout(this.numTimer);
-        this.numTimer = setTimeout(() => this.loadNumbers(1), 300);
-      },
-      numType: s.numType, numTypeOpts: [{id: '', label: 'All types'}, ...s.ctypes.filter((x) => x.section === s.numTab).map((x) => ({id: x.key, label: x.name}))], onNumType: (e: FieldChange) => this.setState({numType: e.target.value}, () => this.loadNumbers(1)),
-      numAreaFilter: s.numTab === 'AREA' && s.geo.length > 1, numDistrict: s.numDistrict, numDistrictOpts: [{id: '', label: 'All districts'}, ...districtOpts], onNumDistrict: (e: FieldChange) => this.setState({numDistrict: e.target.value}, () => this.loadNumbers(1)),
-      numCount: s.numCount + (s.numCount === 1 ? ' number' : ' numbers'), numEmpty: !numRows.length, numEmptyText: s.numLoading ? 'Loading…' : (s.numQ || s.numType || s.numDistrict ? 'No numbers match.' : 'No numbers yet. Add one, or import a CSV file.'), numPager: pager(s.numPage, s.numPages, (p) => this.loadNumbers(p)), addNumber: () => this.openNumber(null), importNumbers: () => this.importNumbers(), addType: () => this.addType(),
-      tfShow: !!s.tf, tf, tfErr, tfSaveLabel: s.tf && s.tf.saving ? (s.tf.id ? 'Saving…' : 'Adding…') : (s.tf && s.tf.id ? 'Save' : 'Add type'), tfTitle: s.tf && s.tf.id ? 'Edit contact type' : 'Add contact type', tfEditing: !!(s.tf && s.tf.id), tfSectionLabel: s.tf && s.tf.section === 'HELPLINE' ? 'Government helplines' : 'For villages', closeTF: () => this.setState({tf: null}), saveTF: () => this.saveType(),
-      onTF: (e: FieldChange) => {
-        const {name, value} = e.target;
-        if (name === 'en') this.suggestTe('tf', value);
-        this.setState((st) => st.tf ? {tf: {...st.tf, [name]: value}} : null);
-      },
-      tfSections: [{id: 'AREA', label: 'For villages', sub: 'Numbers for a district, mandal or village, such as a VRO or Mee Seva centre.'}, {id: 'HELPLINE', label: 'Government helplines', sub: 'Statewide numbers every citizen sees, such as 108 or 1912.'}].map((o) => ({...o, on: s.tf && s.tf.section === o.id, pick: () => this.setState((st) => st.tf ? {tf: {...st.tf, section: o.id}} : null)})),
-      nfShow: !!nv, nf: orEmpty(nv ? {...nv.f, type: nv.type ? nv.type.key : '', area: nv.area ? nv.area.id : ''} : null), nfTitle: nv ? (nv.f.id ? 'Edit number' : nv.f.section === 'HELPLINE' ? 'Add helpline' : 'Add number') : '', nfSaveLabel: nv && nv.f.id ? 'Save changes' : 'Add number',
-      nfTypes: nv ? [...nv.types.map((x) => ({id: x.key, label: x.name})), ...(this.can('contacts.manage_contact_types') ? [{id: '__new', label: '+ Add a new type…'}] : [])] : [], nfIsOther: !!(nv && nv.type && nv.type.is_other), nfIsArea: !!(nv && nv.f.section === 'AREA'),
-      nfLevels: [{id: 'VILLAGE', label: 'Village'}, {id: 'MANDAL', label: 'Mandal'}, {id: 'DISTRICT', label: 'District'}], nfAreas: nv ? nv.areas : [], nfMobile: !!(nv && nv.mobile),
-      onNF: (e: FieldChange) => {
-        const t = e.target;
-        const {name, value} = t;
-        if (name === 'type' && value === '__new') {
-          this.addType(this.state.nf?.section, true);
-          return;
-        }
-        if (name === 'name') this.suggestTe('nf', value);
-        const next = t instanceof HTMLInputElement && t.type === 'checkbox' ? t.checked : value;
-        this.setState((st) => {
-          if (!st.nf) return null;
-          const n = {...st.nf, [name]: next};
-          if (name === 'level') n.area = '';
-          if (name === 'type') n.custom = '';
-          return {nf: n};
-        });
-      },
-      cannotSaveNF: !(nv && nv.ok), saveNFOpacity: nv && nv.ok ? 1 : .5, saveNF: () => this.saveNumber(), closeNF: () => this.setState({nf: null}),
+      ...numbersView(this.host),
       ...settingsView(this.host),
       panel, sp, su, closePanel: () => this.setState({panel: null}),
       modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
