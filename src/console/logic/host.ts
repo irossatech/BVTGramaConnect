@@ -2,7 +2,7 @@
 // (its `host` field) and passes it to the modules in this folder; they never reach into the class otherwise.
 // A module holds one screen's loaders, actions and renderVals() values; the state stays in Console.tsx.
 import type GC_API from "../api";
-import type { BulkOptions, ModalSpec, NavKey, SelId, SelKey, SelView, State, TeForm } from "../model";
+import type { AreaOption, BulkOptions, ModalSpec, NavKey, SelId, SelKey, SelView, State, TeForm } from "../model";
 
 /** A state change, as for React's setState: the changed keys, or a function of the current state. */
 export type StateUpdate = Partial<State> | null | ((s: Readonly<State>) => Partial<State> | null);
@@ -26,6 +26,8 @@ export interface ConsoleHost {
   fmtLast(iso: string | null | undefined): string;
   /** Whether the signed-in user has this permission ("app_label.codename" from GET /me/); it only hides buttons. */
   can(code: string): boolean;
+  /** The areas a role can be given (role key: district, mandal, village…), active ones only, from the geography tree. */
+  areaOptions(role: string): AreaOption[];
   /** Whether this user may open a sidebar page (NAV_PERM); it only hides it. */
   navOk(key: NavKey): boolean;
   /** Suggests the Telugu name from the English one in a form (Google Input Tools via the server), unless typed by hand. */
