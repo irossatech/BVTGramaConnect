@@ -55,6 +55,9 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | Finding | Decision | Left out on purpose |
 |---|---|---|
 | WEB-SEO-001 English content has no URL; mixed language signals | 2026-11-14, option B: search results are Telugu like the pages (titles, descriptions, share-image text, structured data); every title ends in the English brand name "Grama Connect" | No English pages (`/en/…`) and no `hreflang`: English is reached only through the language switch. Revisit if English search traffic matters |
+| WEB-I18N-001 Language forgotten on reload | 2026-11-14, option A: a switch to English is remembered on the visitor's own device (`localStorage` `gc-lang`, try/catch) and applied when the page starts. A language tap made before the scripts start (replayed by `boot.js`, PR #10) always means English, so it never undoes the saved choice | The exported HTML stays Telugu, so an English reader sees Telugu for a moment while the scripts load. No language in the URL, no cookie |
+| WEB-A11Y-001 Moving content can't be paused | 2026-11-14, option B: the ticker pauses on a tap or keyboard focus (focusable, `role="region"`, labelled), as it did on mouse hover | No pause button (it would be visible and need new text). The hero word and the ring text keep moving; "reduce motion" stops all three. So WCAG 2.2.2 is met only in part, knowingly; a pause button needs the owner's sign-off |
+| WEB-SSG-001 Bare 404 page | 2026-11-14, option A: the site's own 404 page (`src/pages/404.tsx`, `sections/NotFound.tsx`): header, footer, a Telugu/English message and a link home; `noindex`. Nginx serves it through `error_page 404 /404.html` | Only for website addresses: `/api/`, `/console/` and `/media/` keep their own 404 answers. Production and qa use the hosting panel's Nginx, which must be set to the same 404 page (backlog 22) |
 | WEB-DP-002 Names sent to Google Input Tools | 2026-11-14, lead: Telugu name suggestions stay on Google (`TRANSLITERATION_PROVIDER`) for every name field, people's names included; names are not treated as sensitive like mobile numbers (`.claude/project.md`) | Mobile numbers, emails and addresses are never sent there |
 | WEB-DP-003 No retention limit | 2026-11-14, lead: data is kept permanently (contact messages, service requests, citizen phone records, posts, audit log); screens show only recent ones: contact messages 90 days, finished service requests 180 days, audit log 90 to 180 days (`.claude/project.md`) | No scheduled purge of these; only expired sessions and tokens, failed jobs, old failed-login records and read notifications are cleaned up |
 
@@ -74,9 +77,6 @@ Do not build these without the owner's or lead's answer. Backlog numbers are in 
 
 | Finding | Question |
 |---|---|
-| WEB-I18N-001 Language forgotten on reload | Remember the visitor's language on their device? |
-| WEB-A11Y-001 Moving content can't be paused | Pause on tap/focus only, or a pause button (visible, new text)? |
-| WEB-SSG-001 Bare 404 page | The site's own 404 page (new page and text) plus Nginx `error_page`? |
 | WEB-A11Y-005 No skip link; page changes not announced | Skip link (new text) and focus on the new page's heading? |
 | WEB-PERF-002 / WEB-PERF-003 Console images and one chunk | WebP images in the console; load the login screen first? |
 | WEB-I18N-003 Telugu clipping, small sizes | Check at 375 px, then the owner decides on sizes |

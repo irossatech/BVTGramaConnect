@@ -193,6 +193,9 @@ Added on 3 Nov 2026 (owner requests; the design and content changes below replac
 Added on 14 Nov 2026 (decisions on the web audit; every finding's status is in `.claude/audit-status.md`):
 - **Search results in Telugu:** page titles, descriptions and share text are Telugu, like the pages, each title ending in "Grama Connect" (WEB-SEO-001). There are no separate English pages; English stays behind the language switch.
 - **Sitemap without dates:** `sitemap.xml` lists the pages without `lastmod`.
+- **Language remembered:** a visitor who switches to English gets English again after a reload or on their next visit (kept on their own device, `localStorage` `gc-lang`). The pages are built in Telugu, so English shows once the scripts start.
+- **Ticker pauses on tap and keyboard focus,** as it did on mouse hover, so phone and keyboard users can stop it.
+- **Own 404 page:** an address that names no page shows the site's header and footer with "ఈ పేజీ దొరకలేదు / This page could not be found" and a link home (`src/pages/404.tsx`, texts `nfTitle`, `nfBody`, `nfHome`). Nginx must send it for unknown addresses (`error_page 404 /404.html`; BackEnd `deploy/templates/nginx-locations.conf`, and on the hosting panel).
 
 ## Android APK download
 
