@@ -48,6 +48,7 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-DEP-001 Node not pinned, caret ranges | `.nvmrc` (Node 24, as CI); dev dependencies pinned | `996c81e`, `c74dd61` |
 | WEB-PERF-005 `404/index.html` not post-processed | `defer-hydration.mjs` processes every exported page | `996c81e` |
 | WEB-PERF-001 Buttons inert until scripts load | `scripts/boot.js`: a button tapped before React starts is tapped again once it is ready (15 s at most); Contact form text typed before then is kept; a script that fails to download is fetched again (2 s, 6 s). Checked in Chrome at about 35 KB/s. Native fallbacks (`<details>`, a link list for the phone menu) were not needed | PR #10 |
+| WEB-I18N-003 (clipping) Telugu hero word cut off | Measured in headless Chrome on 2026-11-14 at 375 and 1280 px: no Telugu hero word is clipped; the lowest stroke keeps 4.3 px (phone) and 8.3 px (desktop) to spare. No change needed. The small sizes are under Waiting | measurement |
 | WEB_01 REPO-001 `.DS_Store`, no `.gitattributes` | Untracked; `.gitattributes` added | `996c81e` |
 
 ## Decided
@@ -61,6 +62,7 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-PERF-002 Console loads heavy images | 2026-11-14, option A: the console's category icons and logo load as same-size WebP copies (`icon-<category>-120.webp`, 2-4 KB instead of 16-28 KB, mean difference about 2/255; `logo-mark-192.webp`, lossless, pixel-identical, 37 KB instead of 48 KB) | The login photo stays `village-landscape.jpg`: as WebP at the same size and quality it is larger (167 KB against 151 KB). `logo-aadhaar.svg` (68 KB) stays as it is. The favicon and the structured-data logo stay PNG |
 | WEB-ARCH-001 `Console.tsx` is one 3,130-line class | 2026-11-14: split screen by screen into `src/console/logic/` behind `ConsoleHost`, keeping the "logic class + `renderVals()`" rule; in progress (first step PR #14: Contact messages, Service requests, Ads; `Console.tsx` 3,395 to 2,480 lines). Backlog 18 lists what is left | The rendered HTML and server calls stay identical; nothing visible changes |
 | WEB-PERF-003 Console ships every screen before the login form | 2026-11-14, option A: load the login and change-password screens first and the signed-in screens after login. Not built yet: it changes how `Console.tsx` starts, so it follows the split (WEB-ARCH-001; backlog 25) | Until then the whole console (about 175 KB compressed) loads before the login form |
+| WEB-SEC-004 `npm run dev` points at production | 2026-11-14, option C: `.env.example` keeps the live server, and `npm run dev` prints a red "LIVE DATA" warning when it starts against it (`next.config.ts`, `warnIfLiveData`); the `.env.example` comment says so. `npm run dev` already refuses to run without `GC_DEV_API` | No test server as the default (options A and B). Developers decide per session; the warning is the safeguard |
 | WEB-SSG-001 Bare 404 page | 2026-11-14, option A: the site's own 404 page (`src/pages/404.tsx`, `sections/NotFound.tsx`): header, footer, a Telugu/English message and a link home; `noindex`. Nginx serves it through `error_page 404 /404.html` | Only for website addresses: `/api/`, `/console/` and `/media/` keep their own 404 answers. Production and qa use the hosting panel's Nginx, which must be set to the same 404 page (backlog 22) |
 | WEB-DP-002 Names sent to Google Input Tools | 2026-11-14, lead: Telugu name suggestions stay on Google (`TRANSLITERATION_PROVIDER`) for every name field, people's names included; names are not treated as sensitive like mobile numbers (`.claude/project.md`) | Mobile numbers, emails and addresses are never sent there |
 | WEB-DP-003 No retention limit | 2026-11-14, lead: data is kept permanently (contact messages, service requests, citizen phone records, posts, audit log); screens show only recent ones: contact messages 90 days, finished service requests 180 days, audit log 90 to 180 days (`.claude/project.md`) | No scheduled purge of these; only expired sessions and tokens, failed jobs, old failed-login records and read notifications are cleaned up |
@@ -81,8 +83,7 @@ Do not build these without the owner's or lead's answer. Backlog numbers are in 
 
 | Finding | Question |
 |---|---|
-| WEB-I18N-003 Telugu clipping, small sizes | Check at 375 px, then the owner decides on sizes |
-| WEB-SEC-004 `npm run dev` points at production | Is there a staging server for `.env.example`? (`npm run dev` already refuses to run without `GC_DEV_API`) |
+| WEB-I18N-003 Small Telugu sizes | Raise the smallest Telugu sizes (11.5 px on 5 texts, 12 px on 9: small labels, the ticker label, chips)? Clipping was measured on 2026-11-14 and is not a problem (see Fixed) |
 | WEB-FUNC-001 New post to one area only | Multi-area picker (backlog 17) |
 | WEB-OPS-002 27 MB APK in git | Where the APK lives instead (backlog 15) |
 | WEB-DP-001 (Important numbers) | Mask phones and emails in the Important numbers table too? They are published to citizens (BackEnd `docs/security-review.md`, "Important numbers: public by design") |
