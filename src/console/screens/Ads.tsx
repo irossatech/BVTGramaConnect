@@ -18,7 +18,7 @@ export default function Ads({ v }: { v: View }) {
             <TickBox on={v.adSel?.all} some={v.adSel?.some} onChange={v.adSel?.toggleAll} label="Select all ads" />Select all
           </label> : null}
         {list(v.adRows).map((_a, _i1) => (
-          <React.Fragment key={_i1}>
+          <React.Fragment key={_a?.rowKey ?? _i1}>
             <div style={css(`display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap;border-top: ${_i1 || v.adSel?.show ? "1px solid #f3f5f8" : "0"}`)}>
               <TickBox on={_a?.sel} onChange={_a?.toggleSel} label={"Select " + (_a?.title || "")} />
               <button onClick={_a?.open} aria-label={"Edit " + (_a?.title || "")} style={css(`width:144px;aspect-ratio:3/2;border:0;padding:0;border-radius:10px;overflow:hidden;background:#f1f3f6;cursor:pointer;flex-shrink:0;opacity: ${_a?.dim ?? 1}`)}>

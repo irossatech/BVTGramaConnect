@@ -91,30 +91,35 @@ html{scroll-behavior:smooth}
 .gc-spin{animation:gc-spin 40s linear infinite}
 @keyframes gc-marquee{to{transform:translateX(-50%)}}
 .gc-ticker-track{animation:gc-marquee 36s linear infinite}
-.gc-ticker:hover .gc-ticker-track{animation-play-state:paused}
+.gc-ticker:hover .gc-ticker-track,.gc-ticker:focus .gc-ticker-track{animation-play-state:paused}
 /* Reduced motion: keep the gentle fades and colour changes, drop movement, parallax and pulsing. */
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in,.gc-seg{transform:none!important}.gc-draw{clip-path:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-level:hover .gc-lv-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word,.gc-float,.gc-in{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
 @media (max-width:600px){.gc-foot-nav{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.gc-dl-head{flex-direction:column;align-items:flex-start!important;gap:14px!important}.gc-dl-actions{width:100%;align-items:stretch!important}.gc-dl-btns{display:grid!important;grid-template-columns:1fr;gap:10px!important}.gc-dl-btns>button{width:100%}}
 html,body{height:100%;margin:0}#__next{height:100%}
 `;
 
-// Search results and share previews are in English; each title ends in the page's Telugu name, since the
-// pages are in Telugu and Telugu searches should match the title too. Every text comes from the locale files.
+// Search results and share previews are in Telugu, the language every exported page is in, so the title,
+// description, page text and language tags all agree (audit WEB-SEO-001, owner's choice: Telugu titles, no
+// English pages). Each title ends in the English brand name, so "Grama Connect" searches still match.
+// Every text comes from the locale files.
 const { en: EN, te: TE } = LOCALES;
 const NAME = EN.seo.name, NAME_TE = TE.seo.name;
 const cut = (x: string) => (x.length > 160 ? x.slice(0, 157).replace(/\s+\S*$/, "") + "…" : x);
-const title = (p: Exclude<Page, "home">) => EN.seo[p] + " – " + NAME + " | " + TE.seo[p];
+const title = (p: Exclude<Page, "home">) => TE.seo[p] + " – " + NAME_TE + " | " + NAME;
 
 // Title and description of each page.
 const META: Record<Page, { title: string; description: string }> = {
-  home: { title: NAME + " – " + EN.seo.home + " | " + NAME_TE, description: EN.seo.homeDesc },
-  how: { title: title("how"), description: cut(EN.seo.howDesc) },
-  officials: { title: title("officials"), description: cut(EN.ui.offSub) },
-  faq: { title: title("faq"), description: cut(EN.seo.faqDesc) },
-  contact: { title: title("contact"), description: cut(EN.ui.contactSub) },
-  privacy: { title: title("privacy"), description: cut(EN.legal.privacy.intro) },
-  terms: { title: title("terms"), description: cut(EN.legal.terms.intro) },
+  home: { title: NAME_TE + " – " + TE.seo.home + " | " + NAME, description: TE.seo.homeDesc },
+  how: { title: title("how"), description: cut(TE.seo.howDesc) },
+  officials: { title: title("officials"), description: cut(TE.ui.offSub) },
+  faq: { title: title("faq"), description: cut(TE.seo.faqDesc) },
+  contact: { title: title("contact"), description: cut(TE.ui.contactSub) },
+  privacy: { title: title("privacy"), description: cut(TE.legal.privacy.intro) },
+  terms: { title: title("terms"), description: cut(TE.legal.terms.intro) },
 };
+
+// The 404 page: Telugu like the others, and kept out of search results (noindex, so no canonical link either).
+const NOT_FOUND = { title: TE.ui.nfTitle + " – " + NAME_TE + " | " + NAME, description: cut(TE.ui.nfBody) };
 
 const TITLES = Object.fromEntries(Object.entries(META).map(([k, m]) => [k, m.title])) as Record<Page, string>;
 
@@ -132,7 +137,7 @@ function jsonLd(page: Page): object {
     { "@type": "WebPage", "@id": url + "#page", url, name: META[page].title, description: META[page].description, inLanguage: "te", isPartOf: { "@id": site + "/#website" } },
   ];
   if (page === "home") {
-    graph.push({ "@type": "MobileApplication", name: NAME, alternateName: NAME_TE, url: site + "/", image: site + "/assets/og-image.jpg", operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: EN.seo.homeDesc, areaServed: AP, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org,
+    graph.push({ "@type": "MobileApplication", name: NAME, alternateName: NAME_TE, url: site + "/", image: site + "/assets/og-image.jpg", operatingSystem: "Android", applicationCategory: "NewsApplication", inLanguage: ["te", "en"], description: TE.seo.homeDesc, areaServed: AP, offers: { "@type": "Offer", price: "0", priceCurrency: "INR" }, publisher: org,
       ...(config.androidApkUrl ? { downloadUrl: new URL(config.androidApkUrl, site + "/").href } : {}) });
   } else {
     graph.push({ "@type": "BreadcrumbList", itemListElement: [
@@ -148,18 +153,20 @@ function jsonLd(page: Page): object {
   return { "@context": "https://schema.org", "@graph": graph };
 }
 
-export default function SitePage({ page }: { page: Page }) {
-  const m = META[page];
+/** One website page; `notFound`: the 404 page (src/pages/404.tsx), served for any address that names no page. */
+export default function SitePage({ page, notFound }: { page: Page; notFound?: boolean }) {
+  const m = notFound ? NOT_FOUND : META[page];
   return (
     <>
       <PageHead
         css={CSS}
         title={m.title}
         description={m.description}
+        robots={notFound ? "noindex" : undefined}
         path={pathOf(page)}
-        jsonLd={jsonLd(page)}
+        jsonLd={notFound ? undefined : jsonLd(page)}
         siteName={NAME}
-        imageAlt={EN.seo.imageAlt}
+        imageAlt={TE.seo.imageAlt}
         fonts={["/assets/fonts/telugu-ui-400.woff2", "/assets/fonts/telugu-ui-700.woff2"]}
       />
       <noscript>
@@ -170,7 +177,7 @@ export default function SitePage({ page }: { page: Page }) {
           <p lang="en">{EN.seo.needJs}</p>
         </main>
       </noscript>
-      <Site page={page} titles={TITLES} />
+      <Site page={page} titles={TITLES} notFound={notFound} notFoundTitle={NOT_FOUND.title} />
     </>
   );
 }

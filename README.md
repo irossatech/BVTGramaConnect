@@ -190,6 +190,13 @@ Added on 3 Nov 2026 (owner requests; the design and content changes below replac
 - **Dashboard:** "Pending by district" lists every district, most pending first, with a search box, and is as tall as the chart beside it. **Reports:** "Posts by area" scrolls inside its card, busiest districts first, zeros in grey.
 - **Smaller fixes:** CSV exports say "Exporting…" and ignore repeat clicks; the account menu and the bell list close on an outside click or Escape; the user list shows the Telugu name or username under each name; keyboard focus is visible; drawn icons replace typed ›, + and ‹; Prev/Next are disabled at the ends.
 
+Added on 14 Nov 2026 (decisions on the web audit; every finding's status is in `.claude/audit-status.md`):
+- **Search results in Telugu:** page titles, descriptions and share text are Telugu, like the pages, each title ending in "Grama Connect" (WEB-SEO-001). There are no separate English pages; English stays behind the language switch.
+- **Sitemap without dates:** `sitemap.xml` lists the pages without `lastmod`.
+- **Language remembered:** a visitor who switches to English gets English again after a reload or on their next visit (kept on their own device, `localStorage` `gc-lang`). The pages are built in Telugu, so English shows once the scripts start.
+- **Ticker pauses on tap and keyboard focus,** as it did on mouse hover, so phone and keyboard users can stop it.
+- **Own 404 page:** an address that names no page shows the site's header and footer with "ఈ పేజీ దొరకలేదు / This page could not be found" and a link home (`src/pages/404.tsx`, texts `nfTitle`, `nfBody`, `nfHome`). Nginx must send it for unknown addresses (`error_page 404 /404.html`; BackEnd `deploy/templates/nginx-locations.conf`, and on the hosting panel).
+
 ## Android APK download
 
 While the app is not in the stores, the website's "Direct download" link downloads the Android APK straight from this site: `GC_ANDROID_APK_URL=/downloads/bvt-grama-connect.apk`. The server deploys only the committed `dist/`, so the APK (about 27 MB) is **committed** at `dist/downloads/bvt-grama-connect.apk`.

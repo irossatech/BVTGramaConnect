@@ -16,6 +16,7 @@ import Officials from "./sections/Officials";
 import Faq from "./sections/Faq";
 import Contact from "./sections/Contact";
 import Legal from "./sections/Legal";
+import NotFound from "./sections/NotFound";
 import Footer from "./sections/Footer";
 
 type Category = "announce" | "schemes" | "news" | "updates";
@@ -43,7 +44,7 @@ interface ContactForm {
   message: string;
 }
 
-/** A line in the hero ticker, also what Listen reads aloud. */
+/** A line in the hero ticker. */
 interface FeedItem {
   chip: string;
   title: string;
@@ -56,11 +57,16 @@ interface Props {
   page: Page;
   /** Each page's document title, so in-page navigation keeps the tab title right. */
   titles: Record<Page, string>;
+  /** The 404 page (src/pages/404.tsx): shows "page not found" until the visitor goes to a real page. */
+  notFound?: boolean;
+  /** The 404 page's document title. */
+  notFoundTitle?: string;
 }
 
 interface State {
   page: Page;
-  tick: number;
+  /** The address names no page (404): the header and footer show, with the not-found message between them. */
+  missing: boolean;
   showcase: Partial<Record<Lang, Showcase>>;
   lang: Lang;
   menuOpen: boolean;
@@ -98,6 +104,32 @@ const API_FIELD: Readonly<Record<string, keyof ContactForm>> = { name: "name", m
 const serverFieldErrs = (err: SiteApiError): Partial<Record<keyof ContactForm, boolean>> =>
   Object.fromEntries(Object.keys(err.fields || {}).flatMap((k) => (API_FIELD[k] ? [[API_FIELD[k], true]] : [])));
 
+/** Whether the address names a page at all (the 404 page is served for any other address). */
+function knownUrl(): boolean {
+  const l = window.location;
+  const seg = l.pathname.replace(/^\/+|\/+$/g, "");
+  return seg === "" || pageFromSlug(seg) !== null;
+}
+
+// The visitor's last language choice, kept on their own device only (no cookie, nothing sent to the server).
+// The exported pages are Telugu; a saved "en" switches to English once the page starts (audit WEB-I18N-001).
+const LANG_KEY = "gc-lang";
+function savedLang(): Lang | null {
+  try {
+    const x = window.localStorage.getItem(LANG_KEY);
+    return x === "te" || x === "en" ? x : null;
+  } catch {
+    return null; // storage blocked (private window, site data off): Telugu, as before
+  }
+}
+function saveLang(l: Lang) {
+  try {
+    window.localStorage.setItem(LANG_KEY, l);
+  } catch {
+    /* storage blocked: the choice lasts for this page only */
+  }
+}
+
 /** The page the address names: /faq/ style, or an old #faq style link. */
 function pageFromUrl(): Page {
   const l = window.location;
@@ -121,7 +153,7 @@ export type View = ReturnType<Site["renderVals"]>;
 export default class Site extends React.Component<Props, State> {
   state: State = {
     page: this.props.page,
-    tick: 0,
+    missing: !!this.props.notFound,
     showcase: {},
     lang: "te",
     menuOpen: false,
@@ -140,11 +172,9 @@ export default class Site extends React.Component<Props, State> {
   private el: HTMLDivElement | null = null;
   private io: IntersectionObserver | null = null;
   private ro: ResizeObserver | null = null;
-  private iv = 0;
   private raf = 0;
   private tt = 0;
   private dead = false;
-  private reducedMotion = false;
   private readonly onNav = () => this.syncPage();
   // The header floats once the page has scrolled (rAF-throttled).
   private readonly onScroll = () => {
@@ -156,9 +186,9 @@ export default class Site extends React.Component<Props, State> {
   };
 
   componentDidMount() {
-    // The address decides the page; an old #faq link moves to /faq/.
-    const p = pageFromUrl();
-    if (isPage((window.location.hash || "").slice(1))) {
+    // The address decides the page; an old #faq link moves to /faq/. The 404 page stays itself.
+    const p = this.props.notFound ? this.state.page : pageFromUrl();
+    if (!this.props.notFound && isPage((window.location.hash || "").slice(1))) {
       try {
         window.history.replaceState(null, "", pathOf(p) + window.location.search);
       } catch {
@@ -169,18 +199,15 @@ export default class Site extends React.Component<Props, State> {
     // The layout itself follows the width in CSS (ui/theme.ts rsp()); the width here only drives the phone menu.
     // window.innerWidth, like the CSS media queries, so both switch at the same 820 px.
     if (Math.abs(window.innerWidth - this.state.w) > 2) this.setState({ w: window.innerWidth });
-    document.documentElement.lang = this.state.lang;
+    const L = savedLang() ?? this.state.lang;
+    if (L !== this.state.lang) this.setState({ lang: L });
+    document.documentElement.lang = L;
     // Mark what is already on screen as revealed before the reveal effect switches on, so nothing blinks.
     this.reveal();
     document.documentElement.classList.add("gc-ready");
     this.loadSite();
-    this.loadShowcase(this.state.lang);
-    this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    this.loadShowcase(L);
     this.scrollFx();
-    this.iv = window.setInterval(() => {
-      if (this.reducedMotion || document.hidden || this.state.page !== "home") return;
-      this.setState((st) => ({ tick: st.tick + 1 }));
-    }, 3200);
     window.addEventListener("scroll", this.onScroll, { passive: true });
     window.addEventListener("hashchange", this.onNav);
     window.addEventListener("popstate", this.onNav);
@@ -196,12 +223,12 @@ export default class Site extends React.Component<Props, State> {
   // After each update: reveal new sections, and keep the tab title in step with the page.
   componentDidUpdate(_: Props, prev: State) {
     this.reveal();
-    if (prev.page !== this.state.page) document.title = this.props.titles[this.state.page];
+    if (prev.page !== this.state.page || prev.missing !== this.state.missing)
+      document.title = this.state.missing ? (this.props.notFoundTitle ?? "") : this.props.titles[this.state.page];
   }
 
   componentWillUnmount() {
     this.dead = true;
-    clearInterval(this.iv);
     cancelAnimationFrame(this.raf);
     this.io?.disconnect();
     this.ro?.disconnect();
@@ -275,8 +302,10 @@ export default class Site extends React.Component<Props, State> {
   // Back/Forward, or a typed #link.
   private syncPage() {
     const p = pageFromUrl();
-    if (p !== this.state.page) {
-      this.setState({ page: p, menuOpen: false });
+    // Back to the mistyped address the 404 page was opened at: the not-found message again.
+    const missing = !!this.props.notFound && !knownUrl();
+    if (p !== this.state.page || missing !== this.state.missing) {
+      this.setState({ page: p, missing, menuOpen: false });
       window.scrollTo({ top: 0 });
     }
   }
@@ -327,14 +356,14 @@ export default class Site extends React.Component<Props, State> {
   }
 
   private go(p: Page) {
-    if (p !== this.state.page) {
+    if (p !== this.state.page || this.state.missing) {
       try {
         window.history.pushState(null, "", pathOf(p) + window.location.search);
       } catch {
         /* history not available */
       }
     }
-    this.setState({ page: p, menuOpen: false });
+    this.setState({ page: p, missing: false, menuOpen: false });
     this.el?.closest('[style*="overflow"]')?.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
   }
@@ -353,7 +382,7 @@ export default class Site extends React.Component<Props, State> {
     // Texts looked up by a built key ("f1" + "d").
     const tx: Readonly<Record<string, string>> = t;
     const mobile = s.w < 820;
-    const pg: Partial<Record<Page, true>> = { [s.page]: true };
+    const pg: Partial<Record<Page, true>> = s.missing ? {} : { [s.page]: true };
     const navItems = (
       [
         ["home", "nav_home"],
@@ -363,7 +392,7 @@ export default class Site extends React.Component<Props, State> {
         ["contact", "nav_contact"],
       ] as const
     ).map(([k, lk]) => {
-      const on = s.page === k;
+      const on = !s.missing && s.page === k;
       return { label: t[lk], on, bg: on ? "#e3f0fb" : "transparent", color: on ? "#0D3B7A" : "#17212e", href: pathOf(k), link: this.link(k) };
     });
     const icons: Record<Category | "location", string> = {
@@ -448,9 +477,9 @@ export default class Site extends React.Component<Props, State> {
       hours: t.hours,
       email: loc.office.email,
     };
-    // Hero: the word that changes every few seconds, and the brand line around the photo.
+    // Hero: the words that take turns every few seconds (ui/parts.tsx RotatingWord), and the brand line around the photo.
     const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: loc.words[k], color: CAT[k].color, icon: icons[k] }));
-    const legalPage = s.page === "privacy" || s.page === "terms" ? s.page : null;
+    const legalPage = !s.missing && (s.page === "privacy" || s.page === "terms") ? s.page : null;
     const fill = (x: string) => x.replace("{email}", contact.email).replace("{phone}", contact.phone);
     return {
       page: s.page,
@@ -460,8 +489,7 @@ export default class Site extends React.Component<Props, State> {
         title: loc.day.title,
         items: loc.day.moments.map(({ feature, time, story }) => ({ ...appFeatures[feature], time, story })),
       },
-      wordIdx: s.tick,
-      word: words[s.tick % words.length],
+      words,
       ringText: t.ring,
       scrolled: s.scrolled,
       rootRef: (el: HTMLDivElement | null) => {
@@ -479,8 +507,16 @@ export default class Site extends React.Component<Props, State> {
       termsLink: this.link("terms"),
       langLabel: t.langOther,
       enOff: s.enOff,
-      toggleLang: () => {
-            const nl: Lang = L === "te" ? "en" : "te";
+      // The 404 page: its message and the link back home.
+      missing: s.missing,
+      homeHref: pathOf("home"),
+      homeLink: this.link("home"),
+      toggleLang: (e?: MouseEvent<HTMLButtonElement>) => {
+        // A tap made before the scripts started is tapped again by scripts/boot.js once React is ready (a synthetic
+        // click: isTrusted false). It was made on the exported page, which is always Telugu, so it means "English",
+        // even when the saved language (savedLang) has already switched to English by then. A real tap toggles.
+        const nl: Lang = e && !e.isTrusted ? "en" : L === "te" ? "en" : "te";
+        saveLang(nl);
         this.setState({ lang: nl });
         document.documentElement.lang = nl;
         this.loadShowcase(nl);
@@ -575,6 +611,7 @@ export default class Site extends React.Component<Props, State> {
           {v.pg?.faq ? <Faq v={v} /> : null}
           {v.pg?.contact ? <Contact v={v} /> : null}
           {v.legal ? <Legal v={v} legal={v.legal} /> : null}
+          {v.missing ? <NotFound v={v} /> : null}
         </main>
         <Footer v={v} />
         {v.toast?.show ? <div role="status" style={{position: "fixed", left: "50%", bottom: "28px", transform: "translateX(-50%)", background: ink, color: "#fff", padding: "12px 20px", borderRadius: "999px", fontSize: fs.base, fontWeight: "700", boxShadow: "0 8px 24px rgba(0,64,126,.3)", zIndex: "50", animation: "mk-fade .2s ease-out", maxWidth: "calc(100vw - 32px)", textAlign: "center"}}>{I(v.toast?.text)}</div> : null}

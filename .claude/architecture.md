@@ -4,7 +4,7 @@ One repo, one Next.js app, two pages, one build.
 
 | App | Page | Component | Built to | Served at |
 |---|---|---|---|---|
-| Public website | `src/pages/index.tsx`, `src/pages/[page].tsx` (via `src/website/SitePage.tsx`) | `src/website/Site.tsx` | `dist/index.html`, `dist/<page>/index.html` | `/`, `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/`, `/terms/` |
+| Public website | `src/pages/index.tsx`, `src/pages/[page].tsx`, `src/pages/404.tsx` (via `src/website/SitePage.tsx`) | `src/website/Site.tsx` | `dist/index.html`, `dist/<page>/index.html`, `dist/404.html` | `/`, `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/`, `/terms/`; any other address gets `404.html` (Nginx `error_page`) |
 | Super Admin console | `src/pages/console/index.tsx` (via `src/console/ConsolePage.tsx`) | `src/console/Console.tsx` | `dist/console/index.html` | `/console/` |
 
 ## Folder map
@@ -96,8 +96,9 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 ## Website
 
 - `src/website/Site.tsx` is the approved prototype `Public Website.dc.html` with the allowed port changes.
-- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `admin`. `go()` pushes `#<page>` (home: no hash) onto the history, and `hashchange` and `popstate` set the page from the hash, so links like `/#faq` open that page and Back and Forward work. Below 820 px a ResizeObserver switches to the mobile layout.
-- Every Telugu and English text is in `src/website/locales/te.json` and `en.json` (loaded by `i18n.ts`); the code holds no visible text. Telugu is the default.
+- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `privacy`, `terms`. `go()` pushes the page's address (`/faq/`) onto the history, and `popstate` sets the page from the address, so Back and Forward work; old `/#faq` links move to `/faq/`. Below 820 px a ResizeObserver switches to the mobile layout.
+- The 404 page (`src/pages/404.tsx`, `notFound`) is the same component with `state.missing` set: the header and footer with the not-found message (`sections/NotFound.tsx`) between them, until the visitor goes to a real page. It is `noindex`.
+- Every Telugu and English text is in `src/website/locales/te.json` and `en.json` (loaded by `i18n.ts`); the code holds no visible text. Telugu is the default; a visitor's switch to English is remembered on their own device (`localStorage` key `gc-lang`, wrapped in try/catch) and applied when the page starts, so the exported HTML stays Telugu. Search results (titles, descriptions) are Telugu, ending in the English brand name.
 - Data: the office details are in the locale files and the store links are build settings (`GC_PLAY_STORE_URL`, `GC_APP_STORE_URL`), not fetched; `GET /app-config/` can switch English off; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
 
 ## Console

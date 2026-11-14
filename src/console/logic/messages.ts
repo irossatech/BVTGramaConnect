@@ -52,7 +52,7 @@ export function contactsView(h: ConsoleHost) {
       const done = isHandled(c);
       // Mobile masked and no message in the table (audit WEB-DP-001); View shows both in full.
       const mobile = c.mobile_last4 ? '+91 ******' + c.mobile_last4 : maskMobile(c.mobile);
-      return {time: h.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => toggleContact(h, c), view: () => openContact(h, c)};
+      return {rowKey: String(c.id), time: h.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => toggleContact(h, c), view: () => openContact(h, c)};
     }),
     contactCount: s.contactCount + (s.contactCount === 1 ? ' message' : ' messages'), contactEmpty: !s.contacts.length, contactEmptyText: s.contactLoading ? 'Loading…' : 'No messages match.', contactPager: pager(s.contactPage, s.contactPages, (p) => loadContacts(h, p)),
   };

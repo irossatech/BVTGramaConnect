@@ -1,7 +1,7 @@
 // Tiny fetch wrapper for the Grama Connect API (docs/api-contract.md), used by the website.
 // Errors reject with the contract's error object plus `status`:
 //   { code: "validation_error", message: "...", fields: {...}, status: 400 }
-import config from "../shared/config";
+import { apiBase as base, errorBody } from "../shared/http";
 
 export interface SiteApiError {
   code: string;
@@ -15,8 +15,6 @@ interface Options {
   lang?: string;
 }
 
-const base = String(config.apiBase).replace(/\/+$/, "");
-
 function request<T>(method: "GET" | "POST", path: string, body?: unknown, options: Options = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (options.lang) headers["Accept-Language"] = options.lang;
@@ -27,13 +25,12 @@ function request<T>(method: "GET" | "POST", path: string, body?: unknown, option
     body: body === undefined ? undefined : JSON.stringify(body),
     credentials: "same-origin",
   }).then(
-    (response) => {
+    async (response) => {
       if (response.status === 204 || response.status === 304) return null as T;
-      return response.json().catch(() => null).then((data: { error?: Omit<SiteApiError, "status"> } | null) => {
-        if (response.ok) return data as T;
-        const error: SiteApiError = { ...(data?.error ?? { code: "http_" + response.status, message: response.statusText }), status: response.status };
-        throw error;
-      });
+      if (response.ok) return (await response.json().catch(() => null)) as T;
+      const e = await errorBody(response);
+      const error: SiteApiError = { ...e, code: e.code || "http_" + response.status, message: e.message || response.statusText, fields: e.fields as SiteApiError["fields"], status: response.status };
+      throw error;
     },
     () => {
       const error: SiteApiError = { code: "network", message: "Network error", status: 0 };

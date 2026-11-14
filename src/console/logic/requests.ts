@@ -91,7 +91,7 @@ export function requestsView(h: ConsoleHost) {
     reqRows: s.reqs.map((r) => {
       const st = SVC_STATUS[r.status] || SVC_STATUS.NEW;
       // Citizen column: the name only; phone and address are in the panel ("Open").
-      return {address: '', time: h.fmt(r.created_at, false), service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
+      return {rowKey: String(r.id), address: '', time: h.fmt(r.created_at, false), service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
         place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => openRequestRow(h, r)};
     }),
     reqCountLabel: s.reqCount + (s.reqCount === 1 ? ' request' : ' requests'), reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Service requests will show here once the server is updated.' : 'No requests here. Citizens send them from Services in the app.', reqPager: pager(s.reqPage, s.reqPages, (p) => loadRequests(h, p)),

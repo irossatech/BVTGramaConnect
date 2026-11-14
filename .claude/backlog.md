@@ -10,6 +10,11 @@ Open work as of 2026-11-13, most urgent first. Items marked "sign-off" change wh
 
 ## Website (`src/website/Site.tsx`)
 
+20. **Check the new Telugu home title (lead).** Since 14 Nov 2026 search results are Telugu (audit WEB-SEO-001); the home title's phrase `seo.home` in `src/website/locales/te.json`, "ఆంధ్రప్రదేశ్ గ్రామ వార్తల యాప్", is new text (the English one translated). Have the lead confirm the wording.
+21. **Check the 404 page's texts (lead).** New since 14 Nov 2026 (audit WEB-SSG-001): `ui.nfTitle`, `ui.nfBody` and `ui.nfHome` in `src/website/locales/te.json` and `en.json`.
+22. **Serve the 404 page on the servers.** BackEnd branch `fix/website-404-page` adds `error_page 404 /404.html` to the Nginx template; after it is merged, run `sudo bash deploy/setup.sh` once (templates are installed by `setup.sh`, not `deploy.sh`). Production and qa run on the hosting panel's own Nginx: set its 404 page to `/404.html` there. Check: `/anything/` shows the site's 404 page with status 404.
+23. **Click through the 14 Nov changes in a browser:** switch to English and reload (stays English; with site data blocked it opens in Telugu); tap the ticker on a phone (stops; tap elsewhere and it moves again); Tab to it (stops); open `/anything/` (the 404 page; its header, footer and home links work, and Back returns to it); the hero word still changes every 3.2 s.
+
 3. **"For officials" login text (sign-off).** The page says an admin adds officials with their email and sends the username and temporary password by email. Since 21 Oct 2026 there is no email: the admin sets or generates a temporary password and hands it over in person. New Telugu and English text for that point (`ui.o3c` in `src/website/locales/*.json`) must be agreed with the owner.
 4. **Office details.** Done: the BVT Kandukur address, phone, email and hours are in `src/website/locales/*.json` (the website no longer reads the server's `SITE_*` settings; the mobile app still does).
 5. **Store links.** When the app is published, set `GC_PLAY_STORE_URL` (and `GC_APP_STORE_URL`) in `.env`, rebuild, commit `dist/` and push.

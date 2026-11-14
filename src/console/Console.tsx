@@ -2083,7 +2083,7 @@ export default class Component extends React.Component<Props, State> {
     const numRows = s.nums.map((c) => {
       const al = c.allowed_actions || [];
       const rc = c.needs_recheck;
-      return {canSel: al.includes('remove'), sel: s.numSel.includes(c.id), toggleSel: () => this.toggleSel('numSel', c.id), type: c.custom_type || c.type.name, name: c.name, te: c.name_te && c.name_te !== c.name ? c.name_te : '',
+      return {rowKey: String(c.id), canSel: al.includes('remove'), sel: s.numSel.includes(c.id), toggleSel: () => this.toggleSel('numSel', c.id), type: c.custom_type || c.type.name, name: c.name, te: c.name_te && c.name_te !== c.name ? c.name_te : '',
         phone: c.phone_kind === 'MOBILE' ? '+91 ' + c.phone.slice(0, 5) + ' ' + c.phone.slice(5) : c.phone, email: c.email || '', area: c.area ? (c.area.path || c.area.name) : '—', status: rc ? 'Needs check' : 'Verified ' + this.fmt(c.verified_at, true).slice(0, 11),
         sbg: rc ? '#fff0dc' : '#e4f4df', scolor: rc ? '#b35a0e' : '#1d7a33', canEdit: al.includes('edit'), canVerify: al.includes('verify'), canRemove: al.includes('remove'), edit: () => this.openNumber(c), verify: () => this.verifyNumber(c), remove: () => this.removeNumber(c)};
     });

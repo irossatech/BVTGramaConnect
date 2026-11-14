@@ -177,7 +177,7 @@ export function adsView(h: ConsoleHost) {
       const k = adStatus(a);
       const S = AD_STATUS[k];
       const ar = a.area;
-      return {sel: s.adSel.includes(a.id), toggleSel: () => h.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
+      return {rowKey: String(a.id), sel: s.adSel.includes(a.id), toggleSel: () => h.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
         dates: [a.starts_on ? 'From ' + dayLabel(a.starts_on) : '', a.ends_on ? 'till ' + dayLabel(a.ends_on) : 'no end date'].filter(Boolean).join(' '), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => toggleAd(h, a), open: () => openAd(h, a)};
     }),
   };
