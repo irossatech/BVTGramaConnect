@@ -3,7 +3,6 @@
 // Keep render() bound to the same renderVals() keys; map API data into those shapes in the logic.
 import React from "react";
 import { css } from "../shared/dc";
-import * as ds from "./ds";
 import GC_API, { ApiError, saveFile, type Query } from "./api";
 import Checking from "./screens/Checking";
 import AuthLayout from "./layout/AuthLayout";
@@ -42,9 +41,10 @@ import { loadRequests, openRequest, requestPanelView, requestsView } from "./log
 import { adFormView, adsView, loadAds } from "./logic/ads";
 import { auditRow, auditView, loadAudit } from "./logic/audit";
 import { loadReports, reportsView } from "./logic/reports";
-import type { AdminContact, AdminContactType, Area, AreaLevel, CatalogItem, Category,
+import { loadCategories, loadSettings, settingsView } from "./logic/settings";
+import type { AdminContact, AdminContactType, Area, AreaLevel, CatalogItem,
   ContactImportResult, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
-  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, NotificationTemplate, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, Settings, TemporaryPassword, User, UserResponse,
+  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, TemporaryPassword, User, UserResponse,
 } from "./types";
 
 import { FORMS, ROLE, RK, pager, one, orEmpty, isStatus, PAGE_SIZE, pageCount, rows, blobPreviews, pickFile, csvCell, reportErrors, isActor, isRowError, historyPage, EMPTY_NU } from "./model";
@@ -57,8 +57,6 @@ export default class Component extends React.Component<Props, State> {
   private static readonly ICON: Readonly<Record<NavKey, string>> = {bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   private static readonly STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
   private static readonly ROLE = ROLE;
-  // Categories the design system has an icon for; any other category shows the "updates" icon.
-  private static readonly CAT_ICONS: readonly ds.Category[] = ['announce', 'schemes', 'news', 'updates'];
   // API values -> the prototype's keys
   private static readonly RK = RK;
   private static readonly RAPI: Readonly<Partial<Record<string, string>>> = {super:'SUPER_ADMIN',district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
@@ -506,7 +504,7 @@ export default class Component extends React.Component<Props, State> {
     const page = asked && this.navOk(asked, me) ? asked : (Component.PAGES.find((k) => this.navOk(k, me)) || 'dashboard');
     this.setState({me, screen: 'app', page, svcView: cat ? 'catalog' : 'requests', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}});
     this.loadGeo();
-    this.loadCategories();
+    loadCategories(this.host);
     this.loadPage(page);
     this.loadNotifs();
     this.lastActive = Date.now();
@@ -609,7 +607,7 @@ export default class Component extends React.Component<Props, State> {
       if (this.state.numTab !== 'TYPES') this.loadNumbers(1);
     }
     if (p === 'reports') loadReports(this.host);
-    if (p === 'settings') this.loadSettings();
+    if (p === 'settings') loadSettings(this.host);
     if (p === 'geography') this.loadGeo();
   }
 
@@ -636,12 +634,6 @@ export default class Component extends React.Component<Props, State> {
       }
       this.setState({geo, stateRow: st, expanded});
     }).catch((e: unknown) => this.fail(e));
-  }
-
-  private loadCategories() {
-    // Settings needs posts.manage_categories; without it the list stays empty and nobody is told (nothing to fix).
-    if (!this.can('posts.manage_categories')) return Promise.resolve();
-    return this.api.get<ListOrPage<Category>>('/admin/categories/').then((d) => this.setState({categories: rows(d)})).catch((e: unknown) => this.fail(e));
   }
 
   private loadDash() {
@@ -1067,15 +1059,6 @@ export default class Component extends React.Component<Props, State> {
     this.api.patch('/admin/contact-types/' + t.id + '/', {is_active: !t.is_active}).then(() => {
       this.toast(t.name_en + (t.is_active ? ' switched off' : ' switched on'), t.is_active ? '#E9791E' : '#6cc04a');
       this.loadTypes();
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  private loadSettings() {
-    this.loadCategories();
-    this.api.get<Settings>('/admin/settings/').then((st) => this.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => this.fail(e));
-    if (this.can('notifications.manage_templates')) this.api.get<ListOrPage<NotificationTemplate>>('/admin/notification-templates/').then((d) => {
-      const templates = rows(d);
-      this.setState((s) => ({settings: {...s.settings, templates}}));
     }).catch((e: unknown) => this.fail(e));
   }
 
@@ -2028,37 +2011,6 @@ export default class Component extends React.Component<Props, State> {
     // "Other" is not a type: not listed
     const typeRows = s.ctypesAdmin.filter((t) => !t.is_other).map((t) => ({key: t.key, section: t.section === 'HELPLINE' ? 'Government helplines' : 'For villages', en: t.name_en, te: t.name_te, count: String(t.contact_count), ...sw(t.is_active), toggle: () => this.toggleType(t), edit: () => this.editType(t), del: () => this.deleteType(t)}));
     const nv = this.nfView();
-    // settings
-    const catRows = s.categories.map((c) => ({te: c.name_te, en: c.name_en, icon: C.CAT_ICONS.find((k) => k === c.key) ?? 'updates', count: c.post_count || 0, swBg: c.is_active ? '#1F8A3B' : '#cfd8e3', swLeft: c.is_active ? '21px' : '3px',
-      toggle: () => this.api.patch('/admin/categories/' + c.id + '/', {is_active: !c.is_active}).then(() => {
-        this.toast(c.name_en + (c.is_active ? ' disabled' : ' enabled'), c.is_active ? '#E9791E' : '#6cc04a');
-        this.loadCategories();
-      }).catch((e: unknown) => this.fail(e))}));
-    const langRows = ([{id: 'te', name: 'తెలుగు · Telugu', sub: 'Default app language'}, {id: 'en', name: 'English', sub: 'Secondary · header toggle'}] as const).map((l) => {
-      const on = s.settings.langs[l.id];
-      return {...l, swBg: on ? '#1F8A3B' : '#cfd8e3', swLeft: on ? '21px' : '3px', toggle: () => {
-        if (l.id === 'te') {
-          this.toast('Telugu is the default language and cannot be disabled', '#E9791E');
-          return;
-        }
-        this.api.patch('/admin/settings/', {languages: {en: !on}}).then(() => {
-          this.setState((st) => ({settings: {...st.settings, langs: {...st.settings.langs, en: !on}}}));
-          this.toast('English ' + (on ? 'disabled' : 'enabled'));
-        }).catch((e: unknown) => this.fail(e));
-      }};
-    });
-    const CH: Readonly<Record<string, string>> = {push: 'Push'};
-    const templates = s.settings.templates.map((tp) => ({name: tp.name || tp.key, channel: CH[tp.channel] || tp.channel, te: tp.text_te, en: tp.text_en, edit: () => {
-      if (tp.editable === false) {
-        this.toast('This template cannot be edited', '#E9791E');
-        return;
-      }
-      this.ask({title: 'Edit template · ' + (tp.name || tp.key), body: 'Placeholders: ' + (tp.variables || []).map((v) => '{' + v + '}').join(' ') + '. Telugu and English are sent according to each user’s language.', needsText: true, textLabel: 'English template', confirmLabel: 'Save template', bg: '#0D3B7A', preset: tp.text_en,
-        onConfirm: (t) => this.api.patch('/admin/notification-templates/' + tp.key + '/', {text_te: tp.text_te, text_en: t}).then(() => {
-          this.toast('Template saved · ' + (tp.name || tp.key));
-          this.loadSettings();
-        }).catch((e: unknown) => this.fail(e))});
-    }}));
     // panel
     const panel = s.panel ? {show: true, isPost: s.panel.type === 'post', isUser: s.panel.type === 'user', title: s.panel.type === 'post' ? 'Post review' : 'User details'} : {show: false};
     const empty: PostRow = {id: '', cat: 'updates', catLabel: '', titleTe: '', titleEn: '', bodyTe: '', bodyEn: '', area: '', areaName: '', date: '', author: '', role: 'panchayat', status: 'Pending', media: [], videos: [], urgent: false, event: null, allowed: [], citizen: null};
@@ -2298,13 +2250,7 @@ export default class Component extends React.Component<Props, State> {
         });
       },
       cannotSaveNF: !(nv && nv.ok), saveNFOpacity: nv && nv.ok ? 1 : .5, saveNF: () => this.saveNumber(), closeNF: () => this.setState({nf: null}),
-      settings: s.settings, catRows, langRows, templates, badge36: {size: 36},
-      onEscalation: (e: FieldChange) => this.setState((st) => ({settings: {...st.settings, escalation: Number(e.target.value) || 0}})), saveSettings: () => this.api.patch('/admin/settings/', {review_escalation_hours: s.settings.escalation}).then(() => this.toast('Settings saved · escalation ' + s.settings.escalation + ' h')).catch((e: unknown) => this.fail(e)),
-      onCitizenPerDay: (e: FieldChange) => this.setState((st) => ({settings: {...st.settings, citizenPerDay: e.target.value === '' ? '' : Math.max(0, Math.min(1000, Math.round(Number(e.target.value) || 0)))}})),
-      saveCitizenPerDay: () => {
-        const n = Number(s.settings.citizenPerDay) || 0;
-        this.api.patch('/admin/settings/', {citizen_posts_per_day: n}).then(() => this.toast(n ? 'Settings saved · ' + n + ' citizen posts per phone a day' : 'Settings saved · no daily limit for citizen posts')).catch((e: unknown) => this.fail(e));
-      },
+      ...settingsView(this.host),
       panel, sp, su, closePanel: () => this.setState({panel: null}),
       modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
       confirmModal: () => {
