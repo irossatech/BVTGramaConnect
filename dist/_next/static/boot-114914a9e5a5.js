@@ -6,7 +6,8 @@
 //
 // Until React has started (Site.tsx adds "gc-ready" to <html>), the page's buttons have no handlers yet: on 2G that is
 // several seconds (audit WEB-PERF-001). So a button tapped before then is remembered and tapped again once React is
-// ready, and a script that fails to download is fetched again. Nothing on screen changes.
+// ready; text typed into the Contact form before then (which React empties when it starts) is put back; and a script
+// that fails to download is fetched again. Nothing on screen changes.
 (function () {
   var me = document.currentScript;
   var list = me.getAttribute("data-load").split(" ");
@@ -14,21 +15,50 @@
   if (legacy && !("noModule" in HTMLScriptElement.prototype)) list.unshift(legacy);
   var root = document.documentElement;
 
-  // ---- a button tapped before React is ready ----
+  // ---- a button tapped, or text typed, before React is ready ----
   var READY = "gc-ready";
   var KEEP_MS = 15000; // a tap older than this when React gets ready is dropped: the visitor has moved on
   var GIVE_UP_MS = 10000; // all scripts here but still not ready (a page without the site, or an error): stop waiting
   var waiting = true;
   var tapped = null;
   var tappedAt = 0;
+  var typed = {}; // field name -> what was typed there before React was ready
   function ready() {
     return root.classList.contains(READY);
   }
   function stopWaiting() {
     waiting = false;
     tapped = null;
+    typed = {};
     window.removeEventListener("click", onEarlyClick, true);
+    window.removeEventListener("input", onEarlyInput, true);
     if (watch) watch.disconnect();
+  }
+  // Typing before React is ready: let it through (the letters show as usual) and remember the field's text.
+  function onEarlyInput(e) {
+    var el = e.target;
+    if (!waiting || ready() || !el || !el.name || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
+    typed[el.name] = el.value;
+  }
+  window.addEventListener("input", onEarlyInput, true);
+  // React empties its fields as it starts. Give each one its text back the way typing does (the browser's own value
+  // setter, then an input event), so the form's own onChange keeps it, with its usual rules (digits only for the mobile).
+  function restoreTyped(fields) {
+    for (var name in fields) {
+      if (!Object.prototype.hasOwnProperty.call(fields, name)) continue;
+      var text = fields[name];
+      var el = document.querySelector('input[name="' + name + '"], textarea[name="' + name + '"]');
+      // Only an emptied field (or one still showing the same text); never over what was typed after React started.
+      if (!el || el.disabled || (el.value !== "" && el.value !== text)) continue;
+      var proto = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      var setter = Object.getOwnPropertyDescriptor(proto, "value").set;
+      try {
+        setter.call(el, text);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      } catch (err) {
+        /* very old browsers: the field stays as React left it */
+      }
+    }
   }
   // Capture phase on window, before React's own listener on the page: React never sees this tap, so the replay below
   // is the only time it runs (no double toggle). Links are left alone: they work without scripts.
@@ -44,9 +74,15 @@
   function replay() {
     var el = tapped;
     var fresh = el && Date.now() - tappedAt <= KEEP_MS;
+    var fields = typed;
     stopWaiting();
-    // The same button, still on the page (React reuses the page's own elements when it starts).
-    if (fresh && el.isConnected && !el.disabled) el.click();
+    restoreTyped(fields); // first, so a Send tapped early sends what was typed
+    // A task later, once React has taken the text in; then the same button, still on the page (React reuses the
+    // page's own elements when it starts).
+    if (fresh)
+      setTimeout(function () {
+        if (el.isConnected && !el.disabled) el.click();
+      }, 0);
   }
   var watch = window.MutationObserver
     ? new MutationObserver(function () {
