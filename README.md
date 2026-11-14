@@ -141,7 +141,7 @@ Set them in the environment, or copy `.env.example` to `.env`; the defaults are 
 | `GC_SITE_URL` | `https://www.gramaconnect.com` (production) | website (built in) | Public address for canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_DEV_API` | none, required | `npm run dev` only | Server that `/api/` and `/media/` are forwarded to. Not part of the build: on the server both apps call the API on their own domain |
 | `GC_PLAY_STORE_URL`, `GC_APP_STORE_URL` | empty | website (built in) | The Google Play and App Store buttons. Empty shows "Coming soon" |
-| `GC_ANDROID_APK_URL` | `/downloads/bvt-grama-connect.apk` | website (built in) | The "Direct download" link under the hero's store buttons (the APK is committed in `dist/downloads/`). Set it empty to hide the link. See *Android APK download* below |
+| `GC_ANDROID_APK_URL` | `/downloads/bvt-grama-connect.apk` | website (built in) | The "Direct download" link under the hero's store buttons (the APK is committed in `dist/downloads/`, by decision until the app is on Google Play: audit WEB-OPS-002). Set it empty to hide the link. See *Android APK download* below |
 
 ## What changed from the prototypes
 
