@@ -44,7 +44,7 @@ import { loadReports, reportsView } from "./logic/reports";
 import { loadCategories, loadSettings, settingsView } from "./logic/settings";
 import { loadServices, servicesView } from "./logic/services";
 import { loadNumbers, loadTypes, numbersView } from "./logic/numbers";
-import type { Area, AreaLevel, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
+import type { Area, AreaLevel, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
   ConsoleNotification, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, TemporaryPassword, User, UserResponse,
 } from "./types";
 
