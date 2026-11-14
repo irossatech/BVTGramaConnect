@@ -71,6 +71,7 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-OPS-002 27 MB APK in git | 2026-11-14, option A: the APK stays committed in `dist/downloads/` (the server deploys only the committed `dist/`), until the app is on Google Play; then the APK and the "Direct download" link go and the store link takes over | No Git LFS and no separate server folder: each new APK adds about 27 MB to history, accepted while new APKs are rare |
 | WEB-DP-001 (Important numbers) | 2026-11-14, owner: phones and emails in the Important numbers table stay in full. They are published to citizens on purpose so people can call them; masking them protects nothing and could hide a wrong number from the Super Admin (BackEnd `docs/security-review.md`, "Important numbers: public by design") | No masking in that table. Users, Service requests and Contact messages stay masked (see Fixed) |
 | WEB-DP-005 Searches put names and mobiles in URLs | 2026-11-14, lead: accepted exception, the same as the backend. Searches stay `GET ?q=`; the server's Nginx log drops query strings (`gc_noquery` log format) | No move of person searches to POST |
+| WEB-DP-007 Temporary password left on the clipboard | 2026-11-14, owner: accepted, keep as is. The temporary-password dialog keeps its Copy button, and a copied password stays on the clipboard until something else is copied. The risk is low: the password is temporary (it must be changed at the first login), only Super Admins see the dialog, and someone would need the same computer before that first login | No warning text in the dialog (option A, new text) and no automatic clearing of the clipboard on Done (option C). Revisit if the console is used on shared computers |
 
 ## By design
 
@@ -88,7 +89,7 @@ Do not build these without the owner's or lead's answer. Backlog numbers are in 
 
 | Finding | Question |
 |---|---|
-| WEB-DP-007 Temporary password left on the clipboard | A "clear the clipboard" note in the dialog (new text)? |
+| — | Nothing is waiting for a decision (all answered on 2026-11-14) |
 
 ## Backend
 
