@@ -7,10 +7,9 @@ import { test } from "node:test";
 const load = (lang) => JSON.parse(readFileSync(new URL(`../src/website/locales/${lang}.json`, import.meta.url), "utf8"));
 
 // Empty on purpose:
-// - te seo.home: the home page title is built from en seo.home and te seo.name (SitePage.tsx).
 // - en ui.wordPost: the Telugu hero adds words after the rotating one; English needs none (Hero.tsx).
 // - en legal.note: the Telugu note says the English text wins where the two differ; the English page needs none.
-const EMPTY_ON_PURPOSE = { te: ["seo.home"], en: ["ui.wordPost", "legal.note"] };
+const EMPTY_ON_PURPOSE = { te: [], en: ["ui.wordPost", "legal.note"] };
 
 function emptyKeys(value, path = "") {
   if (typeof value === "string") return value.trim() ? [] : [path];

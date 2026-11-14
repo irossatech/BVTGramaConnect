@@ -11,6 +11,7 @@ Both apps must look and behave exactly like the approved prototypes. Only these 
 5. Demo-only controls are removed or pointed at the real target.
 6. Markup, inline styles, CSS files, fonts, images and animations stay as they are.
 7. Website speed work the owner approved on 6 Nov 2026: WebP images at the size they are shown (`public/assets/*.webp`; the PNG/JPG originals stay for the console, favicon and share previews), woff2 fonts, phone/wide layouts in CSS through `rsp()` and the `gc-wide`/`gc-phone`/`gc-stick` classes (never `v.mobile` in markup), the hero's CSS entrance, scripts started after the first paint (`scripts/boot.js`), and the ticker label and header tagline colours for contrast.
+8. Audit decisions the owner approved on 14 Nov 2026 (`.claude/audit-status.md`): search results in Telugu, like the pages (titles, descriptions and share text from `te.json`, each title ending in "Grama Connect"; WEB-SEO-001). English pages with their own addresses were not chosen.
 
 The console also has the documented additions listed in `architecture.md` ("Console"). Anything else, including new text or a new section, is a design change and needs the owner's sign-off first.
 
@@ -48,7 +49,6 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 
 - Every website text lives in `src/website/locales/te.json` and `en.json` under the same key; TypeScript fails the build if one language misses a key. Never write visible text (labels, aria-labels, alt text, titles, fallback values) in code: add a key to both files and read it (`v.t.<key>` in markup).
 - Telugu is the default language (`lang: 'te'`).
-- Do not "fix" the hero subtitles: the Telugu one is an English sentence and the English one starts in Telugu, on purpose.
 - Files are UTF-8. Check Telugu on screen after every change.
 
 ## Console rules

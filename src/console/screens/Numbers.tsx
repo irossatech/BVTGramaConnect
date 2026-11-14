@@ -33,7 +33,7 @@ export default function Numbers({ v }: { v: View }) {
             </thead>
             <tbody>
               {list(v.typeRows).map((_t, _i1) => (
-                <React.Fragment key={_i1}>
+                <React.Fragment key={_t?.key ?? _i1}>
                   <tr style={{borderTop: "1px solid #f3f5f8"}}>
                     <td style={{padding: "10px 16px"}}>
                       <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_t?.en)}</span>
@@ -95,7 +95,7 @@ export default function Numbers({ v }: { v: View }) {
             </thead>
             <tbody>
               {list(v.numRows).map((_c, _i1) => (
-                <React.Fragment key={_i1}>
+                <React.Fragment key={_c?.rowKey ?? _i1}>
                   <tr style={{borderTop: "1px solid #f3f5f8"}}>
                     <td style={{padding: "10px 0 10px 16px"}}>{_c?.canSel ? <TickBox on={_c?.sel} onChange={_c?.toggleSel} label={"Select " + (_c?.name || "")} /> : null}</td>
                     <td style={{padding: "10px 16px", color: "#3b4a5c"}}>{I(_c?.type)}</td>

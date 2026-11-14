@@ -10,6 +10,8 @@ Open work as of 2026-11-13, most urgent first. Items marked "sign-off" change wh
 
 ## Website (`src/website/Site.tsx`)
 
+20. **Check the new Telugu home title (lead).** Since 14 Nov 2026 search results are Telugu (audit WEB-SEO-001); the home title's phrase `seo.home` in `src/website/locales/te.json`, "ఆంధ్రప్రదేశ్ గ్రామ వార్తల యాప్", is new text (the English one translated). Have the lead confirm the wording.
+
 3. **"For officials" login text (sign-off).** The page says an admin adds officials with their email and sends the username and temporary password by email. Since 21 Oct 2026 there is no email: the admin sets or generates a temporary password and hands it over in person. New Telugu and English text for that point (`ui.o3c` in `src/website/locales/*.json`) must be agreed with the owner.
 4. **Office details.** Done: the BVT Kandukur address, phone, email and hours are in `src/website/locales/*.json` (the website no longer reads the server's `SITE_*` settings; the mobile app still does).
 5. **Store links.** When the app is published, set `GC_PLAY_STORE_URL` (and `GC_APP_STORE_URL`) in `.env`, rebuild, commit `dist/` and push.

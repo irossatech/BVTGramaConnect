@@ -43,7 +43,7 @@ interface ContactForm {
   message: string;
 }
 
-/** A line in the hero ticker, also what Listen reads aloud. */
+/** A line in the hero ticker. */
 interface FeedItem {
   chip: string;
   title: string;
@@ -60,7 +60,6 @@ interface Props {
 
 interface State {
   page: Page;
-  tick: number;
   showcase: Partial<Record<Lang, Showcase>>;
   lang: Lang;
   menuOpen: boolean;
@@ -121,7 +120,6 @@ export type View = ReturnType<Site["renderVals"]>;
 export default class Site extends React.Component<Props, State> {
   state: State = {
     page: this.props.page,
-    tick: 0,
     showcase: {},
     lang: "te",
     menuOpen: false,
@@ -140,11 +138,9 @@ export default class Site extends React.Component<Props, State> {
   private el: HTMLDivElement | null = null;
   private io: IntersectionObserver | null = null;
   private ro: ResizeObserver | null = null;
-  private iv = 0;
   private raf = 0;
   private tt = 0;
   private dead = false;
-  private reducedMotion = false;
   private readonly onNav = () => this.syncPage();
   // The header floats once the page has scrolled (rAF-throttled).
   private readonly onScroll = () => {
@@ -175,12 +171,7 @@ export default class Site extends React.Component<Props, State> {
     document.documentElement.classList.add("gc-ready");
     this.loadSite();
     this.loadShowcase(this.state.lang);
-    this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     this.scrollFx();
-    this.iv = window.setInterval(() => {
-      if (this.reducedMotion || document.hidden || this.state.page !== "home") return;
-      this.setState((st) => ({ tick: st.tick + 1 }));
-    }, 3200);
     window.addEventListener("scroll", this.onScroll, { passive: true });
     window.addEventListener("hashchange", this.onNav);
     window.addEventListener("popstate", this.onNav);
@@ -201,7 +192,6 @@ export default class Site extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this.dead = true;
-    clearInterval(this.iv);
     cancelAnimationFrame(this.raf);
     this.io?.disconnect();
     this.ro?.disconnect();
@@ -448,7 +438,7 @@ export default class Site extends React.Component<Props, State> {
       hours: t.hours,
       email: loc.office.email,
     };
-    // Hero: the word that changes every few seconds, and the brand line around the photo.
+    // Hero: the words that take turns every few seconds (ui/parts.tsx RotatingWord), and the brand line around the photo.
     const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: loc.words[k], color: CAT[k].color, icon: icons[k] }));
     const legalPage = s.page === "privacy" || s.page === "terms" ? s.page : null;
     const fill = (x: string) => x.replace("{email}", contact.email).replace("{phone}", contact.phone);
@@ -460,8 +450,7 @@ export default class Site extends React.Component<Props, State> {
         title: loc.day.title,
         items: loc.day.moments.map(({ feature, time, story }) => ({ ...appFeatures[feature], time, story })),
       },
-      wordIdx: s.tick,
-      word: words[s.tick % words.length],
+      words,
       ringText: t.ring,
       scrolled: s.scrolled,
       rootRef: (el: HTMLDivElement | null) => {

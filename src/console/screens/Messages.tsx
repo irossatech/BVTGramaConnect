@@ -36,7 +36,7 @@ export default function Messages({ v }: { v: View }) {
           </thead>
           <tbody>
             {list(v.contactRows).map((_c, _i1) => (
-              <React.Fragment key={_i1}>
+              <React.Fragment key={_c?.rowKey ?? _i1}>
                 <tr style={{borderTop: "1px solid #f3f5f8"}}>
                   <td style={{padding: "10px 16px", color: "#6b7a8c", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>{I(_c?.time)}</td>
                   <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</td>

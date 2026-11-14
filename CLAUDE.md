@@ -7,7 +7,7 @@ The BVT Grama Connect public website (served at `/`) and Super Admin console (se
 @.claude/conventions.md
 @.claude/api.md
 
-Read when needed: `.claude/operations.md` (build, run, checking the look, deploy) and `.claude/backlog.md` (open work).
+Read when needed: `.claude/operations.md` (build, run, checking the look, deploy), `.claude/backlog.md` (open work) and `.claude/audit-status.md` (every audit finding: fixed, decided, by design or waiting; read it before acting on, or repeating, an audit finding).
 
 ## Always
 

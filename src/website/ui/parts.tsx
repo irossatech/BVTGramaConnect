@@ -1,7 +1,24 @@
 // Small pieces more than one section uses. Markup exactly as in the original template.
+import { useEffect, useState } from "react";
 import { I, list } from "../../shared/dc";
 import type { View } from "../Site";
 import { green, rsp, ui } from "./theme";
+
+/** The hero's word that changes every 3.2 s (the words come from renderVals(), `v.words`). It keeps its own turn so
+ *  each change re-renders this word only, not the whole page (audit WEB-REACT-001). It stands still under reduced
+ *  motion and while the tab is hidden. The exported HTML shows the first word, as before. */
+export function RotatingWord({ words }: { words: View["words"] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const iv = window.setInterval(() => {
+      if (!document.hidden) setI((n) => n + 1);
+    }, 3200);
+    return () => clearInterval(iv);
+  }, []);
+  const w = words[i % words.length];
+  return <span key={i} className="gc-word" style={{display: "inline-flex", alignItems: "center", gap: ".25em", color: w.color}}><img src={w.icon} alt="" style={{width: ".85em", height: ".85em", borderRadius: "50%", flexShrink: "0"}} />{I(w.text)}</span>;
+}
 
 /** The India tricolour as a small flag strip. */
 export function Tricolour() {

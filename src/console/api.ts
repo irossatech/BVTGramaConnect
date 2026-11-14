@@ -1,6 +1,6 @@
 /* Grama Connect console: small fetch wrapper around the REST API.
  *
- * - Base URL from shared/config.ts (GC_API_BASE at build time).
+ * - Base URL and error reading from shared/http.ts (GC_API_BASE at build time).
  * - The console signs in with a Django session: the server sets the HttpOnly
  *   `sessionid` cookie at login. The page never sees a token.
  * - Every call is same-origin with cookies. Writes (POST, PATCH, PUT, DELETE)
@@ -9,19 +9,14 @@
  * - Errors are thrown as ApiError objects with .status, .code and .body (the
  *   contract's {"error": {...}} object).
  */
-import config from "../shared/config";
+import { apiBase, errorBody, type ErrorBody } from "../shared/http";
 
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 /** Query string values; empty, null and undefined values are left out. */
 export type Query = Record<string, string | number | boolean | null | undefined>;
 
 /** The contract's error object: {"error": {code, message, fields?, ...}}. */
-export interface ApiErrorBody {
-  code?: string;
-  message?: string;
-  fields?: Record<string, string[] | string>;
-  [key: string]: unknown;
-}
+export type ApiErrorBody = ErrorBody;
 
 export class ApiError extends Error {
   constructor(
@@ -52,18 +47,12 @@ function headers(method: Method, extra: Record<string, string> = {}): Record<str
 }
 
 async function toError(response: Response): Promise<ApiError> {
-  let body: { error?: ApiErrorBody } | null = null;
-  try {
-    body = await response.json();
-  } catch {
-    /* not JSON */
-  }
-  const err = body?.error ?? {};
+  const err = await errorBody(response);
   return new ApiError(err.message || "Request failed (" + response.status + ")", response.status, err.code, err);
 }
 
 function buildUrl(path: string, query?: Query): string {
-  let url = config.apiBase + path;
+  let url = apiBase + path;
   if (query) {
     const q = new URLSearchParams();
     for (const [k, v] of Object.entries(query)) if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
@@ -76,7 +65,7 @@ function buildUrl(path: string, query?: Query): string {
 // Makes sure the CSRF cookie exists before the first write.
 function csrf(force = false): Promise<null> {
   if (force || !csrfReady || !cookie("csrftoken")) {
-    csrfReady = fetch(config.apiBase + "/auth/csrf/", { method: "GET", credentials: "same-origin", headers: headers("GET") }).then(
+    csrfReady = fetch(apiBase + "/auth/csrf/", { method: "GET", credentials: "same-origin", headers: headers("GET") }).then(
       (r) => {
         if (!r.ok) csrfReady = null;
         return null;

@@ -1,7 +1,6 @@
 // `npm run build` runs this after `next build`: writes dist/robots.txt, dist/sitemap.xml and dist/llms.txt for
 // GC_SITE_URL (the environment, then .env; default as in next.config.ts), so they always name the address the
 // site is built for. Written into dist/ only: the deploy refuses to pull when tracked files have changed.
-import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
 try {
@@ -27,12 +26,6 @@ const PAGES = [...slugTable[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map(([, page, sl
   return [slug ? `/${slug}/` : "/", LABEL[page]];
 });
 
-let lastmod;
-try {
-  lastmod = execSync("git log -1 --format=%cs", { encoding: "utf8" }).trim(); // date of the last change
-} catch {}
-lastmod ||= new Date().toISOString().slice(0, 10);
-
 writeFileSync("dist/robots.txt", `# Grama Connect: the public website is open to every crawler, AI search included, so villagers
 # can find it. The console (/console/) is not linked from the website and is marked noindex in its own
 # page (not blocked here, so crawlers can read that mark): it never shows in search results.
@@ -44,9 +37,11 @@ Disallow: /django-admin/
 Sitemap: ${site}/sitemap.xml
 `);
 
+// No <lastmod>: the only date available was the repo's last commit, the same for every page and changed by unrelated
+// commits, so crawlers would learn to ignore it (audit WEB-SEO-002). Without it they judge freshness themselves.
 writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${PAGES.map(([p]) => `  <url><loc>${site}${p}</loc><lastmod>${lastmod}</lastmod></url>`).join("\n")}
+${PAGES.map(([p]) => `  <url><loc>${site}${p}</loc></url>`).join("\n")}
 </urlset>
 `);
 
