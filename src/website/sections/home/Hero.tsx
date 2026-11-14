@@ -2,7 +2,7 @@
 import { I, list } from "../../../shared/dc";
 import type { View } from "../../Site";
 import { ui } from "../../ui/theme";
-import { Tricolour, StoreButtons } from "../../ui/parts";
+import { Tricolour, StoreButtons, RotatingWord } from "../../ui/parts";
 
 export default function Hero({ v }: { v: View }) {
   const { ink, cream, display, fs, wrap, h2, lead, badgeLight } = ui(v);
@@ -14,7 +14,7 @@ export default function Hero({ v }: { v: View }) {
             <h1 className="gc-in" style={{"--d": "90ms", ...h2, fontWeight: v.te ? "700" : "800", fontSize: v.te ? "clamp(28px,min(4vw,7vh),52px)" : "clamp(32px,min(4.8vw,8.5vh),64px)", lineHeight: v.headLh}}>
               {I(v.t?.wordPre)}{" "}
               <span style={{display: "inline-block", verticalAlign: "bottom", overflow: "hidden", paddingBottom: ".06em"}}>
-                <span key={v.wordIdx} className="gc-word" style={{display: "inline-flex", alignItems: "center", gap: ".25em", color: v.word.color}}><img src={v.word.icon} alt="" style={{width: ".85em", height: ".85em", borderRadius: "50%", flexShrink: "0"}} />{I(v.word.text)}</span>
+                <RotatingWord words={v.words} />
               </span>
               {v.t?.wordPost ? <>{" "}{I(v.t.wordPost)}</> : null}
             </h1>

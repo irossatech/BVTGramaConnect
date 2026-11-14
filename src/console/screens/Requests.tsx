@@ -37,7 +37,7 @@ export default function Requests({ v }: { v: View }) {
           </thead>
           <tbody>
             {list(v.reqRows).map((_c, _i1) => (
-              <React.Fragment key={_i1}>
+              <React.Fragment key={_c?.rowKey ?? _i1}>
                 <tr style={{borderTop: "1px solid #f3f5f8"}}>
                   <td style={{padding: "10px 16px", color: "#6b7a8c", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>{I(_c?.time)}</td>
                   <td style={{padding: "10px 16px", fontWeight: "700", color: "#0A2550"}}>{I(_c?.service)}<div style={{fontWeight: "400", color: "#6b7a8c", fontSize: "12px"}}>{"No. "}{I(_c?.ref)}</div></td>

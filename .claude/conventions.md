@@ -48,7 +48,6 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 
 - Every website text lives in `src/website/locales/te.json` and `en.json` under the same key; TypeScript fails the build if one language misses a key. Never write visible text (labels, aria-labels, alt text, titles, fallback values) in code: add a key to both files and read it (`v.t.<key>` in markup).
 - Telugu is the default language (`lang: 'te'`).
-- Do not "fix" the hero subtitles: the Telugu one is an English sentence and the English one starts in Telugu, on purpose.
 - Files are UTF-8. Check Telugu on screen after every change.
 
 ## Console rules

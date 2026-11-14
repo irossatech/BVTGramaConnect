@@ -2887,7 +2887,7 @@ export default class Component extends React.Component<Props, State> {
     const numRows = s.nums.map((c) => {
       const al = c.allowed_actions || [];
       const rc = c.needs_recheck;
-      return {canSel: al.includes('remove'), sel: s.numSel.includes(c.id), toggleSel: () => this.toggleSel('numSel', c.id), type: c.custom_type || c.type.name, name: c.name, te: c.name_te && c.name_te !== c.name ? c.name_te : '',
+      return {rowKey: String(c.id), canSel: al.includes('remove'), sel: s.numSel.includes(c.id), toggleSel: () => this.toggleSel('numSel', c.id), type: c.custom_type || c.type.name, name: c.name, te: c.name_te && c.name_te !== c.name ? c.name_te : '',
         phone: c.phone_kind === 'MOBILE' ? '+91 ' + c.phone.slice(0, 5) + ' ' + c.phone.slice(5) : c.phone, email: c.email || '', area: c.area ? (c.area.path || c.area.name) : '—', status: rc ? 'Needs check' : 'Verified ' + this.fmt(c.verified_at, true).slice(0, 11),
         sbg: rc ? '#fff0dc' : '#e4f4df', scolor: rc ? '#b35a0e' : '#1d7a33', canEdit: al.includes('edit'), canVerify: al.includes('verify'), canRemove: al.includes('remove'), edit: () => this.openNumber(c), verify: () => this.verifyNumber(c), remove: () => this.removeNumber(c)};
     });
@@ -3084,7 +3084,7 @@ export default class Component extends React.Component<Props, State> {
         const done = this.isHandled(c);
         // Mobile masked and no message in the table (audit WEB-DP-001); View shows both in full.
         const mobile = c.mobile_last4 ? '+91 ******' + c.mobile_last4 : maskMobile(c.mobile);
-        return {time: this.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => this.toggleContact(c), view: () => this.openContact(c)};
+        return {rowKey: String(c.id), time: this.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => this.toggleContact(c), view: () => this.openContact(c)};
       }),
       contactCount: s.contactCount + (s.contactCount === 1 ? ' message' : ' messages'), contactEmpty: !s.contacts.length, contactEmptyText: s.contactLoading ? 'Loading…' : 'No messages match.', contactPager: pager(s.contactPage, s.contactPages, (p) => this.loadContacts(p)),
       reqTabs: [...Object.keys(Component.SVC_STATUS), 'ALL'].map((k) => {
@@ -3102,7 +3102,7 @@ export default class Component extends React.Component<Props, State> {
       reqRows: s.reqs.map((r) => {
         const st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW;
         // Citizen column: the name only; phone and address are in the panel ("Open").
-        return {address: '', time: this.fmt(r.created_at, false), service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
+        return {rowKey: String(r.id), address: '', time: this.fmt(r.created_at, false), service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
           place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => this.openRequestRow(r)};
       }),
       reqCountLabel: s.reqCount + (s.reqCount === 1 ? ' request' : ' requests'), reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Service requests will show here once the server is updated.' : 'No requests here. Citizens send them from Services in the app.', reqPager: pager(s.reqPage, s.reqPages, (p) => this.loadRequests(p)),
@@ -3113,7 +3113,7 @@ export default class Component extends React.Component<Props, State> {
         const k = this.adStatus(a);
         const S = C.AD_STATUS[k];
         const ar = a.area;
-        return {sel: s.adSel.includes(a.id), toggleSel: () => this.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
+        return {rowKey: String(a.id), sel: s.adSel.includes(a.id), toggleSel: () => this.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
           dates: [a.starts_on ? 'From ' + this.dayLabel(a.starts_on) : '', a.ends_on ? 'till ' + this.dayLabel(a.ends_on) : 'no end date'].filter(Boolean).join(' '), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => this.toggleAd(a), open: () => this.openAd(a)};
       }),
       afShow: !!af, closeAF: () => this.setState({af: null}), pickAdMedia: () => this.pickAdMedia(), saveAF: () => this.saveAd(),
