@@ -22,6 +22,10 @@ export interface ConsoleHost {
   ask(modal: ModalSpec): void;
   /** A date and time in India time as the console shows it: "13 Nov 2026 09:15", or "13 Nov 09:15" when withYear is false. */
   fmt(iso: string | null | undefined, withYear?: boolean): string;
+  /** "Today 09:15", "Yesterday 18:40", else as fmt without the year; "Never" when there is no date. */
+  fmtLast(iso: string | null | undefined): string;
+  /** Whether the signed-in user has this permission ("app_label.codename" from GET /me/); it only hides buttons. */
+  can(code: string): boolean;
   /** Runs `run` after `ms` unless called again with the same key first (search boxes). Sign-out cancels it. */
   later(key: string, run: () => void, ms: number): void;
   /** Loads the geography tree (district, mandal and village pickers). */
