@@ -40,10 +40,11 @@ import type { ConsoleHost } from "./logic/host";
 import { contactPanelView, contactsView, loadContacts } from "./logic/messages";
 import { loadRequests, openRequest, requestPanelView, requestsView } from "./logic/requests";
 import { adFormView, adsView, loadAds } from "./logic/ads";
-import type { AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category,
+import { auditRow, auditView, loadAudit } from "./logic/audit";
+import { loadReports, reportsView } from "./logic/reports";
+import type { AdminContact, AdminContactType, Area, AreaLevel, CatalogItem, Category,
   ContactImportResult, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
-  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, NotificationTemplate, Paged, Post, PostsPage,
-  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest, Settings, TemporaryPassword, User, UserResponse,
+  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, NotificationTemplate, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, Settings, TemporaryPassword, User, UserResponse,
 } from "./types";
 
 import { FORMS, ROLE, RK, pager, one, orEmpty, isStatus, PAGE_SIZE, pageCount, rows, blobPreviews, pickFile, csvCell, reportErrors, isActor, isRowError, historyPage, EMPTY_NU } from "./model";
@@ -65,7 +66,6 @@ export default class Component extends React.Component<Props, State> {
   private static readonly SAPI: Readonly<Record<string, string>> = {Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
   private static readonly LEVEL_OF_ROLE: Readonly<Partial<Record<string, AreaLevel>>> = {super:'STATE',district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
   private static readonly HIST: Readonly<Record<string, string>> = {SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
-  private static readonly ACT: Readonly<Record<string, string>> = {'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','user.super_admin_created':'added a Super Admin','user.super_admin_role_added':'gave the Super Admin role','user.super_admin_role_removed':'removed the Super Admin role','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   private static readonly PAGE = PAGE_SIZE;
   private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
@@ -122,7 +122,6 @@ export default class Component extends React.Component<Props, State> {
   private timers: Record<string, Timer> = {};
   private numTimer: Timer | undefined;
   private userTimer: Timer | undefined;
-  private auditTimer: Timer | undefined;
   /** Refreshes the bell every minute while the console is open. */
   private notifTimer: ReturnType<typeof setInterval> | undefined;
   private searchTimer: Timer | undefined;
@@ -157,6 +156,8 @@ export default class Component extends React.Component<Props, State> {
     fail: (e) => c.fail(e),
     ask: (modal) => c.ask(modal),
     fmt: (iso, withYear) => c.fmt(iso, withYear),
+    fmtLast: (iso) => c.fmtLast(iso),
+    can: (code) => c.can(code),
     later: (key, run, ms) => {
       clearTimeout(c.timers[key]);
       c.timers[key] = setTimeout(run, ms);
@@ -283,7 +284,6 @@ export default class Component extends React.Component<Props, State> {
     this.timers = {};
     clearTimeout(this.numTimer);
     clearTimeout(this.userTimer);
-    clearTimeout(this.auditTimer);
     clearTimeout(this.searchTimer);
     clearTimeout(this.teTimer);
     clearInterval(this.notifTimer);
@@ -596,7 +596,7 @@ export default class Component extends React.Component<Props, State> {
     if (p === 'dashboard') this.loadDash();
     if (p === 'users') this.loadUsers(1);
     if (p === 'posts') this.loadPosts(1);
-    if (p === 'audit') this.loadAudit(1);
+    if (p === 'audit') loadAudit(this.host, 1);
     if (p === 'contact') loadContacts(this.host, 1);
     if (p === 'ads') loadAds(this.host);
     if (p === 'bills') this.loadServices(true);
@@ -608,7 +608,7 @@ export default class Component extends React.Component<Props, State> {
       this.loadTypes();
       if (this.state.numTab !== 'TYPES') this.loadNumbers(1);
     }
-    if (p === 'reports') this.loadReports();
+    if (p === 'reports') loadReports(this.host);
     if (p === 'settings') this.loadSettings();
     if (p === 'geography') this.loadGeo();
   }
@@ -700,19 +700,6 @@ export default class Component extends React.Component<Props, State> {
       .catch((e: unknown) => {
         if (!latest()) return;
         this.setState({postsLoading: false});
-        this.fail(e);
-      });
-  }
-
-  private loadAudit(page: number) {
-    const latest = this.ticket('audit');
-    this.setState({auditLoading: true});
-    this.api.get<Paged<AuditEntry>>('/audit/', {q: this.state.auditQ, type: this.state.auditType, page, page_size: Component.PAGE})
-      // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
-      .then((d) => latest() && this.setState({audit: d.results.map(({data: _, ...a}) => a), auditCount: d.count, auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({auditLoading: false});
         this.fail(e);
       });
   }
@@ -1081,20 +1068,6 @@ export default class Component extends React.Component<Props, State> {
       this.toast(t.name_en + (t.is_active ? ' switched off' : ' switched on'), t.is_active ? '#E9791E' : '#6cc04a');
       this.loadTypes();
     }).catch((e: unknown) => this.fail(e));
-  }
-
-  private humanAction(k: string) {
-    const p = String(k || '').split('.');
-    return (p[1] || p[0]).replace(/_/g, ' ');
-  }
-
-  private loadReports() {
-    Promise.all([
-      this.api.get<ReportSummary>('/admin/reports/summary/'),
-      this.api.get<ReportDistrict[]>('/admin/reports/posts-by-area/'),
-      this.api.get<ReportReviewTime[]>('/admin/reports/review-time/'),
-      this.api.get<Paged<ReportActivity>>('/admin/reports/admin-activity/', {page_size: 8}),
-    ]).then(([summary, byArea, reviewTime, activity]) => this.setState({reports: {summary, byArea, reviewTime, activity: activity.results}})).catch((e: unknown) => this.fail(e));
   }
 
   private loadSettings() {
@@ -1859,23 +1832,6 @@ export default class Component extends React.Component<Props, State> {
     }});
   }
 
-  // ---- exports ----
-  private exportCsv() {
-    const s = this.state;
-    const stamp = new Date().toISOString().slice(0, 10);
-    if (s.page !== 'audit') return this.exportReport('posts-by-area');
-    if (s.exporting) return;
-    this.setState({exporting: 'audit'});
-    this.api.download('/audit/export/', {q: s.auditQ, type: s.auditType, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => this.toast('Audit log exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
-  }
-
-  private exportReport(name: string) {
-    const stamp = new Date().toISOString().slice(0, 10);
-    if (this.state.exporting) return;
-    this.setState({exporting: name});
-    this.api.download('/admin/reports/' + name + '/export/', {format: 'csv'}, 'grama-' + name + '-' + stamp + '.csv').then(() => this.toast('Report exported')).catch((e: unknown) => this.fail(e)).finally(() => this.setState({exporting: null}));
-  }
-
   renderVals() {
     const s = this.state, C = Component, ST = C.STATUS, R = C.ROLE;
     const is = {checking: s.screen === 'checking', auth: s.screen === 'login' || s.screen === 'change_password', login: s.screen === 'login', changePassword: s.screen === 'change_password', app: s.screen === 'app'};
@@ -1957,12 +1913,7 @@ export default class Component extends React.Component<Props, State> {
     const dq = s.distQ.trim().toLowerCase();
     const pendingByDistrict = (D ? D.pending_by_district : []).filter((r) => !dq || r.district.name.toLowerCase().includes(dq) || (r.name_te || '').includes(s.distQ.trim())).sort((a, b) => b.pending - a.pending).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
       go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => this.loadPosts(1)); }}));
-    const auditRow = (a: AuditEntry) => {
-      const rk = C.RK[a.actor?.role ?? ''] || (a.actor && a.actor.role === 'SYSTEM' ? 'system' : 'super');
-      const name = (a.actor && a.actor.name) || 'System';
-      return {time: this.fmt(a.at, false), user: name, role: R[rk].label, action: C.ACT[a.action] || this.humanAction(a.action), target: a.target_label || '', area: a.area ? a.area.name : 'State', bg: R[rk].bg, initial: name[0], rbg: R[rk].tbg, rcolor: R[rk].tc};
-    };
-    const recent = (D ? D.recent_activity : []).map(auditRow);
+    const recent = (D ? D.recent_activity : []).map((a) => auditRow(this.host, a));
     // geography
     const tag: Readonly<Record<GeoKind, readonly [string, string]>> = {district: ['#e3f0fb', '#0D3B7A'], mandal: ['#dff3f5', '#07818e'], village: ['#e4f4df', '#1d7a33']};
     const treeRow = (node: GeoNode, kind: GeoKind, depth: number, parentId: number | null, parentName: string | null, parentKey: string | null, meta: string, key: string, open: boolean) => {
@@ -2059,26 +2010,6 @@ export default class Component extends React.Component<Props, State> {
     const pf = s.pf;
     const postRows = s.posts.map((p) => dp(p));
     const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
-    // reports
-    const RP = s.reports;
-    const byArea: {name: string; indent: string; weight: number; total: number; pub: number; pend: number; rej: number}[] = [];
-    // Busiest districts first (ties keep the server's A-Z order); each district's mandals stay under it.
-    [...RP.byArea].sort((a, b) => b.total - a.total).forEach((d) => {
-      byArea.push({name: d.district.name, indent: '0px', weight: 700, total: d.total, pub: d.published, pend: d.pending, rej: d.rejected});
-      d.mandals.forEach((m) => byArea.push({name: m.mandal.name, indent: '20px', weight: 500, total: m.total, pub: m.published, pend: m.pending, rej: m.rejected}));
-    });
-    const SM = RP.summary;
-    const repSummary = ([['Posts', 'total', '#0A2550'], ['Published', 'published', '#1F8A3B'], ['Pending', 'pending', '#b35a0e'], ['Rejected', 'rejected', '#6b7a8c']] as const).map(([label, k, color]) => ({label, value: SM ? SM[k] : '…', color, sub: 'Last ' + (SM ? SM.days : 30) + ' days' + (k === 'rejected' ? ' · discarded or taken down' : '')}));
-    const LV: Readonly<Partial<Record<string, readonly [string, string]>>> = {VILLAGE: ['Village Admin', '#1F8A3B'], MANDAL: ['Mandal Admin', '#07818e'], DISTRICT: ['District Admin', '#E9791E']};
-    const reviewTime = RP.reviewTime.flatMap((r) => {
-      const lv = LV[r.level];
-      if (!lv) return [];
-      const hours = r.avg_hours || 0;
-      return [{level: lv[0], hours, n: r.reviews, sla: r.escalation_hours, color: lv[1], w: Math.min(100, Math.round(hours / (r.escalation_hours || 24) * 100)) + '%'}];
-    });
-    const adminActivity = RP.activity.map((a) => ({name: a.user.name, role: (R[C.RK[a.user.role]] || R.village).label, area: a.area ? a.area.name : '—', reviewed: a.reviewed, pub: a.published, re: a.recheck, dis: a.discarded, avg: a.avg_review_hours == null ? '—' : a.avg_review_hours, last: this.fmtLast(a.last_active_at)}));
-    // audit
-    const auditRows = s.audit.map(auditRow);
     // important numbers
     const sw = (on: boolean) => ({swBg: on ? '#1F8A3B' : '#cfd8e3', swLeft: on ? '21px' : '3px'});
     const numTabList: {id: NumTab; label: string}[] = [{id: 'AREA', label: 'For villages'}, {id: 'HELPLINE', label: 'Government helplines'}, ...(this.can('contacts.manage_contact_types') ? [{id: 'TYPES' as const, label: 'Types'}] : [])];
@@ -2259,19 +2190,7 @@ export default class Component extends React.Component<Props, State> {
         this.setState((st) => ({pf: {...st.pf, [name]: value}}), () => this.loadPosts(1));
       },
       postRows, postCount: s.postCount, postEmpty: !postRows.length, postEmptyText: s.postsLoading ? 'Loading…' : 'No posts match these filters.', postsPager: pager(s.postPage, s.postPages, (p) => this.loadPosts(p)), catOpts,
-      repSummary, byArea, reviewTime, adminActivity, exporting: s.exporting, exportCsv: () => this.exportCsv(), exportByArea: () => this.exportReport('posts-by-area'), exportReviewTime: () => this.exportReport('review-time'), exportActivity: () => this.exportReport('admin-activity'),
-      auditQ: s.auditQ,
-      // Same tabs as the app's Audit screen.
-      auditTabs: [['', 'All'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Logins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({
-        label, on: s.auditType === id, color: s.auditType === id ? '#0D3B7A' : '#6b7a8c', line: s.auditType === id ? '#0D3B7A' : 'transparent',
-        go: () => this.setState({auditType: id}, () => this.loadAudit(1)),
-      })),
-      onAuditQ: (e: FieldChange) => {
-        this.setState({auditQ: e.target.value});
-        clearTimeout(this.auditTimer);
-        this.auditTimer = setTimeout(() => this.loadAudit(1), 300);
-      },
-      auditRows, auditCount: s.auditCount, auditEmpty: !auditRows.length, auditEmptyText: s.auditLoading ? 'Loading…' : 'No entries match.', auditPager: pager(s.auditPage, s.auditPages, (p) => this.loadAudit(p)), canExportAudit: this.can('audit.export_audit_log'),
+      ...reportsView(this.host), ...auditView(this.host),
       ...contactsView(this.host),
       ...requestsView(this.host),
       ...adsView(this.host), ...adFormView(this.host),
