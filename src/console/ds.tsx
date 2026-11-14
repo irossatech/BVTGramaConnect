@@ -1,5 +1,7 @@
 // The two design-system components the console uses, copied from the prototype's
-// _ds_bundle.js. Keep them identical to the design system (public/_ds/grama-connect/).
+// _ds_bundle.js. Keep them identical to the design system (public/_ds/grama-connect/), with one approved
+// difference: the category icons load as same-size WebP copies (icon-<category>-120.webp, 120 px like the PNGs,
+// 2-4 KB instead of 16-28 KB; owner's choice of 14 Nov 2026, audit WEB-PERF-002).
 import type { CSSProperties, ReactNode } from "react";
 
 /** Post categories the design system has colours (--cat-*) and icons for. */
@@ -44,7 +46,7 @@ export function IconBadge({ category = "announce", size = 48, icon, style }: { c
         ...style,
       }}
     >
-      {icon ? icon : <img alt="" src={"/assets/icon-" + category + ".png"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+      {icon ? icon : <img alt="" src={"/assets/icon-" + category + "-120.webp"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
     </span>
   );
 }

@@ -27,7 +27,7 @@ export default function AuthLayout({ v }: { v: View }) {
           {" "}
         </div>
         <div style={{display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 64px", background: "#fff"}}>
-          <img src="/assets/logo-mark.png" alt="" style={{width: "72px", height: "72px", borderRadius: "18.5%", boxShadow: "0 6px 20px rgba(0,64,126,.18)", marginBottom: "24px"}} />
+          <img src="/assets/logo-mark-192.webp" alt="" style={{width: "72px", height: "72px", borderRadius: "18.5%", boxShadow: "0 6px 20px rgba(0,64,126,.18)", marginBottom: "24px"}} />
           {v.is?.login ? <Login v={v} /> : null}
           {v.is?.changePassword ? <ChangePassword v={v} /> : null}
         </div>

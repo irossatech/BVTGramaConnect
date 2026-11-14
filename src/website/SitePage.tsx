@@ -22,6 +22,11 @@ body{cursor:default}
 a[href],button:not(:disabled),[role=button],summary,label[for],select{cursor:pointer}
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),textarea,[contenteditable=true]{cursor:text}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #0D3B7A;outline-offset:2px}
+/* "Skip to main content": off screen until Tab reaches it (audit WEB-A11Y-005). main and the page heading take focus
+   from it and after a page change (tabindex -1) without a ring around the whole block. */
+.gc-skip{position:absolute;left:12px;top:-64px;z-index:100;padding:12px 18px;border-radius:999px;background:#0D3B7A;color:#fff;font-weight:700;text-decoration:none}
+.gc-skip:focus{top:12px}
+.gc-site main:focus,.gc-site h1:focus{outline:none}
 @keyframes mk-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* Micro-interactions: quick (120-250 ms), ease-out, small distances. Hover effects only on devices that hover. */
 :root{--ease-out:cubic-bezier(.16,1,.3,1)}
