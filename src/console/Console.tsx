@@ -35,600 +35,31 @@ import ConfirmModal from "./panels/ConfirmModal";
 import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import { decodeUtf8, planParts, fileLine, type CsvPart } from "./csv-parts";
-import { maskMobile, mobileDigits } from "./mask";
-import type {
-  Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError,
-  ContactImportResult, ContactMessage, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
-  ConsoleNotification, ListOrPage, LoginResponse, Me, Media, NotificationPage, NotificationTemplate, Paged, Post, PostCitizen, PostEvent, PostsPage,
-  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest,
-  ServiceRequestsPage, Settings, TemporaryPassword, User, UserResponse,
+import { maskMobile } from "./mask";
+import type { ConsoleHost } from "./logic/host";
+import { contactPanelView, contactsView, loadContacts } from "./logic/messages";
+import { loadRequests, openRequest, requestPanelView, requestsView } from "./logic/requests";
+import { adFormView, adsView, loadAds } from "./logic/ads";
+import type { AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category,
+  ContactImportResult, ContactTypeRef, Dashboard, DiscardCitizenResult, GeoImportResult, GeoState,
+  ConsoleNotification, ListOrPage, LoginResponse, Me, NotificationPage, NotificationTemplate, Paged, Post, PostsPage,
+  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest, Settings, TemporaryPassword, User, UserResponse,
 } from "./types";
 
-// ---- the console's own shapes (API data mapped for the markup) ----
-
-type Props = Record<string, never>;
-type Screen = "checking" | "login" | "change_password" | "app";
-type PageKey = "dashboard" | "geography" | "users" | "posts" | "requests" | "bills" | "ads" | "reports" | "audit" | "contact" | "numbers" | "settings";
-/** A page, or the services list (a view of the requests page with its own permissions). */
-type NavKey = PageKey | "services";
-type StatusTab = "All" | "Pending" | "Published" | "Recheck" | "Discarded" | "TakenDown";
-type NumTab = "AREA" | "HELPLINE" | "TYPES";
-type SvcView = "requests" | "catalog";
-type GeoKind = "district" | "mandal" | "village";
-type AdStatus = "live" | "scheduled" | "paused" | "ended";
-type FieldChange = React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
-type Timer = ReturnType<typeof setTimeout>;
-
-interface Option {
-  id: string;
-  label: string;
-}
-
-interface AreaOption extends Option {
-  level: AreaLevel;
-}
-
-interface Toast {
-  id: number;
-  text: string;
-  dot: string;
-}
-
-/** The confirm dialog (ask()). onConfirm gets the text box, the select and the generated password. */
-interface ModalSpec {
-  title: string;
-  body: string;
-  confirmLabel: string;
-  bg?: string;
-  onConfirm: (text: string, sel: string, gen: string, text2: string) => void;
-  noCancel?: boolean;
-  secret?: string;
-  preset?: string;
-  needsText?: boolean;
-  textLabel?: string;
-  hasSelect?: boolean;
-  selectLabel?: string;
-  options?: Option[];
-  sel?: string;
-  hasInput?: boolean;
-  noGen?: boolean;
-  /** The text box hides what is typed (confirming with your own password). */
-  password?: boolean;
-  inputLabel?: string;
-  inputPh?: string;
-  /** A second text field under the first (My profile: the Telugu name). */
-  input2Label?: string;
-  input2Ph?: string;
-  preset2?: string;
-}
-
-/** The New post panel (same fields as the app's Compose). */
-interface ComposeForm {
-  cat: string;
-  lang: string;
-  title: string;
-  body: string;
-  d: string;
-  m: string;
-  v: string;
-  urgent: boolean;
-  /** Photos and videos in the order picked; previews, kinds, durs and posters line up with them. */
-  files: File[];
-  previews: string[];
-  kinds: ('image' | 'video')[];
-  /** A video's length in seconds (0 for a photo), read in the browser. */
-  durs: number[];
-  /** A video's first frame as a JPEG (null for a photo, or when the browser could not draw it). */
-  posters: (Blob | null)[];
-  /** Videos still being read before they are added. */
-  checking: number;
-  saving: boolean;
-  tried: boolean;
-  /** What is happening while saving ("Uploading 2 of 3…"). */
-  step: string;
-  /** Set once the post exists, so a retry after a failed upload does not create it twice. */
-  postId: string;
-  uploaded: number;
-  photoErr: string;
-}
-
-interface GeoVillageRow {
-  id: number;
-  name: string;
-  te: string;
-  lgd: string;
-  lat: string;
-  lng: string;
-  pin: string;
-  active: boolean;
-}
-
-interface GeoMandalRow {
-  id: number;
-  name: string;
-  te: string;
-  lgd: string;
-  active: boolean;
-  villages: GeoVillageRow[];
-}
-
-interface GeoDistrictRow {
-  id: number;
-  name: string;
-  te: string;
-  lgd: string;
-  active: boolean;
-  mandals: GeoMandalRow[];
-}
-
-/** Any row of the geography tree. */
-interface GeoNode {
-  id: number;
-  name: string;
-  te: string;
-  lgd: string;
-  active: boolean;
-  lat?: string;
-  lng?: string;
-  pin?: string;
-  mandals?: GeoMandalRow[];
-  villages?: GeoVillageRow[];
-}
-
-interface GeoForm {
-  kind: GeoKind;
-  id: number | null;
-  parentId: number | null;
-  parentName: string | null;
-  parentKey?: string | null;
-  parent: string;
-  name: string;
-  te: string;
-  lgd: string;
-  lat: string;
-  lng: string;
-  pin: string;
-  active?: boolean;
-  wasActive?: boolean;
-  isVillage: boolean;
-  /** What was pasted in "Where is it?" (coordinates or a map link). */
-  where?: string;
-  manual?: boolean;
-  tried?: boolean;
-}
-
-interface GeoErrs {
-  name: string;
-  pin: string;
-  coords: string;
-}
-
-/** A user from GET /users/, in the prototype's shape. */
-interface AdminUser {
-  id: string;
-  name: string;
-  te: string;
-  nameTe: string;
-  mobile: string;
-  email: string;
-  username: string;
-  role: string;
-  district: string | null;
-  mandal: string | null;
-  village: string | null;
-  area: Area | null;
-  raId: string | null;
-  ras: RoleAssignment[];
-  active: boolean;
-  locked: boolean;
-  allowed: string[] | null;
-  last: string;
-}
-
-/** Add User / Edit user drawer. nuD and nuM are the district and mandal steps of the area picker. */
-interface NewUserForm {
-  id: string | null;
-  name: string;
-  te: string;
-  email: string;
-  username: string;
-  mobile: string;
-  password: string;
-  role: string;
-  area: string;
-  nuD?: string;
-  nuM?: string;
-}
-
-/** A post from GET /posts/, in the prototype's shape. */
-interface PostRow {
-  id: string;
-  /** The post as the server sent it; missing on the empty placeholder the closed panel renders. */
-  raw?: Post;
-  cat: string;
-  catLabel: string;
-  titleTe: string;
-  titleEn: string;
-  bodyTe: string;
-  bodyEn: string;
-  area: string;
-  date: string;
-  author: string;
-  role: string;
-  status: string;
-  media: Media[];
-  videos: Media[];
-  urgent: boolean;
-  event: PostEvent | null;
-  allowed: string[];
-  citizen: PostCitizen | null;
-  areaName: string;
-}
-
-interface Panel {
-  type: "post" | "user";
-  id: string;
-}
-
-interface AdForm {
-  id: number | null;
-  title: string;
-  link: string;
-  /** 'image' or 'video': what the banner shows. */
-  kind: 'image' | 'video';
-  file: File | null;
-  preview: string;
-  /** A video picked here, its object URL (or the server's file), its poster and length in seconds. */
-  vfile: File | null;
-  vpreview: string;
-  poster: string;
-  dur: number;
-  vchecking: boolean;
-  /** Why the picked video was refused ('' = fine). */
-  verr: string;
-  d: string;
-  m: string;
-  v: string;
-  start: string;
-  end: string;
-  active: boolean;
-  tried: boolean;
-  saving: boolean;
-}
-
-type AdErrors = Partial<Record<"title" | "image" | "link" | "end", string>>;
-
-/** The service or bill form. */
-interface ServiceForm {
-  bill: boolean;
-  key: string | null;
-  en: string;
-  te: string;
-  icon: string;
-  color: string;
-  image: string;
-  had: boolean;
-  file: File | null;
-  active: boolean;
-  tried: boolean;
-  saving: boolean;
-  hintEn: string;
-  hintTe: string;
-}
-
-/** Where a list (services or bills) lives: state keys, endpoint, built-in fallback, icon set and words. */
-interface CatalogSet {
-  l: "bills" | "svcs";
-  ld: "billsLoading" | "svcsLoading";
-  un: "billsUnavailable" | "svcsUnavailable";
-  path: string;
-  seed: CatalogItem[];
-  icon: string;
-  icons: Readonly<Record<string, string>>;
-  one: string;
-  what: string;
-}
-
-interface NumberForm {
-  id: string | null;
-  section: string;
-  type: string;
-  /** A number's own type, kept even when it is not offered for new numbers ("Other"). */
-  typeObj?: ContactTypeRef;
-  custom: string;
-  name: string;
-  te: string;
-  phone: string;
-  email: string;
-  level: string;
-  area: string;
-  sort: string;
-  consent: boolean;
-}
-
-interface TypeForm {
-  id?: number;
-  section: string;
-  /** Opened from the number form's "+ Add a new type…": the new type is picked there. */
-  forNumber?: boolean;
-  en: string;
-  te: string;
-  tried: boolean;
-  saving: boolean;
-}
-
-interface ImportProgress {
-  phase: string;
-  done: number;
-  total: number;
-  name: string;
-}
-
-type SelKey = "numSel" | "adSel";
-type SelId = string | number;
-
-interface BulkOptions {
-  title: string;
-  body: string;
-  confirm: string;
-  url: (id: SelId) => string;
-  done: () => void;
-}
-
-/** The bar and tick boxes for removing several rows at once. */
-export interface SelView {
-  show: boolean;
-  all: boolean;
-  some: boolean;
-  count: number;
-  label: string;
-  busy: string;
-  toggleAll: () => void;
-  clear: () => void;
-  remove: () => void;
-}
-
-interface SettingsState {
-  escalation: number;
-  /** '' while the box is empty. */
-  citizenPerDay: number | "";
-  langs: { te: boolean; en: boolean };
-  templates: NotificationTemplate[];
-}
-
-interface State {
-  screen: Screen;
-  page: PageKey;
-  username: string;
-  password: string;
-  cpCurrent: string;
-  cpNext: string;
-  cpVoluntary: boolean;
-  showPw: Record<string, boolean>;
-  menuOpen: boolean;
-  /** The bell's dropdown: this official's own notifications (newest first). */
-  /** The CSV export running now (its report name, or "audit"): its button says Exporting… and ignores clicks. */
-  exporting: string | null;
-  notifOpen: boolean;
-  notifs: ConsoleNotification[];
-  notifUnread: number;
-  /** Cursor for the next page, or null on the last one. */
-  notifNext: string | null;
-  notifLoading: boolean;
-  notifError: boolean;
-  /** Phones and tablets: the side bar slides in over the page. */
-  navOpen: boolean;
-  gsearch: string;
-  me: Me | null;
-  geo: GeoDistrictRow[];
-  stateRow: GeoState | null;
-  expanded: Record<string, boolean>;
-  /** Geography search: district, mandal or village name (English or Telugu) or LGD code. */
-  geoQ: string;
-  geoForm: GeoForm | null;
-  users: AdminUser[];
-  userCount: number;
-  userPage: number;
-  userPages: number;
-  usersLoading: boolean;
-  reqs: ServiceRequest[];
-  reqCount: number;
-  reqPage: number;
-  reqPages: number;
-  reqLoading: boolean;
-  reqFilter: string;
-  svcView: SvcView;
-  ads: Ad[];
-  adsLoading: boolean;
-  adsUnavailable: boolean;
-  af: AdForm | null;
-  cf: ComposeForm | null;
-  svcs: CatalogItem[];
-  svcsLoading: boolean;
-  svcsUnavailable: boolean;
-  bills: CatalogItem[];
-  billsLoading: boolean;
-  billsUnavailable: boolean;
-  sf: ServiceForm | null;
-  reqQ: string;
-  reqCounts: Record<string, number>;
-  reqUnavailable: boolean;
-  rq: { r: ServiceRequest } | null;
-  /** The contact message open in its View panel, read in full from GET /admin/contact-messages/{id}/. */
-  cm: ContactMessage | null;
-  rqAssignees: Option[];
-  uf: { role: string; district: string; status: string; q: string };
-  posts: PostRow[];
-  postCount: number;
-  postPage: number;
-  postPages: number;
-  postsLoading: boolean;
-  statusCounts: Record<string, number>;
-  pendingCount: number;
-  pf: { district: string; cat: string; source: string };
-  statusTab: StatusTab;
-  numSel: SelId[];
-  adSel: SelId[];
-  bulk: string;
-  panel: Panel | null;
-  panelPost: PostRow | null;
-  panelHistory: ReviewAction[];
-  panelUser: AdminUser | null;
-  panelUserPosts: PostRow[];
-  drawerOpen: boolean;
-  nu: NewUserForm;
-  audit: AuditEntry[];
-  auditCount: number;
-  auditPage: number;
-  auditPages: number;
-  auditQ: string;
-  /** Audit tab: '' (all) or posts, users, areas, logins, settings, system (GET /audit/?type=). */
-  auditType: string;
-  /** Dashboard: filter for the "Pending by district" list (English or Telugu name). */
-  distQ: string;
-  auditLoading: boolean;
-  contacts: ContactMessage[];
-  contactCount: number;
-  contactPage: number;
-  contactPages: number;
-  contactQ: string;
-  contactFilter: string;
-  contactLoading: boolean;
-  nums: AdminContact[];
-  numCount: number;
-  numPage: number;
-  numPages: number;
-  numLoading: boolean;
-  numTab: NumTab;
-  numQ: string;
-  numType: string;
-  /** Important numbers (village tab): one district's numbers only, or '' for all (as in the app). */
-  numDistrict: string;
-  ctypes: ContactTypeRef[];
-  ctypesAdmin: AdminContactType[];
-  nf: NumberForm | null;
-  tf: TypeForm | null;
-  dash: Dashboard | null;
-  reports: { summary: ReportSummary | null; byArea: ReportDistrict[]; reviewTime: ReportReviewTime[]; activity: ReportActivity[] };
-  categories: Category[];
-  settings: SettingsState;
-  modal: ModalSpec | null;
-  modalText: string;
-  modalText2: string;
-  modalSel: string;
-  modalGen: string;
-  toasts: Toast[];
-  imp: ImportProgress | null;
-}
-
-/** The forms Escape closes, top first. */
-const FORMS = ["tf", "nf", "sf", "af", "rq", "cm", "cf"] as const;
-/** The forms whose Telugu name is suggested from the English one. */
-type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf";
-
-// setState for a key picked at runtime. TypeScript widens {[key]: value} to an index signature,
-// so the one assertion here names it back as the key it is.
-function one<K extends keyof State>(key: K, value: State[K]): Pick<State, K> {
-  return { [key]: value } as Pick<State, K>;
-}
-
-// A form value for the markup: the open form, or {} while it is closed (the markup reads it as v.x?.field).
-const orEmpty = <T extends object>(x: T | null): Partial<T> => x || {};
-
-const isStatus = (e: unknown, status: number): boolean => e instanceof ApiError && e.status === status;
-
-/** Rows per page in every paged list (the server's page_size). */
-const PAGE_SIZE = 20;
-
-/** Pages in a list of `count` rows; at least one. */
-const pageCount = (count: number | null | undefined): number => Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
-
-/** The rows of an answer that is either a plain list or a page ({results}). */
-const rows = <T,>(d: ListOrPage<T>): T[] => (Array.isArray(d) ? d : d.results || []);
-
-/** The local (blob:) previews the service and ad forms show; New post frees its own. */
-const blobPreviews = (s: State): string[] => [s.sf?.image, s.af?.preview, s.af?.vpreview].filter((u): u is string => !!u && u.startsWith("blob:"));
-
-/** Opens the browser's file picker and hands over the chosen file. */
-function pickFile(accept: string, onFile: (file: File) => void): void {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = accept;
-  input.onchange = () => {
-    const file = input.files && input.files[0];
-    if (file) onFile(file);
-  };
-  input.click();
-}
-
-/** Reads a picture's width in pixels; 0 when the browser cannot decode it (the server then decides). */
-function imageWidth(file: File): Promise<number> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img.naturalWidth);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(0);
-    };
-    img.src = url;
-  });
-}
-
-/** Text cells that start like a formula (=, +, -, @, tab, CR) get a leading apostrophe, so Excel shows them as text
- * (the server's grama/csvsafe.py rule). Plain numbers, such as coordinates, stay as they are. */
-function csvCell(x: string | number | null | undefined): string {
-  let t = String(x ?? "");
-  if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t;
-  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
-}
-
-// error.report.errors of a CSV import refused with 400 (contract sections 4 and 14).
-function reportErrors(e: unknown): unknown[] {
-  const rep = e instanceof ApiError ? e.body.report : undefined;
-  return typeof rep === "object" && rep !== null && "errors" in rep && Array.isArray(rep.errors) ? rep.errors : [];
-}
-
-const isActor = (x: unknown): x is Actor => typeof x === "object" && x !== null;
-const isRowError = (x: unknown): x is ContactImportError => typeof x === "object" && x !== null;
-
-// The page in a history entry this console pushed ({gc: page}); '' for any other entry.
-function historyPage(e: PopStateEvent): string {
-  const st: unknown = e.state;
-  return typeof st === "object" && st !== null && "gc" in st && typeof st.gc === "string" ? st.gc : "";
-}
-
-/** Google Input Tools answer: ["SUCCESS", [[input, [suggestion, …], …]]]. */
-
-const EMPTY_NU: NewUserForm = { id: null, name: "", te: "", email: "", username: "", mobile: "", password: "", role: "panchayat", area: "", nuD: "", nuM: "" };
-
-
-interface RoleStyle {
-  label: string;
-  bg: string;
-  tbg: string;
-  tc: string;
-}
-
-interface Tone {
-  label: string;
-  bg: string;
-  color: string;
-}
+import { FORMS, ROLE, RK, pager, one, orEmpty, isStatus, PAGE_SIZE, pageCount, rows, blobPreviews, pickFile, csvCell, reportErrors, isActor, isRowError, historyPage, EMPTY_NU } from "./model";
+import type { Props, PageKey, NavKey, NumTab, GeoKind, FieldChange, Timer, Option, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, GeoNode, GeoForm, GeoErrs, AdminUser, NewUserForm, PostRow, ServiceForm, CatalogSet, TypeForm, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
+export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
 
 export default class Component extends React.Component<Props, State> {
   private static readonly ICON: Readonly<Record<NavKey, string>> = {bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   private static readonly STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
-  private static readonly ROLE: Readonly<Record<string, RoleStyle>> = {super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
+  private static readonly ROLE = ROLE;
   // Categories the design system has an icon for; any other category shows the "updates" icon.
   private static readonly CAT_ICONS: readonly ds.Category[] = ['announce', 'schemes', 'news', 'updates'];
   // API values -> the prototype's keys
-  private static readonly RK: Readonly<Record<string, string>> = {SUPER_ADMIN:'super',DISTRICT_ADMIN:'district',MANDAL_ADMIN:'mandal',VILLAGE_ADMIN:'village',PANCHAYAT_MEMBER:'panchayat',SYSTEM:'system'};
+  private static readonly RK = RK;
   private static readonly RAPI: Readonly<Partial<Record<string, string>>> = {super:'SUPER_ADMIN',district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
   private static readonly SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',DRAFT:'Draft'};
   private static readonly SAPI: Readonly<Record<string, string>> = {Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
@@ -637,14 +68,7 @@ export default class Component extends React.Component<Props, State> {
   private static readonly ACT: Readonly<Record<string, string>> = {'post.created':'created post','post.updated':'edited post','post.deleted':'deleted draft','post.urgent_set':'marked post urgent','post.urgent_cleared':'removed urgent mark','user.updated':'edited user','user.password_changed':'changed password','user.password_reset':'reset password','setting.role_password_changed':'changed a default password','email.failed':'email not delivered','email.skipped':'email skipped','contact.handled':'handled contact message','contact.reopened':'reopened contact message','contact.created':'added important number','contact.updated':'edited important number','contact.removed':'removed important number','contact_type.created':'added contact type','contact_type.updated':'changed contact type','contacts.imported':'imported important numbers','auth.login':'logged in','auth.logout':'logged out','auth.login_failed':'failed login','auth.locked_out':'locked out after failed logins','user.unlocked':'unlocked user','user.password_set':'set a temporary password','user.super_admin_created':'added a Super Admin','user.super_admin_role_added':'gave the Super Admin role','user.super_admin_role_removed':'removed the Super Admin role','group.permissions_changed':'changed group permissions','post.submitted':'submitted post','post.resubmitted':'resubmitted post','post.published':'published post','post.auto_published':'published post','post.recheck':'sent for recheck','post.discarded':'discarded post','post.unpublished':'took down post','post.reversed':'overrode decision','post.overridden':'overrode decision','post.escalated':'escalated post','user.created':'added user','user.blocked':'blocked user','user.unblocked':'unblocked user','user.reassigned':'reassigned user','user.assignment_added':'added role','user.assignment_removed':'removed role','area.created':'added area','area.updated':'edited area','area.deactivated':'deactivated area','area.reactivated':'reactivated area','area.imported':'imported villages','category.created':'added category','category.updated':'changed category','setting.changed':'changed setting','template.updated':'edited template','report.exported':'exported report','push.failed':'push failed'};
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   private static readonly PAGE = PAGE_SIZE;
-  // Home banner ads (docs/api-contract.md section 17): status worked out from the dates and the switch.
-  private static readonly AD_STATUS: Readonly<Record<AdStatus, Tone>> = {live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#6b7a8c'}};
-  // Service request: what the citizen is told when it moves to each status.
-  private static readonly SVC_MOVE: Readonly<Record<string, string>> = {NEW:'The request goes back to New.',APPROVED:'The citizen sees that it is approved.',IN_PROGRESS:'The citizen sees that work has started.',COMPLETED:'The citizen sees that it is done. Write what they should do next.',REJECTED:'Write why. The citizen sees your reason.'};
   private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
-  // Service requests from citizens (backend plan: service-requests). Status keys as the server sends them.
-  private static readonly SVC_STATUS: Readonly<Record<string, Tone & {dot: string}>> = {NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'}};
-  private static readonly SERVICES: Readonly<Record<string, string>> = {aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
   private static readonly LVROLE: Readonly<Record<string, string>> = {DISTRICT:'district',MANDAL:'mandal',VILLAGE:'village'};
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
   private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
@@ -659,8 +83,6 @@ export default class Component extends React.Component<Props, State> {
   private static readonly ACTIVITY: readonly string[] = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
   // Largest villages CSV the console reads (the server takes at most GEO_IMPORT_MAX_BYTES, 20 MB, per part).
   private static readonly GEO_CSV_MAX_MB = 20;
-  // Smallest banner picture the server accepts (ADS_MIN_WIDTH_PX).
-  private static readonly AD_MIN_WIDTH_PX = 800;
 
   // Everything the console shows starts from here, and goes back here on sign-out (nothing of the last session stays).
   private static readonly INITIAL: State = {
@@ -696,14 +118,14 @@ export default class Component extends React.Component<Props, State> {
   private seqNo = 0;
 
   private toastTimers: Timer[] = [];
-  private contactTimer: Timer | undefined;
+  /** The screen modules' waiting search boxes (ConsoleHost.later), by key. */
+  private timers: Record<string, Timer> = {};
   private numTimer: Timer | undefined;
   private userTimer: Timer | undefined;
   private auditTimer: Timer | undefined;
   /** Refreshes the bell every minute while the console is open. */
   private notifTimer: ReturnType<typeof setInterval> | undefined;
   private searchTimer: Timer | undefined;
-  private reqTimer: Timer | undefined;
   private teTimer: Timer | undefined;
   /** The next page change comes from Back/Forward, so it is not pushed to history again. */
   private fromPop = false;
@@ -719,6 +141,30 @@ export default class Component extends React.Component<Props, State> {
   private get api() {
     return GC_API;
   }
+
+  /** What the screen modules in logic/ may use of the console (logic/host.ts). Every member reads the class at
+   * the moment it is called, so it always sees the current state. */
+  private readonly host: ConsoleHost = ((c: Component): ConsoleHost => ({
+    get state() {
+      return c.state;
+    },
+    setState: (update, then) => c.setState(update as Parameters<Component['setState']>[0], then),
+    get api() {
+      return c.api;
+    },
+    ticket: (key) => c.ticket(key),
+    toast: (text, dot) => c.toast(text, dot),
+    fail: (e) => c.fail(e),
+    ask: (modal) => c.ask(modal),
+    fmt: (iso, withYear) => c.fmt(iso, withYear),
+    later: (key, run, ms) => {
+      clearTimeout(c.timers[key]);
+      c.timers[key] = setTimeout(run, ms);
+    },
+    loadGeo: () => c.loadGeo(),
+    toggleSel: (key, id) => c.toggleSel(key, id),
+    selView: (key, ids, options) => c.selView(key, ids, options),
+  }))(this);
 
   private readonly onPop = (e: PopStateEvent): void => this.onBack(e);
 
@@ -833,12 +279,12 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private stopTimers() {
-    clearTimeout(this.contactTimer);
+    Object.values(this.timers).forEach(clearTimeout);
+    this.timers = {};
     clearTimeout(this.numTimer);
     clearTimeout(this.userTimer);
     clearTimeout(this.auditTimer);
     clearTimeout(this.searchTimer);
-    clearTimeout(this.reqTimer);
     clearTimeout(this.teTimer);
     clearInterval(this.notifTimer);
     this.notifTimer = undefined;
@@ -1151,11 +597,11 @@ export default class Component extends React.Component<Props, State> {
     if (p === 'users') this.loadUsers(1);
     if (p === 'posts') this.loadPosts(1);
     if (p === 'audit') this.loadAudit(1);
-    if (p === 'contact') this.loadContacts(1);
-    if (p === 'ads') this.loadAds();
+    if (p === 'contact') loadContacts(this.host, 1);
+    if (p === 'ads') loadAds(this.host);
     if (p === 'bills') this.loadServices(true);
     if (p === 'requests') {
-      this.loadRequests(1);
+      loadRequests(this.host, 1);
       if (this.navOk('services')) this.loadServices();
     }
     if (p === 'numbers') {
@@ -1268,20 +714,6 @@ export default class Component extends React.Component<Props, State> {
         if (!latest()) return;
         this.setState({auditLoading: false});
         this.fail(e);
-      });
-  }
-
-  private loadRequests(page: number) {
-    const s = this.state;
-    const latest = this.ticket('reqs');
-    this.setState({reqLoading: true});
-    // contact=0: the rows come without the citizen's phone, email and address (audit WEB-DP-001); openRequestRow reads them.
-    this.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: Component.PAGE})
-      .then((d) => latest() && this.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({reqLoading: false, reqs: [], reqCount: 0, reqCounts: {}, reqUnavailable: isStatus(e, 404)});
-        if (!isStatus(e, 404)) this.fail(e);
       });
   }
 
@@ -1409,241 +841,6 @@ export default class Component extends React.Component<Props, State> {
     });
   }
 
-  private loadAds() {
-    this.setState({adsLoading: true});
-    if (!this.state.geo.length) this.loadGeo();
-    this.api.get<ListOrPage<Ad>>('/admin/ads/', {page_size: 100})
-      .then((d) => this.setState({ads: rows(d), adsLoading: false, adsUnavailable: false}))
-      .catch((e: unknown) => {
-        this.setState({adsLoading: false, ads: [], adsUnavailable: isStatus(e, 404)});
-        if (!isStatus(e, 404)) this.fail(e);
-      });
-  }
-
-  private today() {
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
-
-  private adStatus(a: Ad): AdStatus {
-    const t = this.today();
-    if (a.ends_on && a.ends_on < t) return 'ended';
-    if (!a.is_active) return 'paused';
-    if (a.starts_on && a.starts_on > t) return 'scheduled';
-    return 'live';
-  }
-
-  private dayLabel(x: string | null) {
-    return x ? new Date(x + 'T00:00:00').toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) : '';
-  }
-
-  // An ad's area as the form's three picks (ids as strings; '' = all); STATE = every village.
-  private adArea(a: Ad['area']) {
-    const none = {d: '', m: '', v: ''};
-    if (!a || a.level === 'STATE') return none;
-    for (const d of this.state.geo) {
-      if (a.level === 'DISTRICT' && d.id === a.id) return {d: String(d.id), m: '', v: ''};
-      for (const m of d.mandals) {
-        if (a.level === 'MANDAL' && m.id === a.id) return {d: String(d.id), m: String(m.id), v: ''};
-        for (const v of m.villages) if (a.level === 'VILLAGE' && v.id === a.id) return {d: String(d.id), m: String(m.id), v: String(v.id)};
-      }
-    }
-    return none;
-  }
-
-  private openAd(a: Ad | null) {
-    const media = {vfile: null, vchecking: false, verr: '', file: null};
-    // A video ad's image is its poster, not a picture to keep: switching it to a picture asks for one.
-    this.setState({af: a
-      ? {id: a.id, title: a.title, link: a.link || '', ...media, kind: a.video ? 'video' : 'image', preview: a.video ? '' : a.image, vpreview: a.video || '', poster: a.video ? a.image : '', dur: a.duration_s || 0, ...this.adArea(a.area), start: a.starts_on || '', end: a.ends_on || '', active: !!a.is_active, tried: false, saving: false}
-      : {id: null, title: '', link: '', ...media, kind: 'image', preview: '', vpreview: '', poster: '', dur: 0, d: '', m: '', v: '', start: this.today(), end: '', active: true, tried: false, saving: false}});
-  }
-
-  private adErrors(f: AdForm) {
-    const e: AdErrors = {};
-    if (!f.title.trim()) e.title = 'Enter a name for the ad.';
-    if (f.kind === 'image' ? !f.preview : !f.vpreview) e.image = 'Choose a picture or video for the banner.';
-    const l = f.link.trim();
-    // https only, as the server (audit WEB-SEC-010): a plain http:// page can be changed on its way to the citizen.
-    if (l && !/^https:\/\/[^\s/]+\.[^\s]+$/i.test(l)) e.link = 'Enter a full link starting with https://';
-    if (f.start && f.end && f.end < f.start) e.end = 'The end date must be on or after the start date.';
-    return e;
-  }
-
-  // Banner videos: any length, at most this big. The server (ADS_VIDEO_MAX_MB) and the app (kAdVideoMaxMb)
-  // have the same number: change them together.
-  private static readonly AD_VIDEO_MAX_MB = 60;
-
-  // One picker for both: a picture is used as it is, a video is checked for size and length first.
-  private pickAdMedia() {
-    pickFile('image/jpeg,image/png,image/webp,video/mp4,video/quicktime', (file) => {
-      const setF = (p: Partial<AdForm>) => this.setState((st) => ({af: st.af && {...st.af, ...p}}));
-      if (file.type.startsWith('image/')) {
-        if (file.size > 5 * 1024 * 1024) return setF({verr: 'The picture is larger than 5 MB.'});
-        // The server refuses a picture narrower than ADS_MIN_WIDTH_PX: say so before the upload, not after it.
-        imageWidth(file).then((w) => {
-          if (w && w < Component.AD_MIN_WIDTH_PX) setF({verr: 'The picture must be at least ' + Component.AD_MIN_WIDTH_PX + ' pixels wide.'});
-          else setF({kind: 'image', file, preview: URL.createObjectURL(file), verr: ''});
-        });
-        return;
-      }
-      if (!file.type.startsWith('video/')) return setF({verr: 'Choose a picture (JPG, PNG) or a video (MP4, MOV).'});
-      if (file.size > Component.AD_VIDEO_MAX_MB * 1024 * 1024) return setF({verr: 'The video is larger than ' + Component.AD_VIDEO_MAX_MB + ' MB.'});
-      // Read its length from the file before accepting it.
-      const url = URL.createObjectURL(file);
-      const probe = document.createElement('video');
-      probe.preload = 'metadata';
-      setF({vchecking: true, verr: ''});
-      probe.onloadedmetadata = () => {
-        const secs = probe.duration;
-        if (!isFinite(secs) || secs <= 0) {
-          URL.revokeObjectURL(url);
-          setF({vchecking: false, verr: 'This video could not be read. Try an MP4 file.'});
-        } else setF({kind: 'video', vchecking: false, vfile: file, vpreview: url, poster: '', dur: Math.round(secs)});
-      };
-      probe.onerror = () => {
-        URL.revokeObjectURL(url);
-        setF({vchecking: false, verr: 'This video could not be read. Try an MP4 file.'});
-      };
-      probe.src = url;
-    });
-  }
-
-  private saveAd() {
-    const f = this.state.af;
-    if (!f || f.saving) return;
-    if (Object.keys(this.adErrors(f)).length) {
-      this.setState({af: {...f, tried: true}});
-      return;
-    }
-    const st = this.state.stateRow;
-    const area = f.v ? ['VILLAGE', f.v] : f.m ? ['MANDAL', f.m] : f.d ? ['DISTRICT', f.d] : ['STATE', st && st.id];
-    const fields = {title: f.title.trim(), link: f.link.trim(), area_level: String(area[0]), area_id: String(area[1]), starts_on: f.start || '', ends_on: f.end || '', is_active: String(f.active)};
-    // A new video replaces the picture (the server cuts its poster); a new picture replaces the video.
-    const vfile = f.kind === 'video' ? f.vfile : null, file = f.kind === 'image' ? f.file : null;
-    let req: Promise<unknown>;
-    if (vfile || file) {
-      const fd = new FormData();
-      Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
-      if (vfile) {
-        fd.append('video', vfile);
-        fd.append('duration_s', String(Math.min(f.dur, 32767))); // the server's top
-      } else if (file) fd.append('image', file);
-      req = f.id ? this.api.upload('/admin/ads/' + f.id + '/', fd, undefined, 'PATCH') : this.api.upload('/admin/ads/', fd);
-    } else req = this.api.patch('/admin/ads/' + f.id + '/', {...fields, area_id: Number(area[1]), starts_on: f.start || null, ends_on: f.end || null, is_active: f.active});
-    const stay = () => this.setState((x) => ({af: x.af && {...x.af, saving: false}}));
-    this.setState({af: {...f, saving: true}});
-    req.then(() => {
-      this.setState({af: null});
-      this.toast((f.id ? 'Ad saved · ' : 'Ad published · ') + fields.title);
-      this.loadAds();
-    }).catch((e: unknown) => {
-      stay();
-      // Only a video upload gets these messages; a picture's errors come from the server as they are.
-      const c = vfile && e instanceof ApiError ? e.code : undefined;
-      const msg = c === 'unsupported_media' ? 'Use an MP4 or MOV video.'
-        : c === 'file_too_large' || (vfile && e instanceof ApiError && e.status === 413) ? 'The video is larger than ' + Component.AD_VIDEO_MAX_MB + ' MB.' : '';
-      if (msg) {
-        this.setState((x) => ({af: x.af && {...x.af, verr: msg}}));
-        this.toast(msg, '#b3261e');
-      } else this.fail(e);
-    });
-  }
-
-  private toggleAd(a: Ad) {
-    this.api.patch('/admin/ads/' + a.id + '/', {is_active: !a.is_active}).then(() => {
-      this.toast((a.is_active ? 'Paused · ' : 'Showing again · ') + a.title);
-      this.loadAds();
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  private deleteAd(a: Ad) {
-    this.ask({title: 'Delete this ad?', body: '"' + a.title + '" will be removed from every Home page. This cannot be undone.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => this.api.del('/admin/ads/' + a.id + '/').then(() => {
-      this.setState({af: null});
-      this.toast('Ad deleted · ' + a.title);
-      this.loadAds();
-    }).catch((e: unknown) => this.fail(e))});
-  }
-
-  // "Open" in the table: the row has no contact details, so the panel shows the request as the server sends it alone.
-  private openRequestRow(r: ServiceRequest) {
-    const latest = this.ticket('rqOpen');
-    this.api.get<ServiceRequest>('/service-requests/' + r.id + '/').then((full) => latest() && this.openRequest(full)).catch((e: unknown) => latest() && this.fail(e));
-  }
-
-  // One request in the side panel; the people it can be assigned to are the active officials this admin sees.
-  private openRequest(r: ServiceRequest) {
-    this.setState({rq: {r}, rqAssignees: []});
-    if ((r.allowed_actions || []).includes('assign')) {
-      const latest = this.ticket('rqAssignees');
-      this.api.get<Paged<User>>('/users/', {is_active: 'true', page: 1, page_size: 100}).then((d) => latest() && this.state.rq?.r.id === r.id && this.setState({rqAssignees: (d.results || []).map((u) => {
-        const ra = (u.role_assignments || [])[0];
-        const role = (Component.ROLE[Component.RK[ra?.role ?? '']] || {label: ''}).label;
-        return {id: String(u.id), label: !role || u.name.toLowerCase() === role.toLowerCase() ? u.name : u.name + ' · ' + role};
-      })})).catch((e: unknown) => latest() && this.fail(e));
-    }
-  }
-
-  // Only the person a request is assigned to changes it (the server sends that as allowed_actions); everyone else reads.
-  private svcAllowed(r: ServiceRequest) {
-    return (r.allowed_actions || []).includes('set_status') ? Object.keys(Component.SVC_STATUS) : [];
-  }
-
-  private patchRequest(r: ServiceRequest, body: {status?: string; assigned_to?: string | null; note?: string}, msg: string) {
-    return this.api.patch<ServiceRequest | null>('/service-requests/' + r.id + '/', body).then((n) => {
-      this.setState((x) => ({rq: x.rq && {...x.rq, r: n || x.rq.r}}));
-      this.toast(msg);
-      this.loadRequests(this.state.reqPage);
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  // A note only when the request is closed: why it was rejected, or what to do now it is done.
-  private moveRequest(r: ServiceRequest, to: string) {
-    const label = Component.SVC_STATUS[to].label;
-    const reject = to === 'REJECTED', closing = reject || to === 'COMPLETED';
-    this.ask({title: 'Change status to ' + label + '?', body: Component.SVC_MOVE[to], needsText: closing, textLabel: reject ? 'Reason (required; the citizen sees it)' : 'Note for the citizen (required)', confirmLabel: reject ? 'Reject' : 'Change status', bg: reject ? '#b3261e' : '#0D3B7A',
-      onConfirm: (t) => this.patchRequest(r, {status: to, ...(t.trim() ? {note: t.trim()} : {})}, 'Status: ' + label)});
-  }
-
-  private assignRequest(r: ServiceRequest, id: string) {
-    const was = r.assigned_to ? String(r.assigned_to.id) : '';
-    if (id === was) return;
-    const who = this.state.rqAssignees.find((a) => a.id === id);
-    this.patchRequest(r, {assigned_to: id || null}, id ? 'Assigned to ' + (who ? who.label.split(' · ')[0] : 'them') : 'Not assigned now');
-  }
-
-  private loadContacts(page: number) {
-    const s = this.state;
-    const latest = this.ticket('contacts');
-    this.setState({contactLoading: true});
-    // contact=0: rows with the mobile's last 4 digits and no message (audit WEB-DP-001); View reads the message in full.
-    this.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, contact: '0', page, page_size: Component.PAGE})
-      .then((d) => latest() && this.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({contactLoading: false, contacts: [], contactCount: 0});
-        this.fail(e);
-      });
-  }
-
-  private isHandled(c: ContactMessage) {
-    return c.status ? String(c.status).toUpperCase() === 'HANDLED' : !!c.handled;
-  }
-
-  // "View": the row has no full mobile or message, so the panel shows the message as the server sends it alone.
-  private openContact(c: ContactMessage) {
-    const latest = this.ticket('cmOpen');
-    this.api.get<ContactMessage>('/admin/contact-messages/' + c.id + '/').then((full) => latest() && this.setState({cm: full})).catch((e: unknown) => latest() && this.fail(e));
-  }
-
-  private toggleContact(c: ContactMessage) {
-    const done = !this.isHandled(c);
-    this.api.patch<ContactMessage | null>('/admin/contact-messages/' + c.id + '/', {handled: done}).then((n) => {
-      this.setState((x) => x.cm && x.cm.id === c.id ? {cm: n || {...x.cm, handled: done}} : null);
-      this.toast(done ? 'Marked handled' : 'Marked new', done ? '#6cc04a' : '#E9791E');
-      this.loadContacts(this.state.contactPage);
-    }).catch((e: unknown) => this.fail(e));
-  }
 
   // ---- important numbers (contract section 14) ----
   private loadNumbers(page: number) {
@@ -2127,7 +1324,7 @@ export default class Component extends React.Component<Props, State> {
     if (n.post_id) {
       this.api.get<Post>('/posts/' + n.post_id + '/').then((p) => this.openPost(this.adaptPost(p))).catch((e: unknown) => this.fail(e));
     } else if (n.service_request_id) {
-      this.api.get<ServiceRequest>('/service-requests/' + n.service_request_id + '/').then((r) => this.openRequest(r)).catch((e: unknown) => this.fail(e));
+      this.api.get<ServiceRequest>('/service-requests/' + n.service_request_id + '/').then((r) => openRequest(this.host, r)).catch((e: unknown) => this.fail(e));
     }
   }
 
@@ -2844,7 +2041,6 @@ export default class Component extends React.Component<Props, State> {
       statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
       canReassign: !!u.raId && this.userCan(u, 'reassign'), canToggle: this.userCan(u, u.active ? 'block' : 'unblock'), view: () => this.openUser(u), reassign: () => this.reassignUser(u), toggle: () => this.toggleUser(u)}));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
-    const pager = (page: number, pages: number, load: (p: number) => void) => ({show: pages > 1, page, pages, prev: () => { if (page > 1) load(page - 1); }, next: () => { if (page < pages) load(page + 1); }, prevOpacity: page > 1 ? 1 : .4, nextOpacity: page < pages ? 1 : .4});
     // posts
     const tabs = ['Pending', 'Published', 'Recheck', 'Discarded', 'TakenDown'] as const;
     const sc = s.statusCounts;
@@ -2953,12 +2149,8 @@ export default class Component extends React.Component<Props, State> {
     const nuSteps = this.areaSteps(nu);
     const nuPlace = this.areaSummary(nu);
     const me = s.me || {name: '', username: '', email: ''};
-    // ads
-    const af = s.af;
     // services
     const sf = s.sf;
-    // service request panel
-    const rq = s.rq;
     const tf: Partial<TypeForm> = s.tf || {};
     const tfErr: Partial<{en: string; te: string}> = s.tf && s.tf.tried ? this.tfErrs(s.tf) : {};
     // The bell: one row per notification, coloured by what it is about.
@@ -3073,86 +2265,9 @@ export default class Component extends React.Component<Props, State> {
         this.auditTimer = setTimeout(() => this.loadAudit(1), 300);
       },
       auditRows, auditCount: s.auditCount, auditEmpty: !auditRows.length, auditEmptyText: s.auditLoading ? 'Loading…' : 'No entries match.', auditPager: pager(s.auditPage, s.auditPages, (p) => this.loadAudit(p)), canExportAudit: this.can('audit.export_audit_log'),
-      contactQ: s.contactQ,
-      onContactQ: (e: FieldChange) => {
-        this.setState({contactQ: e.target.value});
-        clearTimeout(this.contactTimer);
-        this.contactTimer = setTimeout(() => this.loadContacts(1), 300);
-      },
-      contactFilter: s.contactFilter, contactFilters: [{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}], onContactFilter: (e: FieldChange) => this.setState({contactFilter: e.target.value}, () => this.loadContacts(1)),
-      contactRows: s.contacts.map((c) => {
-        const done = this.isHandled(c);
-        // Mobile masked and no message in the table (audit WEB-DP-001); View shows both in full.
-        const mobile = c.mobile_last4 ? '+91 ******' + c.mobile_last4 : maskMobile(c.mobile);
-        return {time: this.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => this.toggleContact(c), view: () => this.openContact(c)};
-      }),
-      contactCount: s.contactCount + (s.contactCount === 1 ? ' message' : ' messages'), contactEmpty: !s.contacts.length, contactEmptyText: s.contactLoading ? 'Loading…' : 'No messages match.', contactPager: pager(s.contactPage, s.contactPages, (p) => this.loadContacts(p)),
-      reqTabs: [...Object.keys(Component.SVC_STATUS), 'ALL'].map((k) => {
-        const on = s.reqFilter === k;
-        const c = s.reqCounts || {};
-        const n = k === 'ALL' ? Object.values(c).reduce((a, b) => a + (b || 0), 0) : (c[k] || 0);
-        return {label: k === 'ALL' ? 'All' : Component.SVC_STATUS[k].label, count: n, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => this.setState({reqFilter: k}, () => this.loadRequests(1))};
-      }),
-      reqQ: s.reqQ,
-      onReqQ: (e: FieldChange) => {
-        this.setState({reqQ: e.target.value});
-        clearTimeout(this.reqTimer);
-        this.reqTimer = setTimeout(() => this.loadRequests(1), 300);
-      },
-      reqRows: s.reqs.map((r) => {
-        const st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW;
-        // Citizen column: the name only; phone and address are in the panel ("Open").
-        return {address: '', time: this.fmt(r.created_at, false), service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
-          place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => this.openRequestRow(r)};
-      }),
-      reqCountLabel: s.reqCount + (s.reqCount === 1 ? ' request' : ' requests'), reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Service requests will show here once the server is updated.' : 'No requests here. Citizens send them from Services in the app.', reqPager: pager(s.reqPage, s.reqPages, (p) => this.loadRequests(p)),
-      newAd: () => this.openAd(null), adsCountLabel: s.ads.filter((a) => this.adStatus(a) === 'live').length + ' running · ' + s.ads.length + ' in all', adsEmpty: !s.ads.length, adsUnavailable: s.adsUnavailable,
-      adsEmptyText: s.adsLoading ? 'Loading…' : s.adsUnavailable ? 'Ads will show here once the server is updated.' : 'No ads yet. Create one and it shows at the top of Home in the villages you choose.',
-      adSel: this.selView('adSel', s.ads.map((a) => a.id), (n) => ({title: 'Delete ' + n + ' ad' + (n === 1 ? '' : 's') + '?', body: 'They are removed from every Home page, with their pictures. This cannot be undone.', confirm: 'Delete ' + n, url: (id) => '/admin/ads/' + id + '/', done: () => this.loadAds()})),
-      adRows: s.ads.map((a) => {
-        const k = this.adStatus(a);
-        const S = C.AD_STATUS[k];
-        const ar = a.area;
-        return {sel: s.adSel.includes(a.id), toggleSel: () => this.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
-          dates: [a.starts_on ? 'From ' + this.dayLabel(a.starts_on) : '', a.ends_on ? 'till ' + this.dayLabel(a.ends_on) : 'no end date'].filter(Boolean).join(' '), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => this.toggleAd(a), open: () => this.openAd(a)};
-      }),
-      afShow: !!af, closeAF: () => this.setState({af: null}), pickAdMedia: () => this.pickAdMedia(), saveAF: () => this.saveAd(),
-      onAF: (e: FieldChange) => {
-        const t = e.target;
-        const name = t.name;
-        const value = t instanceof HTMLInputElement && t.type === 'checkbox' ? t.checked : t.value;
-        this.setState((x) => {
-          if (!x.af) return null;
-          const f = {...x.af, [name]: value};
-          if (name === 'd') {
-            f.m = '';
-            f.v = '';
-          }
-          if (name === 'm') f.v = '';
-          return {af: f};
-        });
-      },
-      af: af ? (() => {
-        const f = af;
-        const err = f.tried ? this.adErrors(f) : {};
-        const d = s.geo.find((x) => String(x.id) === f.d);
-        const m = d && d.mandals.find((x) => String(x.id) === f.m);
-        const v = m && m.villages.find((x) => String(x.id) === f.v);
-        return {...f, title_: f.id ? 'Edit ad' : 'New ad', saveLabel: f.saving ? 'Saving…' : f.id ? 'Save' : 'Publish ad', isEdit: !!f.id,
-          del: () => {
-            const ad = s.ads.find((a) => a.id === f.id);
-            if (ad) this.deleteAd(ad);
-          },
-          // A refused file says why at once; a missing banner only after "Publish".
-          errTitle: err.title || '', errImage: f.verr || err.image || '', errLink: err.link || '', errEnd: err.end || '',
-          isVideo: f.kind === 'video',
-          mediaHint: f.vchecking ? 'Checking video length…' : 'A wide 3:2 picture (JPG or PNG, up to 5 MB), or a video of any length (MP4 or MOV, up to ' + Component.AD_VIDEO_MAX_MB + ' MB)',
-          durLabel: f.dur ? Math.floor(f.dur / 60) + ':' + String(f.dur % 60).padStart(2, '0') : '',
-          toggleActive: () => this.setState((x) => x.af ? {af: {...x.af, active: !x.af.active}} : null),
-          showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
-          where: v && m ? v.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village',
-          dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : []};
-      })() : null,
+      ...contactsView(this.host),
+      ...requestsView(this.host),
+      ...adsView(this.host), ...adFormView(this.host),
       canCompose: this.can('posts.create_post') && s.me?.capabilities?.can_post !== false, openCompose: () => this.openCompose(),
       cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFMedia(e), saveCF: () => this.saveCompose(),
       cf: s.cf ? (() => {
@@ -3218,35 +2333,7 @@ export default class Component extends React.Component<Props, State> {
       svcView: s.svcView, canCatalog: this.navOk('services'),
       svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, on: s.svcView === k, go: () => this.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#6b7a8c', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
       imp: s.imp ? {...s.imp, pct: Math.round(s.imp.done * 100 / s.imp.total), label: s.imp.phase + (s.imp.total > 1 ? ' part ' + Math.min(s.imp.done + 1, s.imp.total) + ' of ' + s.imp.total : '') + '…'} : null,
-      rqShow: !!rq, closeRQ: () => this.setState({rq: null}),
-      cmShow: !!s.cm, closeCM: () => this.setState({cm: null}),
-      cm: orEmpty(s.cm ? (() => {
-        const c = s.cm, done = this.isHandled(c), digits = mobileDigits(c.mobile);
-        return {name: c.name, time: this.fmt(c.created_at, true), statusLabel: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e',
-          mobile: digits.length === 10 ? '+91 ' + digits : (c.mobile || '—'), tel: digits ? 'tel:' + (digits.length === 10 ? '+91' : '') + digits : '', village: c.village_text || '—', message: c.message || '',
-          toggleLabel: done ? 'Mark new' : 'Mark handled', toggleColor: done ? '#b35a0e' : '#1d7a33', toggle: () => this.toggleContact(c)};
-      })() : null),
-      rq: orEmpty(rq ? (() => {
-        const r = rq.r, st = Component.SVC_STATUS[r.status] || Component.SVC_STATUS.NEW, al = r.allowed_actions || [];
-        return {service: r.service_name || Component.SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: this.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: '+91 ' + (r.phone || ''), tel: 'tel:+91' + (r.phone || ''), email: r.email || '', mailto: 'mailto:' + (r.email || ''),
-          place: [r.village && r.village.name, r.mandal && r.mandal.name, r.district && r.district.name].filter(Boolean).join(', '), details: r.details || '', address: r.address || '', canAssign: al.includes('assign'), assigned: r.assigned_to ? String(r.assigned_to.id) : ''};
-      })() : null),
-      rqView: orEmpty(rq ? (() => {
-        const r = rq.r, steps = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED'], rej = r.status === 'REJECTED', at = rej ? 1 : steps.indexOf(r.status);
-        const allowed = this.svcAllowed(r), cur = C.SVC_STATUS[r.status] || C.SVC_STATUS.NEW;
-        // Every step reached (the current one too) is a filled green tick; Rejected: a red cross after New.
-        const tone = (i: number) => rej && i === 1 ? '#b3261e' : i <= at ? '#1F8A3B' : '#cfd8e3';
-        return {steps: steps.map((k, i) => {
-            const red = rej && i === 1, on = i <= at;
-            return {label: red ? 'Rejected' : C.SVC_STATUS[k].label, bg: on ? tone(i) : '#fff', border: tone(i), bw: 2, mark: on ? (red ? '✕' : '✓') : '', weight: i === at ? 800 : 600, color: red ? '#b3261e' : i === at ? '#0A2550' : '#6b7a8c', line: i === 0 ? '' : (on ? tone(i) : '#cfd8e3')};
-          }),
-          curLabel: cur.label, curBg: cur.bg, curColor: cur.color, note: r.note || '',
-          viewOnly: !allowed.length ? ((r.allowed_actions || []).includes('assign') ? 'Nobody handles this request yet. Assign it to someone below.' : 'View only. ' + (r.assigned_to ? r.assigned_to.name : 'Nobody') + ' handles this request; only they can change it.') : '',
-          moves: allowed.filter((k) => k !== r.status).map((k) => ({label: C.SVC_STATUS[k].label, go: () => this.moveRequest(r, k), color: k === 'REJECTED' ? '#b3261e' : '#0D3B7A'})),
-          assignedName: r.assigned_to ? r.assigned_to.name : 'Not assigned', onAssign: (e: FieldChange) => this.assignRequest(r, e.target.value)};
-      })() : null),
-      rqAssigneeOpts: rq ? [{id: '', label: 'Not assigned'}, ...(rq.r.assigned_to && !s.rqAssignees.some((a) => rq.r.assigned_to && a.id === String(rq.r.assigned_to.id)) ? [{id: String(rq.r.assigned_to.id), label: rq.r.assigned_to.name}] : []), ...s.rqAssignees] : [],
-      rqHistory: rq ? [...(rq.r.history || []).slice().reverse().map((h) => ({dot: (Component.SVC_STATUS[h.status ?? ''] || {dot: '#9aa6b4'}).dot, what: [h.status ? (Component.SVC_STATUS[h.status] || {label: h.status}).label : '', h.assigned_to !== undefined ? ('Assigned to ' + (h.assigned_to ? h.assigned_to.name : 'nobody')) : ''].filter(Boolean).join(' · '), note: h.note || '', meta: this.fmt(h.at, true) + (h.by ? ' · by ' + h.by.name : '')})), {dot: '#9aa6b4', what: 'Request received', note: '', meta: this.fmt(rq.r.created_at, true) + ' · from ' + rq.r.name}] : [],
+      ...requestPanelView(this.host), ...contactPanelView(this.host),
       numSel: this.selView('numSel', numIds, (n) => ({title: 'Remove ' + n + ' number' + (n === 1 ? '' : 's') + '?', body: 'Citizens stop seeing them at once. The audit log keeps a record.', confirm: 'Remove ' + n, url: (id) => '/admin/contacts/' + id + '/', done: () => this.loadNumbers(this.state.numPage)})),
       numTabs, numRows, isTypesTab: s.numTab === 'TYPES', typeRows, numQ: s.numQ,
       onNumQ: (e: FieldChange) => {

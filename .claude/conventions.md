@@ -22,7 +22,7 @@ The console also has the documented additions listed in `architecture.md` ("Cons
 | Website texts | `src/website/locales/te.json` and `en.json` (same keys; `legal` holds Privacy and Terms, `seo` the page titles and descriptions) | `npm run build` |
 | Website markup | the section in `src/website/sections/` (look: `src/website/ui/`) | `npm run build` |
 | Website fetch helper | `src/website/api.ts` | `npm run build` |
-| Console behaviour, data, API calls | `src/console/Console.tsx` (state, methods, `renderVals()`); API shapes in `src/console/types.ts` | `npm run build` |
+| Console behaviour, data, API calls | the screen's module in `src/console/logic/` if it has one (`messages.ts`, `requests.ts`, `ads.ts`), else `src/console/Console.tsx` (state, methods, `renderVals()`); state and form shapes in `src/console/model.ts`; API shapes in `src/console/types.ts` | `npm run build` |
 | Console markup | the screen in `src/console/screens/`, panel in `panels/`, frame in `layout/`, shared bits in `ui/parts.tsx` | `npm run build` |
 | Console fetch, session login, CSRF | `src/console/api.ts` | `npm run build` |
 | Page `<head>`, page CSS, fonts | `src/website/SitePage.tsx` (website: titles, descriptions, structured data), `src/console/ConsolePage.tsx` (console), `src/shared/PageHead.tsx` | `npm run build` |
