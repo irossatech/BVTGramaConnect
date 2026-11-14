@@ -31,12 +31,13 @@ export default function Hero({ v }: { v: View }) {
             </div>
           </div>
         </div>
-        {/* chatimpu ticker: the newest titles, scrolling; pauses on hover */}
+        {/* chatimpu ticker: the newest titles, scrolling; pauses on hover, and on a tap or keyboard focus (tabIndex),
+            so phone and keyboard users can stop it too (audit WEB-A11Y-001) */}
         <div style={{background: ink, color: "#fff", display: "flex", alignItems: "stretch", overflow: "hidden"}}>
           <span style={{flexShrink: "0", display: "flex", alignItems: "center", gap: "8px", padding: "0 18px", background: "#E9791E", color: ink, fontWeight: "700", fontSize: fs.sm, position: "relative", zIndex: "1"}}>
             <span aria-hidden="true" className="gc-live" style={{width: "8px", height: "8px", borderRadius: "50%", background: "#fff"}} />{I(v.t?.tickerLabel)}
           </span>
-          <div className="gc-ticker" style={{flex: "1", overflow: "hidden", padding: "14px 0"}}>
+          <div className="gc-ticker" tabIndex={0} role="region" aria-label={v.t?.tickerLabel} style={{flex: "1", overflow: "hidden", padding: "14px 0"}}>
             <div className="gc-ticker-track" style={{display: "flex", width: "max-content"}}>
               {[0, 1].map(copy => (
                 <div key={copy} aria-hidden={copy === 1} style={{display: "flex", gap: "40px", paddingRight: "40px", whiteSpace: "nowrap", fontSize: fs.base}}>

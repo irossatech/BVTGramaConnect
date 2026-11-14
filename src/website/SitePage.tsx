@@ -91,7 +91,7 @@ html{scroll-behavior:smooth}
 .gc-spin{animation:gc-spin 40s linear infinite}
 @keyframes gc-marquee{to{transform:translateX(-50%)}}
 .gc-ticker-track{animation:gc-marquee 36s linear infinite}
-.gc-ticker:hover .gc-ticker-track{animation-play-state:paused}
+.gc-ticker:hover .gc-ticker-track,.gc-ticker:focus .gc-ticker-track{animation-play-state:paused}
 /* Reduced motion: keep the gentle fades and colour changes, drop movement, parallax and pulsing. */
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.gc-reveal,.gc-reveal.is-in,.gc-seg{transform:none!important}.gc-draw{clip-path:none!important}.gc-site .gc-lift:hover,.gc-pill:hover,.gc-site button:active,.gc-row:hover img,.gc-row:hover>div,.gc-step:hover .gc-dot,.gc-level:hover .gc-lv-dot,.gc-site header button:hover img{transform:none!important}.gc-live,.gc-spin,.gc-word,.gc-float,.gc-in{animation:none}.gc-ticker{overflow-x:auto!important}.gc-ticker-track{animation:none}}
 @media (max-width:600px){.gc-foot-nav{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.gc-dl-head{flex-direction:column;align-items:flex-start!important;gap:14px!important}.gc-dl-actions{width:100%;align-items:stretch!important}.gc-dl-btns{display:grid!important;grid-template-columns:1fr;gap:10px!important}.gc-dl-btns>button{width:100%}}
@@ -117,6 +117,9 @@ const META: Record<Page, { title: string; description: string }> = {
   privacy: { title: title("privacy"), description: cut(TE.legal.privacy.intro) },
   terms: { title: title("terms"), description: cut(TE.legal.terms.intro) },
 };
+
+// The 404 page: Telugu like the others, and kept out of search results (noindex, so no canonical link either).
+const NOT_FOUND = { title: TE.ui.nfTitle + " – " + NAME_TE + " | " + NAME, description: cut(TE.ui.nfBody) };
 
 const TITLES = Object.fromEntries(Object.entries(META).map(([k, m]) => [k, m.title])) as Record<Page, string>;
 
@@ -150,16 +153,18 @@ function jsonLd(page: Page): object {
   return { "@context": "https://schema.org", "@graph": graph };
 }
 
-export default function SitePage({ page }: { page: Page }) {
-  const m = META[page];
+/** One website page; `notFound`: the 404 page (src/pages/404.tsx), served for any address that names no page. */
+export default function SitePage({ page, notFound }: { page: Page; notFound?: boolean }) {
+  const m = notFound ? NOT_FOUND : META[page];
   return (
     <>
       <PageHead
         css={CSS}
         title={m.title}
         description={m.description}
+        robots={notFound ? "noindex" : undefined}
         path={pathOf(page)}
-        jsonLd={jsonLd(page)}
+        jsonLd={notFound ? undefined : jsonLd(page)}
         siteName={NAME}
         imageAlt={TE.seo.imageAlt}
         fonts={["/assets/fonts/telugu-ui-400.woff2", "/assets/fonts/telugu-ui-700.woff2"]}
@@ -172,7 +177,7 @@ export default function SitePage({ page }: { page: Page }) {
           <p lang="en">{EN.seo.needJs}</p>
         </main>
       </noscript>
-      <Site page={page} titles={TITLES} />
+      <Site page={page} titles={TITLES} notFound={notFound} notFoundTitle={NOT_FOUND.title} />
     </>
   );
 }
