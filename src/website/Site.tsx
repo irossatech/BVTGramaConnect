@@ -511,8 +511,11 @@ export default class Site extends React.Component<Props, State> {
       missing: s.missing,
       homeHref: pathOf("home"),
       homeLink: this.link("home"),
-      toggleLang: () => {
-        const nl: Lang = L === "te" ? "en" : "te";
+      toggleLang: (e?: MouseEvent<HTMLButtonElement>) => {
+        // A tap made before the scripts started is tapped again by scripts/boot.js once React is ready (a synthetic
+        // click: isTrusted false). It was made on the exported page, which is always Telugu, so it means "English",
+        // even when the saved language (savedLang) has already switched to English by then. A real tap toggles.
+        const nl: Lang = e && !e.isTrusted ? "en" : L === "te" ? "en" : "te";
         saveLang(nl);
         this.setState({ lang: nl });
         document.documentElement.lang = nl;
