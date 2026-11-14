@@ -89,7 +89,7 @@ npm run dev
 
 Open http://localhost:3000/ (website) and http://localhost:3000/console/ (console). Both use the live server's data: `src/proxy.dev.ts` forwards `/api/` and `/media/` to `GC_DEV_API` in `.env` (`https://www.gramaconnect.com`, production), so the pages stay same-origin and the console's session login works as in production. Pages reload as you edit.
 
-- Log in to the console with your live Super Admin account. **Everything you save changes live data.**
+- Log in to the console with your live Super Admin account. **Everything you save changes live data.** `npm run dev` prints a red "LIVE DATA" warning when it starts against the live server, as a reminder.
 - To use another server (staging, or a local API on `http://127.0.0.1:8000`), change `GC_DEV_API` in `.env` and restart `npm run dev`.
 
 ## Build

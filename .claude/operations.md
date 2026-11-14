@@ -17,7 +17,7 @@ npm test               # unit tests (Node 22.18+)
 | `GC_SITE_URL` | `https://www.gramaconnect.com` | The website's public address: canonical links, share previews, structured data, robots.txt, sitemap.xml, llms.txt |
 | `GC_ANDROID_APK_URL` | `/downloads/bvt-grama-connect.apk` | The website's "Direct download" link; set it empty to hide the link |
 | `GC_PLAY_STORE_URL`, `GC_APP_STORE_URL` | empty | Store buttons; empty shows "Coming soon" |
-| `GC_DEV_API` | none | `npm run dev` only: where `/api/` and `/media/` are forwarded (`.env.example`: the live server) |
+| `GC_DEV_API` | none | `npm run dev` only: where `/api/` and `/media/` are forwarded (`.env.example`: the live server, with a red "LIVE DATA" warning at start) |
 
 The defaults are production's, so a build needs no `.env`. Set them in the environment or in `.env`; the environment wins. `dist/` is recreated on every build and **is committed**: the server deploys it as it is (`conventions.md`, "Git"). `npm run check-dist` fails when `dist/` is older than the source or was built with other than the production `GC_API_BASE`, `GC_SITE_URL` and `GC_ANDROID_APK_URL`.
 
