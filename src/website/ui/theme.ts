@@ -11,7 +11,9 @@ export const rsp = (wide: string, phone: string) => `var(--gc-m,${wide}) var(--g
 export const display = "'Rubik','Telugu UI','Noto Sans Telugu',sans-serif";
 
 export function ui(v: Pick<View, "te" | "headLh">) {
-  const fs: Record<"xs" | "sm" | "base" | "md" | "lg" | "xl", string> = v.te ? {xs: "11.5px", sm: "12px", base: "14px", md: "16px", lg: "18px", xl: "20px"} : {xs: "12px", sm: "13px", base: "15px", md: "17px", lg: "19px", xl: "22px"};
+  // Telugu xs and sm were 11.5 and 12 px in the prototype; 13 px since 2026-11-14 (owner's approval,
+  // audit WEB-I18N-003), easier to read on budget phones. English keeps the prototype's sizes.
+  const fs: Record<"xs" | "sm" | "base" | "md" | "lg" | "xl", string> = v.te ? {xs: "13px", sm: "13px", base: "14px", md: "16px", lg: "18px", xl: "20px"} : {xs: "12px", sm: "13px", base: "15px", md: "17px", lg: "19px", xl: "22px"};
   const wrap: CSSProperties = {maxWidth: "1180px", margin: "0 auto", padding: "0 clamp(16px,4vw,40px)"};
   const h2: CSSProperties = {margin: "0", fontFamily: display, fontWeight: "700", fontSize: v.te ? "clamp(22px,2.3vw,30px)" : "clamp(24px,2.6vw,34px)", lineHeight: v.headLh, letterSpacing: v.te ? "0" : "-0.01em", color: ink, textWrap: "balance"};
   const h1: CSSProperties = {...h2, fontSize: v.te ? "clamp(26px,3vw,38px)" : "clamp(28px,3.4vw,44px)"};

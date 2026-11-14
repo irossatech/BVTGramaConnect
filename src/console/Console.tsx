@@ -1080,12 +1080,14 @@ export default class Component extends React.Component<Props, State> {
   }
 
   // ---- new post (the app's Compose) ----
-  // Up to 3 photos, or one video, never both (lead's decision of 2026-11-13, for everyone who posts).
-  // The same numbers as the server: MAX_PHOTOS_PER_POST, MAX_IMAGE_UPLOAD_MB and MAX_VIDEO_UPLOAD_MB
-  // (a video of any length). Change them together.
+  // Up to 3 photos, or one video, never both (lead's decision of 2026-11-13, for everyone who posts);
+  // the video at most 60 MB and 60 seconds (lead's decision of 2026-11-14; banner videos have no
+  // time limit, logic/ads.ts). The same numbers as the server: MAX_PHOTOS_PER_POST, MAX_IMAGE_UPLOAD_MB,
+  // MAX_VIDEO_UPLOAD_MB and VIDEO_MAX_SECONDS. Change them together.
   private static readonly CF_MAX_PHOTOS = 3;
   private static readonly CF_MAX_MB = 10;
   private static readonly CF_VIDEO_MAX_MB = 60;
+  private static readonly CF_VIDEO_MAX_S = 60;
 
   private openCompose() {
     const cats = this.state.categories.filter((c) => c.is_active);
@@ -1162,7 +1164,8 @@ export default class Component extends React.Component<Props, State> {
   }
 
   // Up to 3 photos, or one video, never both. Photos are added at once; a video after its length and
-  // first frame are read (sent as duration_s and poster for a server without ffmpeg). Any length.
+  // first frame are read (sent as duration_s and poster for a server without ffmpeg); one over
+  // 60 seconds is refused here (the server allows half a second of slack, as here).
   private pickCFMedia(e: React.ChangeEvent<HTMLInputElement>) {
     const f = this.state.cf;
     const picked = Array.from(e.target.files || []);
@@ -1187,6 +1190,10 @@ export default class Component extends React.Component<Props, State> {
         if (!read) {
           URL.revokeObjectURL(url);
           return setErr(file.name + ' could not be read. Try an MP4 file.');
+        }
+        if (read.secs > Component.CF_VIDEO_MAX_S + 0.5) {
+          URL.revokeObjectURL(url);
+          return setErr(file.name + ' is longer than ' + Component.CF_VIDEO_MAX_S + ' seconds.');
         }
         this.addCFItem(file, 'video', url, Math.round(read.secs), read.poster);
       });
@@ -2204,7 +2211,7 @@ export default class Component extends React.Component<Props, State> {
           // With photos already there only photos can be added; an empty form takes either.
           accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
           addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
-          mediaHelp: 'Up to ' + Component.CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + Component.CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + Component.CF_VIDEO_MAX_MB + ' MB, any length). Not both.',
+          mediaHelp: 'Up to ' + Component.CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + Component.CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + Component.CF_VIDEO_MAX_MB + ' MB and ' + Component.CF_VIDEO_MAX_S + ' seconds). Not both.',
           photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
             : f.files.length + ' of ' + Component.CF_MAX_PHOTOS + ' photos, or one video',
           toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
