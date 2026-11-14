@@ -175,6 +175,8 @@ export default class Site extends React.Component<Props, State> {
   private raf = 0;
   private tt = 0;
   private dead = false;
+  /** Set when the visitor changes page (a link, Back or Forward): the next update moves focus to the new page's h1. */
+  private focusPage = false;
   private readonly onNav = () => this.syncPage();
   // The header floats once the page has scrolled (rAF-throttled).
   private readonly onScroll = () => {
@@ -225,6 +227,17 @@ export default class Site extends React.Component<Props, State> {
     this.reveal();
     if (prev.page !== this.state.page || prev.missing !== this.state.missing)
       document.title = this.state.missing ? (this.props.notFoundTitle ?? "") : this.props.titles[this.state.page];
+    // The content changes without a new page load, so screen readers would say nothing and keyboard focus would stay
+    // on the menu link. Focus the new page's heading instead, so it is read out and Tab continues from it
+    // (audit WEB-A11Y-005). Not on the first load: the browser starts at the top as usual.
+    if (this.focusPage && (prev.page !== this.state.page || prev.missing !== this.state.missing)) {
+      this.focusPage = false;
+      const h = this.el?.querySelector<HTMLElement>("main h1");
+      if (h) {
+        h.setAttribute("tabindex", "-1");
+        h.focus({ preventScroll: true });
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -305,6 +318,7 @@ export default class Site extends React.Component<Props, State> {
     // Back to the mistyped address the 404 page was opened at: the not-found message again.
     const missing = !!this.props.notFound && !knownUrl();
     if (p !== this.state.page || missing !== this.state.missing) {
+      this.focusPage = true;
       this.setState({ page: p, missing, menuOpen: false });
       window.scrollTo({ top: 0 });
     }
@@ -363,6 +377,7 @@ export default class Site extends React.Component<Props, State> {
         /* history not available */
       }
     }
+    this.focusPage = true;
     this.setState({ page: p, missing: false, menuOpen: false });
     this.el?.closest('[style*="overflow"]')?.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
@@ -511,6 +526,13 @@ export default class Site extends React.Component<Props, State> {
       missing: s.missing,
       homeHref: pathOf("home"),
       homeLink: this.link("home"),
+      // "Skip to main content", the first thing Tab reaches: focus goes to the page's content, past the header.
+      skipToMain: (e: MouseEvent<HTMLAnchorElement>) => {
+        const main = this.el?.querySelector<HTMLElement>("main");
+        if (!main) return;
+        e.preventDefault(); // no #main in the address (and no hashchange)
+        main.focus();
+      },
       toggleLang: (e?: MouseEvent<HTMLButtonElement>) => {
         // A tap made before the scripts started is tapped again by scripts/boot.js once React is ready (a synthetic
         // click: isTrusted false). It was made on the exported page, which is always Telugu, so it means "English",
@@ -603,8 +625,9 @@ export default class Site extends React.Component<Props, State> {
     const { ink, fs } = ui(v);
     return (
       <div ref={v.rootRef} className="gc-site" data-screen-label={v.page} style={{width: "100%", maxWidth: "100%", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflowX: "clip", background: cream, color: "#17212e", fontFamily: "'Nunito Sans','Telugu UI','Noto Sans Telugu',sans-serif"}}>
+        <a className="gc-skip" href="#main" onClick={v.skipToMain}>{I(v.t?.skipLink)}</a>
         <Header v={v} />
-        <main style={{flex: "1", display: "flex", flexDirection: "column"}}>
+        <main id="main" tabIndex={-1} style={{flex: "1", display: "flex", flexDirection: "column"}}>
           {v.pg?.home ? <Home v={v} /> : null}
           {v.pg?.how ? <HowItWorks v={v} /> : null}
           {v.pg?.officials ? <Officials v={v} /> : null}

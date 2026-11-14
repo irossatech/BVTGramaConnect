@@ -7,7 +7,7 @@ export default function Sidebar({ v }: { v: View }) {
   return (
     <aside id="sa-nav" className="sa-side" style={{background: "#0A2550", color: "#fff", display: "flex", flexDirection: "column", padding: "20px 14px 16px", minHeight: "0", overflowY: "auto"}}>
       <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "4px 10px 14px"}}>
-        <img src="/assets/logo-mark.png" alt="" style={{width: "40px", height: "40px", borderRadius: "18.5%"}} />
+        <img src="/assets/logo-mark-192.webp" alt="" style={{width: "40px", height: "40px", borderRadius: "18.5%"}} />
         <div>
           <div style={{fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "14px", letterSpacing: ".03em", lineHeight: "1.2"}}>GRAMA CONNECT</div>
           <div style={{fontSize: "11px", opacity: ".7"}}>Super Admin Console</div>

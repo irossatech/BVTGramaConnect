@@ -196,6 +196,8 @@ Added on 14 Nov 2026 (decisions on the web audit; every finding's status is in `
 - **Language remembered:** a visitor who switches to English gets English again after a reload or on their next visit (kept on their own device, `localStorage` `gc-lang`). The pages are built in Telugu, so English shows once the scripts start.
 - **Ticker pauses on tap and keyboard focus,** as it did on mouse hover, so phone and keyboard users can stop it.
 - **Own 404 page:** an address that names no page shows the site's header and footer with "ఈ పేజీ దొరకలేదు / This page could not be found" and a link home (`src/pages/404.tsx`, texts `nfTitle`, `nfBody`, `nfHome`). Nginx must send it for unknown addresses (`error_page 404 /404.html`; BackEnd `deploy/templates/nginx-locations.conf`, and on the hosting panel).
+- **Skip link and focus:** pressing Tab first shows "ప్రధాన భాగానికి వెళ్లండి / Skip to main content", which jumps past the header; after a page change, focus moves to the new page's heading so screen readers announce it.
+- **Console images:** the category icons and the logo load as same-size WebP copies (`public/assets/icon-<category>-120.webp`, `logo-mark-192.webp`); the PNGs stay for the favicon and share previews.
 
 ## Android APK download
 
