@@ -589,3 +589,6 @@ export const RK: Readonly<Record<string, string>> = {SUPER_ADMIN:'super',DISTRIC
 
 /** A list pager: Prev and Next load the page before or after, and fade at the ends. */
 export const pager = (page: number, pages: number, load: (p: number) => void) => ({show: pages > 1, page, pages, prev: () => { if (page > 1) load(page - 1); }, next: () => { if (page < pages) load(page + 1); }, prevOpacity: page > 1 ? 1 : .4, nextOpacity: page < pages ? 1 : .4});
+
+/** The area level a role key is given (super: the whole state … panchayat: a village). */
+export const LEVEL_OF_ROLE: Readonly<Partial<Record<string, AreaLevel>>> = {super:'STATE',district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
