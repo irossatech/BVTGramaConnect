@@ -3,7 +3,7 @@
 // Keep render() bound to the same renderVals() keys; map API data into those shapes in the logic.
 import React from "react";
 import { css } from "../shared/dc";
-import GC_API, { ApiError, type Query } from "./api";
+import GC_API, { ApiError } from "./api";
 import Checking from "./screens/Checking";
 import AuthLayout from "./layout/AuthLayout";
 import Sidebar from "./layout/Sidebar";
@@ -43,29 +43,21 @@ import { loadCategories, loadSettings, settingsView } from "./logic/settings";
 import { loadServices, servicesView } from "./logic/services";
 import { loadNumbers, loadTypes, numbersView } from "./logic/numbers";
 import { geographyView } from "./logic/geography";
-import { addRole, editUser, loadUsers, reassignUser, removeRole, resetPassword, roleChoices, toggleUser, unlockUser, userCan, usersView } from "./logic/users";
-import type { Area, Dashboard, DiscardCitizenResult, GeoState,
-  ConsoleNotification, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, ServiceRequest,
+import { loadUsers, userPanelView, usersView } from "./logic/users";
+import { adaptPost, loadPosts, openPost, postPanelView, postsView } from "./logic/posts";
+import type { Area, Dashboard, GeoState,
+  ConsoleNotification, LoginResponse, Me, NotificationPage, Post, ServiceRequest,
 } from "./types";
 
-import { FORMS, ROLE, RK, LEVEL_OF_ROLE, pager, one, isStatus, PAGE_SIZE, pageCount, blobPreviews, isActor, historyPage, EMPTY_NU } from "./model";
-import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, AdminUser, PostRow, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
+import { FORMS, LEVEL_OF_ROLE, one, isStatus, blobPreviews, historyPage, EMPTY_NU } from "./model";
+import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
 export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
 
 export default class Component extends React.Component<Props, State> {
   private static readonly ICON: Readonly<Record<NavKey, string>> = {bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
-  private static readonly STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
-  private static readonly ROLE = ROLE;
-  // API values -> the prototype's keys
-  private static readonly RK = RK;
-  private static readonly SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',DRAFT:'Draft'};
-  private static readonly SAPI: Readonly<Record<string, string>> = {Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
   private static readonly LEVEL_OF_ROLE = LEVEL_OF_ROLE;
-  private static readonly HIST: Readonly<Record<string, string>> = {SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
-  private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
-  private static readonly PAGE = PAGE_SIZE;
   private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
   private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
@@ -116,7 +108,6 @@ export default class Component extends React.Component<Props, State> {
   private timers: Record<string, Timer> = {};
   /** Refreshes the bell every minute while the console is open. */
   private notifTimer: ReturnType<typeof setInterval> | undefined;
-  private searchTimer: Timer | undefined;
   private teTimer: Timer | undefined;
   /** The next page change comes from Back/Forward, so it is not pushed to history again. */
   private fromPop = false;
@@ -153,7 +144,6 @@ export default class Component extends React.Component<Props, State> {
     an: (ref) => c.an(ref),
     nl: (x) => c.nl(x),
     newPassword: () => c.newPassword(),
-    openUser: (u) => c.openUser(u),
     get nuGen() {
       return c.nuGen;
     },
@@ -287,7 +277,6 @@ export default class Component extends React.Component<Props, State> {
   private stopTimers() {
     Object.values(this.timers).forEach(clearTimeout);
     this.timers = {};
-    clearTimeout(this.searchTimer);
     clearTimeout(this.teTimer);
     clearInterval(this.notifTimer);
     this.notifTimer = undefined;
@@ -450,14 +439,6 @@ export default class Component extends React.Component<Props, State> {
     return this.teNames[ref.level + ':' + ref.id] || '';
   }
 
-  // Where a post goes: one post can go to Everyone or to several areas (`targets`): "Guntur +2".
-  private postWhere(p: Post) {
-    const t = p.targets || [];
-    if (!t.length) return this.an(p.target_area);
-    if (t[0].level === 'STATE') return 'Everyone';
-    return this.an(t[0]) + (t.length > 1 ? ' +' + (t.length - 1) : '');
-  }
-
   // "Tenali · తెనాలి"; just "Tenali" when there is no Telugu name (the server then sends the English one again).
   private nl(x: {name: string; te?: string}) {
     const t = (x.te || '').trim();
@@ -568,7 +549,7 @@ export default class Component extends React.Component<Props, State> {
   private loadPage(p: PageKey) {
     if (p === 'dashboard') this.loadDash();
     if (p === 'users') loadUsers(this.host, 1);
-    if (p === 'posts') this.loadPosts(1);
+    if (p === 'posts') loadPosts(this.host, 1);
     if (p === 'audit') loadAudit(this.host, 1);
     if (p === 'contact') loadContacts(this.host, 1);
     if (p === 'ads') loadAds(this.host);
@@ -613,36 +594,6 @@ export default class Component extends React.Component<Props, State> {
 
   private loadDash() {
     this.api.get<Dashboard>('/admin/dashboard/').then((dash) => this.setState({dash, pendingCount: dash.kpis.pending})).catch((e: unknown) => this.fail(e));
-  }
-
-  private adaptPost(p: Post): PostRow {
-    const a = p.author;
-    const role = Component.RK[a?.role ?? ''] || 'panchayat';
-    return {
-      id: p.id, raw: p, cat: p.category ? p.category.key : 'updates', catLabel: p.category ? p.category.name : '',
-      titleTe: p.title, titleEn: p.translation ? p.translation.title : '', bodyTe: p.body, bodyEn: p.translation ? p.translation.body : '',
-      area: this.postWhere(p), areaName: p.target_area ? p.target_area.name : '', date: this.fmt(p.submitted_at || p.published_at || p.created_at),
-      author: a?.name || (p.citizen ? 'Citizen' : '—'), role, status: Component.SK[p.status] || 'Pending',
-      media: (p.media || []).filter((m) => m.kind !== 'video'), videos: (p.media || []).filter((m) => m.kind === 'video'),
-      urgent: !!p.is_urgent, event: p.event || null, allowed: p.allowed_actions || [], citizen: p.citizen || null,
-    };
-  }
-
-  private postQuery(page: number): Query {
-    const s = this.state;
-    return {status: s.statusTab === 'All' ? '' : Component.SAPI[s.statusTab], source: s.pf.source, district: s.pf.district, category: s.pf.cat, q: s.gsearch, page, page_size: Component.PAGE};
-  }
-
-  private loadPosts(page: number) {
-    const latest = this.ticket('posts');
-    this.setState({postsLoading: true});
-    this.api.get<PostsPage>('/posts/', this.postQuery(page))
-      .then((d) => latest() && this.setState({posts: d.results.map((p) => this.adaptPost(p)), postCount: d.count, postPage: page, postPages: pageCount(d.count), statusCounts: d.status_counts || {}, pendingCount: (d.status_counts || {}).PENDING || 0, postsLoading: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({postsLoading: false});
-        this.fail(e);
-      });
   }
 
 
@@ -905,7 +856,7 @@ export default class Component extends React.Component<Props, State> {
       f.previews.forEach((u) => URL.revokeObjectURL(u));
       this.setState({cf: null});
       this.toast(p && p.status === 'PUBLISHED' ? 'Post published' : 'Post sent for review');
-      if (this.state.page === 'posts') this.loadPosts(1);
+      if (this.state.page === 'posts') loadPosts(this.host, 1);
     }).catch((e: unknown) => {
       setF({saving: false, step: ''});
       this.fail(e);
@@ -943,7 +894,7 @@ export default class Component extends React.Component<Props, State> {
     }
     this.setState({notifOpen: false});
     if (n.post_id) {
-      this.api.get<Post>('/posts/' + n.post_id + '/').then((p) => this.openPost(this.adaptPost(p))).catch((e: unknown) => this.fail(e));
+      this.api.get<Post>('/posts/' + n.post_id + '/').then((p) => openPost(this.host, adaptPost(this.host, p))).catch((e: unknown) => this.fail(e));
     } else if (n.service_request_id) {
       this.api.get<ServiceRequest>('/service-requests/' + n.service_request_id + '/').then((r) => openRequest(this.host, r)).catch((e: unknown) => this.fail(e));
     }
@@ -967,85 +918,6 @@ export default class Component extends React.Component<Props, State> {
     if (min < 24 * 60) return Math.floor(min / 60) + ' h ago';
     if (min < 7 * 24 * 60) return Math.floor(min / (24 * 60)) + ' d ago';
     return this.fmt(iso, false);
-  }
-
-  private openPost(p: PostRow) {
-    this.setState({panel: {type: 'post', id: p.id}, panelPost: p, panelHistory: []});
-    const latest = this.ticket('panel');
-    this.api.get<ReviewAction[]>('/posts/' + p.id + '/history/').then((h) => {
-      if (latest()) this.setState({panelHistory: h});
-    }).catch((e: unknown) => latest() && this.fail(e));
-  }
-
-  private refreshPost(id: string) {
-    return this.api.get<Post>('/posts/' + id + '/').then((p) => {
-      const ap = this.adaptPost(p);
-      this.setState((s) => ({panelPost: s.panel && s.panel.id === id ? ap : s.panelPost, posts: s.posts.map((x) => x.id === id ? ap : x)}));
-      return this.api.get<ReviewAction[]>('/posts/' + id + '/history/').then((h) => {
-        if (this.state.panel && this.state.panel.id === id) this.setState({panelHistory: h});
-      });
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  // The user's recent posts: dropped if another user's panel opened meanwhile (no one else's posts under this name).
-  private openUser(u: AdminUser) {
-    this.setState({panel: {type: 'user', id: u.id}, panelUser: u, panelUserPosts: []});
-    const latest = this.ticket('panel');
-    this.api.get<Paged<Post>>('/posts/', {author: u.id, page_size: 5}).then((d) => {
-      if (latest()) this.setState({panelUserPosts: d.results.map((p) => this.adaptPost(p))});
-    }).catch((e: unknown) => latest() && this.fail(e));
-  }
-
-  // ---- posts actions ----
-  private review(p: PostRow, body: {action: string; comment?: string; to_status?: string}, done: () => void) {
-    this.api.post('/posts/' + p.id + '/review/', body).then(() => {
-      done();
-      this.loadPosts(this.state.postPage);
-      this.refreshPost(p.id);
-    }).catch((e: unknown) => {
-      if (e instanceof ApiError && e.code === 'already_decided') {
-        const by = e.body.decided_by;
-        const who = isActor(by) ? (by.name + ' (' + ((Component.ROLE[Component.RK[by.role]] || {}).label || by.role) + ')') : 'another reviewer';
-        this.toast('Already decided by ' + who + '. Showing the latest status.', '#E9791E');
-        this.loadPosts(this.state.postPage);
-        this.refreshPost(p.id);
-        return;
-      }
-      this.fail(e);
-    });
-  }
-
-  private postAction(kind: string, p: PostRow) {
-    if (kind === 'urgent') {
-      this.urgentPost(p);
-      return;
-    }
-    const title = p.titleTe;
-    const area = p.areaName;
-    const C = Component;
-    // Citizens' posts (contract section 15): block the phone for some days, unblock, or discard all its pending posts.
-    const after = (msg: string) => () => {
-      this.toast(msg);
-      this.setState({panel: null});
-      this.loadPosts(this.state.postPage);
-    };
-    if (kind === 'blockCitizen') this.ask({title: 'Block this citizen', body: 'The phone cannot post until the block ends. Its other pending posts in your area are discarded. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => this.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => this.fail(e))});
-    if (kind === 'unblockCitizen') this.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33', onConfirm: () => this.api.post('/posts/' + p.id + '/unblock-citizen/', {comment: ''}).then(after('Citizen unblocked')).catch((e: unknown) => this.fail(e))});
-    if (kind === 'discardCitizen') this.ask({title: 'Discard all their pending posts', body: 'Every pending post from this phone is discarded (for spam). The phone is not blocked.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard all', bg: '#3b4a5c', onConfirm: (t) => this.api.post<DiscardCitizenResult | null>('/posts/' + p.id + '/discard-citizen-posts/', {comment: t}).then((d) => after('Discarded ' + ((d && d.discarded) || 0) + ' posts')()).catch((e: unknown) => this.fail(e))});
-    if (kind === 'publish') this.ask({title: 'Publish post', body: 'Publish "' + title + '" to citizens in ' + area + '? This overrides the local review queue.', confirmLabel: 'Publish', bg: '#1F8A3B', onConfirm: () => this.review(p, {action: 'publish'}, () => this.toast('Post published'))});
-    if (kind === 'recheck') this.ask({title: 'Send for recheck', body: 'The author will see your comment and can edit and resubmit.', needsText: true, textLabel: 'Comment to author (required)', confirmLabel: 'Send for recheck', bg: '#E9791E', onConfirm: (t) => this.review(p, {action: 'recheck', comment: t}, () => this.toast('Sent back for recheck', '#E9791E'))});
-    if (kind === 'discard') this.ask({title: 'Discard post', body: 'The post will not be published. The author is notified with your reason.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard', bg: '#3b4a5c', onConfirm: (t) => this.review(p, {action: 'discard', comment: t}, () => this.toast('Post discarded', '#cfd8e3'))});
-    if (kind === 'takedown') this.ask({title: 'Take down post', body: 'Remove "' + title + '" from all citizen feeds immediately.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Take down', bg: '#b3261e', onConfirm: (t) => this.review(p, {action: 'unpublish', comment: t}, () => this.toast('Post taken down', '#E9791E'))});
-    if (kind === 'override') this.ask({title: 'Override previous decision', body: 'Current status: ' + C.STATUS[p.status].label + '. Choose the new status and record why you are overriding the earlier reviewer.', hasSelect: true, selectLabel: 'New status', options: [{id: 'Published', label: 'Published'}, {id: 'Pending', label: 'Pending (back to queue)'}, {id: 'Recheck', label: 'Recheck'}, {id: 'Discarded', label: 'Discarded'}].filter((o) => o.id !== p.status), needsText: true, textLabel: 'Override reason (required)', confirmLabel: 'Override', bg: '#0D3B7A', onConfirm: (t, sel) => this.review(p, {action: 'reverse', to_status: C.SAPI[sel], comment: t}, () => this.toast('Decision overridden → ' + C.STATUS[sel].label))});
-  }
-
-  private urgentPost(p: PostRow) {
-    const on = !p.urgent;
-    this.api.post('/posts/' + p.id + '/urgent/', {is_urgent: on}).then(() => {
-      this.toast(on ? 'Marked urgent' : 'Urgent mark removed', on ? '#E9791E' : '#6cc04a');
-      this.loadPosts(this.state.postPage);
-      this.refreshPost(p.id);
-    }).catch((e: unknown) => this.fail(e));
   }
 
   private areaOptions(role: string): AreaOption[] {
@@ -1075,7 +947,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   renderVals() {
-    const s = this.state, C = Component, ST = C.STATUS, R = C.ROLE;
+    const s = this.state, C = Component;
     const is = {checking: s.screen === 'checking', auth: s.screen === 'login' || s.screen === 'change_password', login: s.screen === 'login', changePassword: s.screen === 'change_password', app: s.screen === 'app'};
     const pg: Partial<Record<PageKey, boolean>> = {};
     pg[s.page] = true;
@@ -1095,45 +967,6 @@ export default class Component extends React.Component<Props, State> {
     ];
     const navKeys = C.PAGES.filter((k) => this.navOk(k));
     const navGroups = NAV_GROUPS.map((g) => ({label: g.label, items: g.keys.filter((k) => navKeys.includes(k)).map((k) => navItems[navKeys.indexOf(k)])})).filter((g) => g.items.length);
-    const hist = (h: ReviewAction) => {
-      const rk = C.RK[h.actor?.role ?? ''] || 'system';
-      const label = h.action === 'REVERSE'
-        ? 'Override: ' + (ST[C.SK[h.from_status ?? '']] || {label: h.from_status}).label + ' → ' + (ST[C.SK[h.to_status ?? '']] || {label: h.to_status}).label
-        : (C.HIST[h.action] || h.action);
-      return {who: (h.actor && h.actor.name) || 'System', role: R[rk].label, action: label, note: h.comment || '', hasNote: !!h.comment, time: this.fmt(h.at),
-        dot: /PUBLISH/.test(h.action) ? '#1F8A3B' : h.action === 'RECHECK' ? '#8f4bb4' : /DISCARD|UNPUBLISH/.test(h.action) ? '#b3261e' : h.action === 'REVERSE' ? '#0D3B7A' : '#E9791E'};
-    };
-    // [label, action, border, background, colour]
-    type Act = [string, string, string, string, string];
-    const dp = (p: PostRow, withHistory?: boolean) => {
-      const st = ST[p.status] || ST.Pending;
-      const rr = R[p.role] || R.panchayat;
-      const al = p.allowed;
-      const acts: Act[] = [];
-      if (p.status === 'Pending') {
-        if (al.includes('publish')) acts.push(['Publish', 'publish', '#1F8A3B', '#1F8A3B', '#fff']);
-        if (al.includes('recheck')) acts.push(['Recheck (comment)', 'recheck', '#E9791E', '#fff0dc', '#b35a0e']);
-        if (al.includes('discard')) acts.push(['Discard (reason)', 'discard', '#cfd8e3', '#fff', '#3b4a5c']);
-      } else if (p.status === 'Published') {
-        if (al.includes('unpublish')) acts.push(['Take down', 'takedown', '#b3261e', '#fff', '#b3261e']);
-        if (al.includes('reverse')) acts.push(['Override previous decision', 'override', '#0D3B7A', '#fff', '#0D3B7A']);
-      } else if (al.includes('reverse')) acts.push(['Override previous decision', 'override', '#0D3B7A', '#0D3B7A', '#fff']);
-      if (al.includes('set_urgent')) acts.push([p.urgent ? 'Remove urgent' : 'Mark urgent', 'urgent', '#E9791E', '#fff', '#b35a0e']);
-      if (al.includes('block_citizen')) acts.push(['Block this citizen', 'blockCitizen', '#b3261e', '#fff', '#b3261e']);
-      if (al.includes('unblock_citizen')) acts.push(['Unblock this citizen', 'unblockCitizen', '#1d7a33', '#fff', '#1d7a33']);
-      if (al.includes('discard_citizen_posts')) acts.push(['Discard all their pending posts', 'discardCitizen', '#cfd8e3', '#fff', '#3b4a5c']);
-      const cz = p.citizen;
-      const czLine = cz ? [(cz.posts_total || 0) + ' posts from this phone', (cz.posts_discarded || 0) + ' discarded', cz.blocked ? (cz.blocked_until ? 'Blocked till ' + this.fmt(cz.blocked_until, true).slice(0, 11) : 'Blocked') : ''].filter(Boolean).join(' · ') : '';
-      const ev = p.event;
-      const evs = ev ? (C.EVENT[ev.kind] || [ev.kind, '#e3f0fb', '#0D3B7A']) : null;
-      const evDates = ev ? (this.fmt(ev.start_date + 'T00:00:00+05:30', true).slice(0, 11) + (ev.end_date ? ' – ' + this.fmt(ev.end_date + 'T00:00:00+05:30', true).slice(0, 11) : '')) : '';
-      // The post's own language and its translation's, so screen readers and fonts treat Telugu text as Telugu.
-      return {rowKey: p.id, cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, lang: p.raw?.language || undefined, langEn: p.raw?.translation?.language || undefined, area: p.area, date: p.date, author: p.author, authorRole: czLine || rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
-        st: {bg: st.bg, color: st.color, label: st.label}, hasPhoto: p.media.length > 0, photos: p.media.map((m) => ({src: m.thumb_url || m.url, pos: 'center'})), urgent: !!p.urgent,
-        hasEvent: !!ev, eventLabel: evs ? evs[0] + ' · ' + evDates : '', eventBg: evs ? evs[1] : '', eventColor: evs ? evs[2] : '',
-        hasVideo: (p.videos || []).length > 0, videos: (p.videos || []).map((v) => ({src: v.url, poster: v.poster_url || v.thumb_url || ''})), rowBg: s.panel && s.panel.type === 'post' && s.panel.id === p.id ? '#f0f6fd' : '#fff',
-        history: withHistory ? s.panelHistory.map(hist) : [], open: () => this.openPost(p), actions: acts.map(([label, k, border, bg, color]) => ({label, border, bg, color, go: () => this.postAction(k, p)}))};
-    };
     // dashboard
     const D = s.dash;
     const dayLabel = (iso: string) => {
@@ -1142,9 +975,9 @@ export default class Component extends React.Component<Props, State> {
     };
     const todayLabel = new Intl.DateTimeFormat('en-GB', {day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata'}).format(new Date());
     const kpis = [
-      {label: 'Total posts', value: D ? D.kpis.total_posts : '…', sub: 'All statuses · ' + (D ? D.geo.districts : '…') + ' districts', color: '#0A2550', go: () => { this.setState({page: 'posts', statusTab: 'All'}, () => this.loadPosts(1)); }},
-      {label: 'Pending review', value: D ? D.kpis.pending : '…', sub: D ? (D.kpis.pending ? 'Oldest ' + Math.round(D.kpis.oldest_pending_hours || 0) + ' h · ' + D.kpis.escalated + ' escalated' : 'Nothing waiting') : '', color: '#b35a0e', go: () => { this.setState({page: 'posts', statusTab: 'Pending'}, () => this.loadPosts(1)); }},
-      {label: 'Published today', value: D ? D.kpis.published_today : '…', sub: todayLabel, color: '#1F8A3B', go: () => { this.setState({page: 'posts', statusTab: 'Published'}, () => this.loadPosts(1)); }},
+      {label: 'Total posts', value: D ? D.kpis.total_posts : '…', sub: 'All statuses · ' + (D ? D.geo.districts : '…') + ' districts', color: '#0A2550', go: () => { this.setState({page: 'posts', statusTab: 'All'}, () => loadPosts(this.host, 1)); }},
+      {label: 'Pending review', value: D ? D.kpis.pending : '…', sub: D ? (D.kpis.pending ? 'Oldest ' + Math.round(D.kpis.oldest_pending_hours || 0) + ' h · ' + D.kpis.escalated + ' escalated' : 'Nothing waiting') : '', color: '#b35a0e', go: () => { this.setState({page: 'posts', statusTab: 'Pending'}, () => loadPosts(this.host, 1)); }},
+      {label: 'Published today', value: D ? D.kpis.published_today : '…', sub: todayLabel, color: '#1F8A3B', go: () => { this.setState({page: 'posts', statusTab: 'Published'}, () => loadPosts(this.host, 1)); }},
       {label: 'Active admins', value: D ? D.kpis.active_admins : '…', sub: 'District · Mandal · Village', color: '#0D3B7A', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'active'}}, () => loadUsers(this.host, 1)); }},
       {label: 'Blocked users', value: D ? D.kpis.blocked_users : '…', sub: 'Across all roles', color: '#b3261e', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'blocked'}}, () => loadUsers(this.host, 1)); }},
     ];
@@ -1154,37 +987,9 @@ export default class Component extends React.Component<Props, State> {
     // Every district, most pending first; the search box filters by English or Telugu name.
     const dq = s.distQ.trim().toLowerCase();
     const pendingByDistrict = (D ? D.pending_by_district : []).filter((r) => !dq || r.district.name.toLowerCase().includes(dq) || (r.name_te || '').includes(s.distQ.trim())).sort((a, b) => b.pending - a.pending).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
-      go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => this.loadPosts(1)); }}));
+      go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => loadPosts(this.host, 1)); }}));
     const recent = (D ? D.recent_activity : []).map((a) => auditRow(this.host, a));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
-    // posts
-    const tabs = ['Pending', 'Published', 'Recheck', 'Discarded', 'TakenDown'] as const;
-    const sc = s.statusCounts;
-    const statusTabs = [{id: 'All' as const, label: 'All'}, ...tabs.map((k) => ({id: k, label: ST[k].label}))].map((t) => {
-      const on = s.statusTab === t.id;
-      const n = t.id === 'All' ? (sc.ALL || 0) : (sc[C.SAPI[t.id]] || 0);
-      return {label: t.label, count: n, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => { this.setState({statusTab: t.id}, () => this.loadPosts(1)); }};
-    });
-    const pf = s.pf;
-    const postRows = s.posts.map((p) => dp(p));
-    const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
-    // panel
-    const panel = s.panel ? {show: true, isPost: s.panel.type === 'post', isUser: s.panel.type === 'user', title: s.panel.type === 'post' ? 'Post review' : 'User details'} : {show: false};
-    const empty: PostRow = {id: '', cat: 'updates', catLabel: '', titleTe: '', titleEn: '', bodyTe: '', bodyEn: '', area: '', areaName: '', date: '', author: '', role: 'panchayat', status: 'Pending', media: [], videos: [], urgent: false, event: null, allowed: [], citizen: null};
-    const sp = dp(s.panelPost || empty, true);
-    // The panel names every area the post goes to (the list shows the first one and "+N").
-    const spTargets = (s.panelPost && s.panelPost.raw && s.panelPost.raw.targets) || [];
-    if (spTargets.length > 1 && spTargets[0].level !== 'STATE') sp.area = spTargets.map((t) => this.an(t)).join(', ');
-    const pu = s.panelUser;
-    const su = pu ? {name: pu.name, te: pu.te, initial: pu.name[0], bg: R[pu.role].bg,
-      fields: [{k: 'Role', v: R[pu.role].label}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : (pu.email || '—')}, {k: 'District', v: pu.district || '—'}, {k: 'Mandal', v: pu.mandal || '—'}, {k: 'Village', v: pu.village || '—'}, {k: 'Status', v: (pu.active ? 'Active · last login ' + pu.last : 'Blocked') + (pu.locked ? ' · locked after failed logins' : '')}],
-      posts: s.panelUserPosts.map((p) => dp(p)),
-      roles: (pu.ras || []).map((ra) => {
-        const k = C.RK[ra.role] || 'panchayat';
-        return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(this.host, pu, ra)};
-      }),
-      canEdit: userCan(pu, 'edit'), edit: () => editUser(this.host, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(this.host).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
-      addRole: () => addRole(this.host, pu), reassign: () => reassignUser(this.host, pu), reset: () => resetPassword(this.host, pu), unlock: () => unlockUser(this.host, pu), toggle: () => toggleUser(this.host, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1F8A3B'} : {fields: [], posts: [], roles: []};
     // modal
     const m = s.modal;
     const cannot = !!(m && m.needsText && !s.modalText.trim());
@@ -1231,22 +1036,10 @@ export default class Component extends React.Component<Props, State> {
         if (s.cpVoluntary) this.setState({screen: 'app', cpVoluntary: false, cpCurrent: '', cpNext: ''});
         else this.logout();
       },
-      gsearch: s.gsearch,
-      onGSearch: (e: FieldChange) => {
-        const v = e.target.value;
-        this.setState({gsearch: v, page: v ? 'posts' : s.page, statusTab: v ? 'All' : s.statusTab});
-        clearTimeout(this.searchTimer);
-        this.searchTimer = setTimeout(() => this.loadPosts(1), 300);
-      },
       kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, distQ: s.distQ, onDistQ: (e: FieldChange) => this.setState({distQ: e.target.value}), distEmptyText: s.distQ.trim() ? 'No district matches “' + s.distQ.trim() + '”.' : 'Nothing waiting for review.', recent, noDistricts: !s.geo.length,
       ...geographyView(this.host),
       ...usersView(this.host), districtOpts,
-      statusTabs, pf,
-      onPF: (e: FieldChange) => {
-        const {name, value} = e.target;
-        this.setState((st) => ({pf: {...st.pf, [name]: value}}), () => this.loadPosts(1));
-      },
-      postRows, postCount: s.postCount, postEmpty: !postRows.length, postEmptyText: s.postsLoading ? 'Loading…' : 'No posts match these filters.', postsPager: pager(s.postPage, s.postPages, (p) => this.loadPosts(p)), catOpts,
+      ...postsView(this.host),
       ...reportsView(this.host), ...auditView(this.host),
       ...contactsView(this.host),
       ...requestsView(this.host),
@@ -1283,7 +1076,7 @@ export default class Component extends React.Component<Props, State> {
       ...requestPanelView(this.host), ...contactPanelView(this.host),
       ...numbersView(this.host),
       ...settingsView(this.host),
-      panel, sp, su, closePanel: () => this.setState({panel: null}),
+      ...postPanelView(this.host), ...userPanelView(this.host),
       modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
       confirmModal: () => {
         if (!m || cannot) return;

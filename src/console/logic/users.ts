@@ -3,10 +3,11 @@
 // and unlock. Moved out of Console.tsx unchanged (audit WEB-ARCH-001). The user side panel (and its recent posts) is
 // still built in Console.tsx, which calls the actions exported here. Calls /users/ (.claude/api.md).
 import type React from "react";
-import type { Area, AreaLevel, Paged, RoleAssignment, TemporaryPassword, User, UserResponse } from "../types";
+import type { Area, AreaLevel, Paged, Post, RoleAssignment, TemporaryPassword, User, UserResponse } from "../types";
 import { EMPTY_NU, LEVEL_OF_ROLE, pageCount, pager, PAGE_SIZE, RK, ROLE, type AdminUser, type FieldChange, type NewUserForm, type Option } from "../model";
 import { maskMobile } from "../mask";
 import type { ConsoleHost } from "./host";
+import { adaptPost, postRow } from "./posts";
 
 // Role key (super, district…) to the API's group key (SUPER_ADMIN…).
 const RAPI: Readonly<Partial<Record<string, string>>> = {super:'SUPER_ADMIN',district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
@@ -250,6 +251,31 @@ function saveNU(h: ConsoleHost) {
   }});
 }
 
+// The user's recent posts: dropped if another user's panel opened meanwhile (no one else's posts under this name).
+function openUser(h: ConsoleHost, u: AdminUser) {
+  h.setState({panel: {type: 'user', id: u.id}, panelUser: u, panelUserPosts: []});
+  const latest = h.ticket('panel');
+  h.api.get<Paged<Post>>('/posts/', {author: u.id, page_size: 5}).then((d) => {
+    if (latest()) h.setState({panelUserPosts: d.results.map((p) => adaptPost(h, p))});
+  }).catch((e: unknown) => latest() && h.fail(e));
+}
+
+/** The user side panel's values (panels/UserDetail.tsx): details, roles, recent posts and the actions above. */
+export function userPanelView(h: ConsoleHost) {
+  const s = h.state, R = ROLE;
+  const pu = s.panelUser;
+  const su = pu ? {name: pu.name, te: pu.te, initial: pu.name[0], bg: R[pu.role].bg,
+    fields: [{k: 'Role', v: R[pu.role].label}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : (pu.email || '—')}, {k: 'District', v: pu.district || '—'}, {k: 'Mandal', v: pu.mandal || '—'}, {k: 'Village', v: pu.village || '—'}, {k: 'Status', v: (pu.active ? 'Active · last login ' + pu.last : 'Blocked') + (pu.locked ? ' · locked after failed logins' : '')}],
+    posts: s.panelUserPosts.map((p) => postRow(h, p)),
+    roles: (pu.ras || []).map((ra) => {
+      const k = RK[ra.role] || 'panchayat';
+      return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(h, pu, ra)};
+    }),
+    canEdit: userCan(pu, 'edit'), edit: () => editUser(h, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(h).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
+    addRole: () => addRole(h, pu), reassign: () => reassignUser(h, pu), reset: () => resetPassword(h, pu), unlock: () => unlockUser(h, pu), toggle: () => toggleUser(h, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1F8A3B'} : {fields: [], posts: [], roles: []};
+  return {su};
+}
+
 /** The page's and the Add/Edit user drawer's renderVals() values (screens/Users.tsx; panels/UserDrawer.tsx). */
 export function usersView(h: ConsoleHost) {
   const s = h.state, R = ROLE;
@@ -258,7 +284,7 @@ export function usersView(h: ConsoleHost) {
   // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
   const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
     statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
-    canReassign: !!u.raId && userCan(u, 'reassign'), canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => h.openUser(u), reassign: () => reassignUser(h, u), toggle: () => toggleUser(h, u)}));
+    canReassign: !!u.raId && userCan(u, 'reassign'), canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), reassign: () => reassignUser(h, u), toggle: () => toggleUser(h, u)}));
   const nu = s.nu;
   const canNU = nuValid(nu);
   const nuRoles = roleChoices(h);
