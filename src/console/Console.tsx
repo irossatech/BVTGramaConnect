@@ -33,7 +33,6 @@ import TypeFormPanel from "./panels/TypeForm";
 import ConfirmModal from "./panels/ConfirmModal";
 import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
-import { maskMobile } from "./mask";
 import type { ConsoleHost } from "./logic/host";
 import { contactPanelView, contactsView, loadContacts } from "./logic/messages";
 import { loadRequests, openRequest, requestPanelView, requestsView } from "./logic/requests";
@@ -44,12 +43,13 @@ import { loadCategories, loadSettings, settingsView } from "./logic/settings";
 import { loadServices, servicesView } from "./logic/services";
 import { loadNumbers, loadTypes, numbersView } from "./logic/numbers";
 import { geographyView } from "./logic/geography";
-import type { Area, AreaLevel, Dashboard, DiscardCitizenResult, GeoState,
-  ConsoleNotification, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, RoleAssignment, ServiceRequest, TemporaryPassword, User, UserResponse,
+import { addRole, editUser, loadUsers, reassignUser, removeRole, resetPassword, roleChoices, toggleUser, unlockUser, userCan, usersView } from "./logic/users";
+import type { Area, Dashboard, DiscardCitizenResult, GeoState,
+  ConsoleNotification, LoginResponse, Me, NotificationPage, Paged, Post, PostsPage, ReviewAction, ServiceRequest,
 } from "./types";
 
-import { FORMS, ROLE, RK, pager, one, isStatus, PAGE_SIZE, pageCount, blobPreviews, isActor, historyPage, EMPTY_NU } from "./model";
-import type { Props, PageKey, NavKey, FieldChange, Timer, Option, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, AdminUser, NewUserForm, PostRow, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
+import { FORMS, ROLE, RK, LEVEL_OF_ROLE, pager, one, isStatus, PAGE_SIZE, pageCount, blobPreviews, isActor, historyPage, EMPTY_NU } from "./model";
+import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, AdminUser, PostRow, SelKey, SelId, BulkOptions, SelView, State, TeForm, Tone } from "./model";
 export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
@@ -60,17 +60,15 @@ export default class Component extends React.Component<Props, State> {
   private static readonly ROLE = ROLE;
   // API values -> the prototype's keys
   private static readonly RK = RK;
-  private static readonly RAPI: Readonly<Partial<Record<string, string>>> = {super:'SUPER_ADMIN',district:'DISTRICT_ADMIN',mandal:'MANDAL_ADMIN',village:'VILLAGE_ADMIN',panchayat:'PANCHAYAT_MEMBER'};
   private static readonly SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',DRAFT:'Draft'};
   private static readonly SAPI: Readonly<Record<string, string>> = {Pending:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
-  private static readonly LEVEL_OF_ROLE: Readonly<Partial<Record<string, AreaLevel>>> = {super:'STATE',district:'DISTRICT',mandal:'MANDAL',village:'VILLAGE',panchayat:'VILLAGE'};
+  private static readonly LEVEL_OF_ROLE = LEVEL_OF_ROLE;
   private static readonly HIST: Readonly<Record<string, string>> = {SUBMIT:'Submitted for review',RESUBMIT:'Resubmitted',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent back for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated'};
   private static readonly EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
   private static readonly PAGE = PAGE_SIZE;
   private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
   private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
-  private static readonly MANAGE: Readonly<Partial<Record<string, string>>> = {super:'accounts.manage_super_admin',district:'accounts.manage_district_admin',mandal:'accounts.manage_mandal_admin',village:'accounts.manage_village_admin',panchayat:'accounts.manage_panchayat_member'};
   private static readonly CONSOLE_PERM = 'web_admin.access_web_console';
   private static readonly LOGIN_ERR: Readonly<Record<string, string>> = {invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
@@ -116,7 +114,6 @@ export default class Component extends React.Component<Props, State> {
   private toastTimers: Timer[] = [];
   /** The screen modules' waiting search boxes (ConsoleHost.later), by key. */
   private timers: Record<string, Timer> = {};
-  private userTimer: Timer | undefined;
   /** Refreshes the bell every minute while the console is open. */
   private notifTimer: ReturnType<typeof setInterval> | undefined;
   private searchTimer: Timer | undefined;
@@ -153,6 +150,16 @@ export default class Component extends React.Component<Props, State> {
     fmt: (iso, withYear) => c.fmt(iso, withYear),
     fmtLast: (iso) => c.fmtLast(iso),
     can: (code) => c.can(code),
+    an: (ref) => c.an(ref),
+    nl: (x) => c.nl(x),
+    newPassword: () => c.newPassword(),
+    openUser: (u) => c.openUser(u),
+    get nuGen() {
+      return c.nuGen;
+    },
+    set nuGen(v) {
+      c.nuGen = v;
+    },
     areaOptions: (role) => c.areaOptions(role),
     navOk: (key) => c.navOk(key),
     suggestTe: (form, english) => c.suggestTe(form, english),
@@ -280,7 +287,6 @@ export default class Component extends React.Component<Props, State> {
   private stopTimers() {
     Object.values(this.timers).forEach(clearTimeout);
     this.timers = {};
-    clearTimeout(this.userTimer);
     clearTimeout(this.searchTimer);
     clearTimeout(this.teTimer);
     clearInterval(this.notifTimer);
@@ -377,15 +383,6 @@ export default class Component extends React.Component<Props, State> {
     return this.canAny(Component.NAV_PERM[k], me);
   }
 
-  // The server lists what this admin may do to the user (allowed_actions); no list means no buttons.
-  private userCan(u: AdminUser, a: string) {
-    return !!u.allowed && u.allowed.includes(a);
-  }
-
-  private roleChoices(): Option[] {
-    return ['super', 'district', 'mandal', 'village', 'panchayat'].filter((k) => this.can(Component.MANAGE[k] || '')).map((k) => ({id: k, label: Component.ROLE[k].label}));
-  }
-
   // A temporary password to hand over in person: 12 characters, no look-alikes, at least one lower, upper,
   // digit and special character (the server's password rules; the app's newTempPassword is the same).
   private newPassword() {
@@ -404,10 +401,6 @@ export default class Component extends React.Component<Props, State> {
       [out[i], out[j]] = [out[j], out[i]];
     }
     return out.join('');
-  }
-
-  private showSecret(name: string, secret: string) {
-    this.ask({title: 'Temporary password · ' + name, body: 'Shown only this once. Give it to ' + name + ' in person. They choose their own password when they first log in.', secret, confirmLabel: 'Done', noCancel: true, bg: '#0D3B7A', onConfirm: () => {}});
   }
 
   private copySecret() {
@@ -475,23 +468,6 @@ export default class Component extends React.Component<Props, State> {
     if (!ref) return '';
     const t = this.te(ref);
     return ref.name + (t && t !== ref.name ? ' · ' + t : '');
-  }
-
-  private pathParts(area: Area | null | undefined) {
-    const parts = area && area.path ? area.path.split(' · ') : [];
-    const lv = area && area.level;
-    const r: {district: string | null; mandal: string | null; village: string | null} = {district: null, mandal: null, village: null};
-    if (lv === 'VILLAGE') {
-      r.village = parts[0];
-      r.mandal = parts[1];
-      r.district = parts[2];
-    } else if (lv === 'MANDAL') {
-      r.mandal = parts[0];
-      r.district = parts[1];
-    } else if (lv === 'DISTRICT') {
-      r.district = parts[0];
-    }
-    return r;
   }
 
   // ---- auth (username + password, Django session for the console) ----
@@ -591,7 +567,7 @@ export default class Component extends React.Component<Props, State> {
   // ---- loading ----
   private loadPage(p: PageKey) {
     if (p === 'dashboard') this.loadDash();
-    if (p === 'users') this.loadUsers(1);
+    if (p === 'users') loadUsers(this.host, 1);
     if (p === 'posts') this.loadPosts(1);
     if (p === 'audit') loadAudit(this.host, 1);
     if (p === 'contact') loadContacts(this.host, 1);
@@ -637,32 +613,6 @@ export default class Component extends React.Component<Props, State> {
 
   private loadDash() {
     this.api.get<Dashboard>('/admin/dashboard/').then((dash) => this.setState({dash, pendingCount: dash.kpis.pending})).catch((e: unknown) => this.fail(e));
-  }
-
-  private adaptUser(u: User): AdminUser {
-    const ras = (u.role_assignments || []).filter((r) => r.is_active !== false);
-    const ra = ras[0] || null;
-    const role = ra ? (Component.RK[ra.role] || 'panchayat') : 'panchayat';
-    const parts = this.pathParts(ra && ra.area);
-    return {
-      id: u.id, name: u.name, te: u.name_te || u.name, nameTe: u.name_te || '', mobile: u.mobile || '', email: u.email || '', username: u.username || '', role,
-      district: parts.district, mandal: parts.mandal, village: parts.village, area: ra ? ra.area : null, raId: ra ? ra.id : null, ras,
-      active: u.is_active !== undefined ? !!u.is_active : u.status === 'ACTIVE', locked: !!u.locked_out,
-      allowed: Array.isArray(u.allowed_actions) ? u.allowed_actions : null, last: this.fmtLast(u.last_login_at),
-    };
-  }
-
-  private loadUsers(page: number) {
-    const uf = this.state.uf;
-    const latest = this.ticket('users');
-    this.setState({usersLoading: true});
-    this.api.get<Paged<User>>('/users/', {role: uf.role ? Component.RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', is_active: uf.status ? String(uf.status === 'active') : '', q: uf.q, page, page_size: Component.PAGE})
-      .then((d) => latest() && this.setState({users: d.results.map((u) => this.adaptUser(u)), userCount: d.count, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
-      .catch((e: unknown) => {
-        if (!latest()) return;
-        this.setState({usersLoading: false});
-        this.fail(e);
-      });
   }
 
   private adaptPost(p: Post): PostRow {
@@ -1098,48 +1048,6 @@ export default class Component extends React.Component<Props, State> {
     }).catch((e: unknown) => this.fail(e));
   }
 
-  // ---- users actions ----
-  // Add User area picker, same as the mobile app: district -> mandal -> village, each list only inside the step above.
-  private areaSteps(f: NewUserForm) {
-    const g = this.state.geo.filter((d) => d.active);
-    const lv = Component.LEVEL_OF_ROLE[f.role];
-    if (lv === 'STATE') return []; // Super Admin: the whole state, nothing to pick
-    const d = g.find((x) => String(x.id) === String(f.nuD));
-    const m = d && d.mandals.find((x) => String(x.id) === String(f.nuM));
-    const steps: {key: 'nuD' | 'nuM' | 'area'; label: string; ph: string; value: string; options: Option[]}[] = [{key: 'nuD', label: 'District', ph: 'Choose a district', value: f.nuD || '', options: g.map((x) => ({id: String(x.id), label: this.nl(x)}))}];
-    if (lv !== 'DISTRICT' && d) steps.push({key: 'nuM', label: 'Mandal', ph: 'Choose a mandal', value: f.nuM || '', options: d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: this.nl(x)}))});
-    if (lv === 'VILLAGE' && m) steps.push({key: 'area', label: 'Village', ph: 'Choose a village', value: f.area || '', options: m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: this.nl(x)}))});
-    return steps;
-  }
-
-  private areaPick(prev: NewUserForm, name: 'role' | 'nuD' | 'nuM', value: string) {
-    const n = {...prev, [name]: value};
-    const lv = Component.LEVEL_OF_ROLE[n.role];
-    if (name === 'role') {
-      n.nuD = '';
-      n.nuM = '';
-      n.area = lv === 'STATE' && this.state.stateRow ? String(this.state.stateRow.id) : '';
-    }
-    if (name === 'nuD') {
-      n.nuM = '';
-      n.area = lv === 'DISTRICT' ? value : '';
-    }
-    if (name === 'nuM') {
-      n.area = lv === 'MANDAL' ? value : '';
-    }
-    return n;
-  }
-
-  private areaSummary(f: NewUserForm) {
-    if (!f.area) return '';
-    const lv = Component.LEVEL_OF_ROLE[f.role];
-    if (lv === 'STATE') return (this.state.stateRow ? this.state.stateRow.name_en : 'The state') + ' (whole state)';
-    const d = this.state.geo.find((x) => String(x.id) === String(f.nuD));
-    const m = d && d.mandals.find((x) => String(x.id) === String(f.nuM));
-    const v = m && m.villages.find((x) => String(x.id) === String(f.area));
-    return [lv === 'VILLAGE' && v ? v.name : null, lv !== 'DISTRICT' && m ? m.name : null, d ? d.name : null].filter(Boolean).join(' · ');
-  }
-
   private areaOptions(role: string): AreaOption[] {
     const lv = Component.LEVEL_OF_ROLE[role];
     const g = this.state.geo;
@@ -1148,110 +1056,6 @@ export default class Component extends React.Component<Props, State> {
     if (lv === 'DISTRICT') return g.filter((d) => d.active).map((d) => ({id: String(d.id), label: this.nl(d), level: lv}));
     if (lv === 'MANDAL') return g.flatMap((d) => d.mandals.filter((m) => m.active && d.active).map((m) => ({id: String(m.id), label: this.nl(m), level: lv})));
     return g.flatMap((d) => d.mandals.flatMap((m) => m.villages.filter((v) => v.active && m.active && d.active).map((v) => ({id: String(v.id), label: this.nl(v), level: 'VILLAGE' as const}))));
-  }
-
-  private toggleUser(u: AdminUser) {
-    const R = Component.ROLE;
-    this.ask({title: u.active ? 'Block user' : 'Unblock user', body: (u.active ? 'Block ' : 'Unblock ') + u.name + ' (' + R[u.role].label + ', ' + (u.area ? u.area.name : '—') + ')? ' + (u.active ? 'They will be signed out and cannot post or review.' : 'They regain access immediately.'), confirmLabel: u.active ? 'Block' : 'Unblock', bg: u.active ? '#b3261e' : '#1F8A3B',
-      onConfirm: () => this.api.post<UserResponse>('/users/' + u.id + '/' + (u.active ? 'block' : 'unblock') + '/', {}).then((d) => {
-        const nu = this.adaptUser(d && d.user ? d.user : d);
-        this.setState((s) => ({users: s.users.map((x) => x.id === u.id ? nu : x), panelUser: s.panelUser && s.panelUser.id === u.id ? nu : s.panelUser}));
-        this.toast(u.name + (u.active ? ' blocked' : ' unblocked'), u.active ? '#E9791E' : '#6cc04a');
-      }).catch((e: unknown) => this.fail(e))});
-  }
-
-  private reassignUser(u: AdminUser) {
-    const R = Component.ROLE;
-    const opts = this.areaOptions(u.role);
-    if (!u.raId) {
-      this.toast('This user has no role to move.', '#E9791E');
-      return;
-    }
-    const raId = u.raId;
-    this.ask({title: 'Reassign area', body: 'Move ' + u.name + ' (' + R[u.role].label + ') to a different ' + (u.role === 'district' ? 'district' : u.role === 'mandal' ? 'mandal' : 'village') + '. Their pending reviews stay with the old area.', hasSelect: true, selectLabel: 'New area', options: opts, confirmLabel: 'Reassign', bg: '#0D3B7A', onConfirm: (_t, sel) => {
-      const o = opts.find((x) => x.id === sel) || opts[0];
-      if (!o) return;
-      this.api.patch('/users/' + u.id + '/role-assignments/' + raId + '/', {area: {level: o.level, id: Number(o.id)}}).then(() => {
-        this.toast(u.name + ' reassigned to ' + o.label.split(' · ')[0]);
-        this.loadUsers(this.state.userPage);
-        if (this.state.panel && this.state.panel.type === 'user') this.setState({panel: null});
-      }).catch((e: unknown) => this.fail(e));
-    }});
-  }
-
-  private refreshUser(id: string) {
-    return this.api.get<User>('/users/' + id + '/').then((x) => {
-      const u = this.adaptUser(x);
-      this.setState((s) => ({panelUser: s.panel && s.panel.id === id ? u : s.panelUser}));
-      this.loadUsers(this.state.userPage);
-    }).catch((e: unknown) => this.fail(e));
-  }
-
-  private addRole(u: AdminUser) {
-    const R = Component.ROLE;
-    const roles = this.roleChoices();
-    if (!roles.length) {
-      this.toast('You cannot add roles.', '#E9791E');
-      return;
-    }
-    this.ask({title: 'Add role', body: 'Give ' + u.name + ' another role. They choose which role to use after login.', hasSelect: true, selectLabel: 'Role', options: roles, confirmLabel: 'Next', bg: '#0D3B7A', onConfirm: (_t, role) => {
-      const opts = this.areaOptions(role);
-      if (!opts.length) {
-        this.toast('Add areas in Geography first.', '#E9791E');
-        return;
-      }
-      setTimeout(() => this.ask({title: 'Add role · ' + R[role].label, body: 'Choose the area for this role.', hasSelect: true, selectLabel: 'Area', options: opts, confirmLabel: 'Add role', bg: '#0D3B7A', onConfirm: (_t2, areaId) => {
-        const o = opts.find((x) => x.id === areaId) || opts[0];
-        this.api.post('/users/' + u.id + '/role-assignments/', {role: Component.RAPI[role], area: {level: o.level, id: Number(o.id)}}).then(() => {
-          this.toast('Role added · ' + R[role].label + ' · ' + o.label);
-          this.refreshUser(u.id);
-        }).catch((e: unknown) => this.fail(e));
-      }}), 0);
-    }});
-  }
-
-  private removeRole(u: AdminUser, ra: RoleAssignment) {
-    const R = Component.ROLE;
-    const label = (R[Component.RK[ra.role]] || {label: ra.role}).label;
-    this.ask({title: 'Remove role', body: 'Remove ' + label + ' · ' + (ra.area ? ra.area.name : '') + ' from ' + u.name + '?' + ((u.ras || []).length <= 1 ? ' This is their only role: they will not be able to log in.' : ''), confirmLabel: 'Remove', bg: '#b3261e', onConfirm: () => this.api.del('/users/' + u.id + '/role-assignments/' + ra.id + '/').then(() => {
-      this.toast('Role removed', '#E9791E');
-      this.refreshUser(u.id);
-    }).catch((e: unknown) => this.fail(e))});
-  }
-
-  private resetPassword(u: AdminUser) {
-    this.ask({title: 'Reset password', body: 'Give ' + u.name + ' a new temporary password. They are signed out everywhere and must choose their own password at their next login.', hasInput: true, inputLabel: 'Temporary password', inputPh: 'Leave empty to generate one', confirmLabel: 'Reset password', bg: '#0D3B7A', onConfirm: (t, _sel, gen) => {
-      const pw = (t || '').trim();
-      this.api.post<TemporaryPassword | null>('/users/' + u.id + '/reset-password/', pw ? {password: pw} : {}).then((d) => {
-        const temp = (d && d.temporary_password) || (pw && pw === gen ? pw : '');
-        if (temp) this.showSecret(u.name, temp);
-        else this.toast('Password reset · ' + u.name);
-        this.refreshUser(u.id);
-      }).catch((e: unknown) => this.fail(e));
-    }});
-  }
-
-  private unlockUser(u: AdminUser) {
-    this.ask({title: 'Unlock login', body: u.name + ' is locked out after too many wrong passwords. Unlock now so they can try again?', confirmLabel: 'Unlock', bg: '#1F8A3B', onConfirm: () => this.api.post('/users/' + u.id + '/unlock/', {}).then(() => {
-      this.toast(u.name + ' unlocked');
-      this.refreshUser(u.id);
-    }).catch((e: unknown) => this.fail(e))});
-  }
-
-  private nuValid(f: NewUserForm) {
-    return !!(f.name.trim() && f.username.trim() && (!f.email.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) && (!f.mobile || f.mobile.length === 10));
-  }
-
-  private editUser(u: AdminUser) {
-    this.setState({drawerOpen: true, nu: {id: u.id, name: u.name, te: u.nameTe, email: u.email, username: u.username, mobile: u.mobile, password: '', role: u.role, area: ''}});
-  }
-
-  private saveUserEdit(f: NewUserForm) {
-    this.api.patch('/users/' + f.id + '/', {name: f.name.trim(), name_te: f.te.trim(), email: f.email.trim() || null, mobile: f.mobile || null}).then(() => {
-      this.setState({drawerOpen: false, nu: {...EMPTY_NU}});
-      this.toast('Details saved · ' + f.name.trim());
-      if (f.id) this.refreshUser(f.id);
-    }).catch((e: unknown) => this.fail(e));
   }
 
   private editProfile() {
@@ -1267,42 +1071,6 @@ export default class Component extends React.Component<Props, State> {
         this.setState((s) => ({me: s.me && {...s.me, ...(d || {}), name, name_te: nameTe}}));
         this.toast('Profile saved');
       }).catch((e: unknown) => this.fail(e));
-    }});
-  }
-
-  private saveNU() {
-    const f = this.state.nu;
-    if (!this.nuValid(f)) return;
-    if (f.id) {
-      this.saveUserEdit(f);
-      return;
-    }
-    const opts = this.areaOptions(f.role);
-    const o = opts.find((x) => x.id === String(f.area));
-    if (!o) {
-      this.toast(opts.length ? 'Choose the area.' : 'Add areas in Geography first.', '#E9791E');
-      return;
-    }
-    const body: {username: string; name: string; name_te: string; role?: string; area: {level: AreaLevel; id: number}; email?: string; mobile?: string; password?: string} = {username: f.username.trim(), name: f.name.trim(), name_te: f.te.trim(), role: Component.RAPI[f.role], area: {level: o.level, id: Number(o.id)}};
-    if (f.email.trim()) body.email = f.email.trim();
-    if (f.mobile) body.mobile = f.mobile;
-    const pw = f.password.trim();
-    if (pw) body.password = pw;
-    const gen = this.nuGen;
-    const send = (currentPassword?: string) => this.api.post<TemporaryPassword | null>('/users/', currentPassword ? {...body, current_password: currentPassword} : body).then((d) => {
-      this.nuGen = '';
-      this.setState({drawerOpen: false, nu: {...EMPTY_NU}});
-      const temp = (d && d.temporary_password) || (pw && pw === gen ? pw : '');
-      if (temp) this.showSecret(body.name, temp);
-      else this.toast('User created · ' + body.username);
-      this.loadUsers(1);
-    }).catch((e: unknown) => this.fail(e));
-    if (f.role !== 'super') {
-      send();
-      return;
-    }
-    this.ask({title: 'Add a Super Admin', body: body.name + ' will be able to see and change everything, including other Super Admins. Enter your own password to confirm.', hasInput: true, noGen: true, password: true, inputLabel: 'Your password', inputPh: 'Your password', confirmLabel: 'Add Super Admin', bg: '#b3261e', onConfirm: (t) => {
-      if (t) send(t);
     }});
   }
 
@@ -1377,8 +1145,8 @@ export default class Component extends React.Component<Props, State> {
       {label: 'Total posts', value: D ? D.kpis.total_posts : '…', sub: 'All statuses · ' + (D ? D.geo.districts : '…') + ' districts', color: '#0A2550', go: () => { this.setState({page: 'posts', statusTab: 'All'}, () => this.loadPosts(1)); }},
       {label: 'Pending review', value: D ? D.kpis.pending : '…', sub: D ? (D.kpis.pending ? 'Oldest ' + Math.round(D.kpis.oldest_pending_hours || 0) + ' h · ' + D.kpis.escalated + ' escalated' : 'Nothing waiting') : '', color: '#b35a0e', go: () => { this.setState({page: 'posts', statusTab: 'Pending'}, () => this.loadPosts(1)); }},
       {label: 'Published today', value: D ? D.kpis.published_today : '…', sub: todayLabel, color: '#1F8A3B', go: () => { this.setState({page: 'posts', statusTab: 'Published'}, () => this.loadPosts(1)); }},
-      {label: 'Active admins', value: D ? D.kpis.active_admins : '…', sub: 'District · Mandal · Village', color: '#0D3B7A', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'active'}}, () => this.loadUsers(1)); }},
-      {label: 'Blocked users', value: D ? D.kpis.blocked_users : '…', sub: 'Across all roles', color: '#b3261e', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'blocked'}}, () => this.loadUsers(1)); }},
+      {label: 'Active admins', value: D ? D.kpis.active_admins : '…', sub: 'District · Mandal · Village', color: '#0D3B7A', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'active'}}, () => loadUsers(this.host, 1)); }},
+      {label: 'Blocked users', value: D ? D.kpis.blocked_users : '…', sub: 'Across all roles', color: '#b3261e', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'blocked'}}, () => loadUsers(this.host, 1)); }},
     ];
     const ppd = D ? D.posts_per_day : [];
     const max = Math.max(1, ...ppd.map((c) => c.submitted));
@@ -1388,13 +1156,6 @@ export default class Component extends React.Component<Props, State> {
     const pendingByDistrict = (D ? D.pending_by_district : []).filter((r) => !dq || r.district.name.toLowerCase().includes(dq) || (r.name_te || '').includes(s.distQ.trim())).sort((a, b) => b.pending - a.pending).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
       go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => this.loadPosts(1)); }}));
     const recent = (D ? D.recent_activity : []).map((a) => auditRow(this.host, a));
-    // users
-    const uf = s.uf;
-    // Second line under the name: the Telugu name, else the login username (never the English name twice).
-    // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
-    const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: this.an(u.area),
-      statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
-      canReassign: !!u.raId && this.userCan(u, 'reassign'), canToggle: this.userCan(u, u.active ? 'block' : 'unblock'), view: () => this.openUser(u), reassign: () => this.reassignUser(u), toggle: () => this.toggleUser(u)}));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
     // posts
     const tabs = ['Pending', 'Published', 'Recheck', 'Discarded', 'TakenDown'] as const;
@@ -1420,20 +1181,15 @@ export default class Component extends React.Component<Props, State> {
       posts: s.panelUserPosts.map((p) => dp(p)),
       roles: (pu.ras || []).map((ra) => {
         const k = C.RK[ra.role] || 'panchayat';
-        return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: this.userCan(pu, 'remove_assignment'), remove: () => this.removeRole(pu, ra)};
+        return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(this.host, pu, ra)};
       }),
-      canEdit: this.userCan(pu, 'edit'), edit: () => this.editUser(pu), canAddRole: this.userCan(pu, 'add_assignment') && this.roleChoices().length > 0, canReassign: !!pu.raId && this.userCan(pu, 'reassign'), canReset: this.userCan(pu, 'reset_password'), canUnlock: pu.locked && this.userCan(pu, 'unlock'), canToggle: this.userCan(pu, pu.active ? 'block' : 'unblock'),
-      addRole: () => this.addRole(pu), reassign: () => this.reassignUser(pu), reset: () => this.resetPassword(pu), unlock: () => this.unlockUser(pu), toggle: () => this.toggleUser(pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1F8A3B'} : {fields: [], posts: [], roles: []};
+      canEdit: userCan(pu, 'edit'), edit: () => editUser(this.host, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(this.host).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
+      addRole: () => addRole(this.host, pu), reassign: () => reassignUser(this.host, pu), reset: () => resetPassword(this.host, pu), unlock: () => unlockUser(this.host, pu), toggle: () => toggleUser(this.host, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1F8A3B'} : {fields: [], posts: [], roles: []};
     // modal
     const m = s.modal;
     const cannot = !!(m && m.needsText && !s.modalText.trim());
     const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, inputType: m.password ? 'password' : 'text', hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
       hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [], confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
-    const nu = s.nu;
-    const canNU = this.nuValid(nu);
-    const nuRoles = this.roleChoices();
-    const nuSteps = this.areaSteps(nu);
-    const nuPlace = this.areaSummary(nu);
     const me = s.me || {name: '', username: '', email: ''};
     // The bell: one row per notification, coloured by what it is about.
     const NK: Record<string, {label: string; color: string; bg: string; d: string}> = {POST_PUBLISHED: {label: 'Published', color: '#1F8A3B', bg: '#e4f4df', d: 'M20 6L9 17l-5-5'},
@@ -1484,35 +1240,7 @@ export default class Component extends React.Component<Props, State> {
       },
       kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, distQ: s.distQ, onDistQ: (e: FieldChange) => this.setState({distQ: e.target.value}), distEmptyText: s.distQ.trim() ? 'No district matches “' + s.distQ.trim() + '”.' : 'Nothing waiting for review.', recent, noDistricts: !s.geo.length,
       ...geographyView(this.host),
-      uf,
-      onUF: (e: FieldChange) => {
-        const {name, value} = e.target;
-        this.setState((st) => ({uf: {...st.uf, [name]: value}}), () => {
-          clearTimeout(this.userTimer);
-          this.userTimer = setTimeout(() => this.loadUsers(1), name === 'q' ? 300 : 0);
-        });
-      },
-      userRows, userCount: s.userCount, userEmpty: !userRows.length, userEmptyText: s.usersLoading ? 'Loading…' : 'No users match these filters.', usersPager: pager(s.userPage, s.userPages, (p) => this.loadUsers(p)), districtOpts,
-      nuEdit: !!nu.id, nuTitle: nu.id ? 'Edit user' : 'Add User', nuSaveLabel: nu.id ? 'Save changes' : 'Create user',
-      openAddUser: () => this.setState((st) => ({drawerOpen: true, nu: {...(st.nu.id ? {id: null, name: '', te: '', email: '', username: '', mobile: '', password: '', area: '', nuD: '', nuM: ''} : st.nu), role: nuRoles.some((r) => r.id === st.nu.role) ? st.nu.role : (nuRoles[0] ? nuRoles[0].id : st.nu.role)}})),
-      canAddUser: nuRoles.length > 0, nuRoles,
-      genNU: (e?: React.MouseEvent) => {
-        e?.preventDefault();
-        const p = this.newPassword();
-        this.nuGen = p;
-        this.setState((st) => ({nu: {...st.nu, password: p}}));
-      },
-      closeDrawer: () => this.setState({drawerOpen: false}), drawerOpen: s.drawerOpen, nu,
-      onNU: (e: FieldChange) => {
-        const {name, value} = e.target;
-        if (name === 'name') this.suggestTe('nu', value);
-        this.setState((st) => {
-          const n = {...st.nu, [name]: name === 'mobile' ? value.replace(/\D/g, '').slice(0, 10) : value};
-          if (name === 'role' || name === 'nuD' || name === 'nuM') return {nu: this.areaPick(st.nu, name, value)};
-          return {nu: n};
-        });
-      },
-      cannotSaveNU: !(canNU && (nu.id || nu.area)), saveNUOpacity: canNU && (nu.id || nu.area) ? 1 : .5, nuSteps, nuPlace, nuSuper: !nu.id && nu.role === 'super', nuRoleLabel: (Component.ROLE[nu.role] || {label: ''}).label, saveNU: () => this.saveNU(),
+      ...usersView(this.host), districtOpts,
       statusTabs, pf,
       onPF: (e: FieldChange) => {
         const {name, value} = e.target;
