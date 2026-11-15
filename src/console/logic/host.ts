@@ -3,7 +3,7 @@
 // A module holds one screen's loaders, actions and renderVals() values; the state stays in Console.tsx.
 import type GC_API from "../api";
 import type { Area } from "../types";
-import type { AdminUser, AreaOption, BulkOptions, ModalSpec, NavKey, SelId, SelKey, SelView, State, TeForm } from "../model";
+import type { AreaOption, BulkOptions, ModalSpec, NavKey, SelId, SelKey, SelView, State, TeForm } from "../model";
 
 /** A state change, as for React's setState: the changed keys, or a function of the current state. */
 export type StateUpdate = Partial<State> | null | ((s: Readonly<State>) => Partial<State> | null);
@@ -33,8 +33,6 @@ export interface ConsoleHost {
   nl(x: {name: string; te?: string}): string;
   /** A temporary password to hand over in person (the server's password rules). */
   newPassword(): string;
-  /** Opens a user's side panel, with their recent posts. */
-  openUser(u: AdminUser): void;
   /** The password Generate put in the Add User form, so it is shown once after saving; sign-out clears it. */
   nuGen: string | undefined;
   /** The areas a role can be given (role key: district, mandal, village…), active ones only, from the geography tree. */
