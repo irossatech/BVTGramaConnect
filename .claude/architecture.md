@@ -35,21 +35,34 @@ src/
     api.ts                  server calls (GCApi.get/post)
 
   console/                  Super Admin console
-    Console.tsx             state and logic; render() only picks the screen and panels
+    Console.tsx             all the state; sign-in, session, idle sign-out, navigation, dialogs, toasts and helpers
+                            shared by the screens; renderVals() spreads in each module's view; render() only
+                            picks the screen and panels
     model.ts                the console's own shapes (State, forms, rows) and small shared helpers (pager, ROLE)
     logic/                  one screen's logic per file, called by Console.tsx (audit WEB-ARCH-001):
       host.ts               ConsoleHost: what a module may use of the console (state, setState, api, toast, fail…)
+      dashboard.ts          Dashboard
+      geography.ts          Geography and the villages CSV import
+      users.ts              Users, Add User and the user panel
+      posts.ts              Posts & Moderation and the post panel
+      compose.ts            New post (photos or one video)
+      reports.ts            Reports
+      audit.ts              Audit log
       messages.ts           Contact messages page and its View panel
       requests.ts           Service requests page and its side panel
+      services.ts           Services and Bills & Recharges catalogues
       ads.ts                Sponsored banners page and its form
+      numbers.ts            Important numbers and contact types
+      settings.ts           Settings
+      notifications.ts      the bell (the once-a-minute refresh stays in Console.tsx with the idle sign-out)
     ConsolePage.tsx         page <head> (noindex), page CSS; loads Console client-only
-    layout/                 AuthLayout (sign-in frame), Sidebar, TopBar
+    layout/                 AuthLayout (sign-in frame), Sidebar, TopBar, Notifications (the bell's list)
     screens/                one file per screen: Login, ChangePassword, Dashboard, Geography, Users, Posts,
                             Reports, Audit, Messages, Requests, Services (and bills), ServiceTabs, Ads,
                             Numbers, Settings, Checking
     panels/                 side panels, forms and dialogs: DetailPanel (PostDetail, UserDetail), UserDrawer,
-                            RequestPanel, ServiceForm, AdForm, NumberForm, TypeForm, ConfirmModal,
-                            ImportProgress, Toasts
+                            RequestPanel, ServiceForm, AdForm, ComposeForm (New post), NumberForm, TypeForm,
+                            ConfirmModal, ImportProgress, Toasts
     ui/parts.tsx            pieces several screens use (TickBox, SelBar, Pager, DistrictOptions)
     types.ts                the API data the console reads and sends
     api.ts                  server calls (session login, CSRF header, downloads)
@@ -104,7 +117,7 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 
 ## Console
 
-- `src/console/Console.tsx` holds the behaviour and all the state. Since 14 Nov 2026 (audit WEB-ARCH-001) a screen's logic can live in its own module in `src/console/logic/`: its loaders, actions and its part of `renderVals()` (a function such as `contactsView(host)` that `renderVals()` spreads in). A module reaches the console only through `ConsoleHost` (`logic/host.ts`), which `Console.tsx` builds as `this.host`. Contact messages, Service requests and Ads have moved; the other screens move the next time they change. Moving a screen changes no behaviour: the three were checked against the original in 102 scenarios (HTML, server calls, toasts, dialogs and state identical). Loaders per page call the API through `this.api` (`src/console/api.ts`). Adapters turn API objects into the exact view-model shapes the markup binds to. Static maps translate API enums such as `UNPUBLISHED` into prototype keys such as `TakenDown`. `fail(e)` is the single error handler.
+- `src/console/Console.tsx` holds all the state and what every screen shares: sign-in and the session, the idle sign-out and the bell's once-a-minute refresh, navigation, the confirm dialog, toasts, the geography tree, row selection, Telugu name suggestions and the profile menu. Each screen's logic lives in its own module in `src/console/logic/` (audit WEB-ARCH-001, split from 14 to 16 Nov 2026, PRs #14 to #28): its loaders, actions and its part of `renderVals()` (a function such as `contactsView(host)` that `renderVals()` spreads in). A module reaches the console only through `ConsoleHost` (`logic/host.ts`), which `Console.tsx` builds as `this.host`; modules may import each other's exported loaders (the Dashboard's cards call `loadPosts` and `loadUsers`). A new screen gets its own module the same way. The split changed no behaviour: `Console.tsx` went from 3,395 to 873 lines, and each step was checked against the code before it (at the end 554 scenarios: HTML, server calls, toasts, dialogs and state identical), with mistakes planted on purpose to prove the checks catch them. Loaders per page call the API through `this.api` (`src/console/api.ts`). Adapters turn API objects into the exact view-model shapes the markup binds to. Static maps translate API enums such as `UNPUBLISHED` into prototype keys such as `TakenDown`. `fail(e)` is the single error handler.
 - **Sign-in:** username and password through a Django session. `src/console/api.ts` first calls `GET /auth/csrf/` for the readable `csrftoken` cookie, then `POST /auth/session/login/`; the server sets the HttpOnly `sessionid` cookie, so page scripts never see a token. Every call is same-origin with cookies, and every write sends `X-CSRFToken` (read from the cookie on each request, because Django rotates it at login). On page load the console calls `GET /me/`; a 401 keeps the login screen. Only users with `web_admin.access_web_console` get in. When `must_change_password` is set, the change-password card comes first; the same card opens from "Change password" in the profile menu, with "‹ Back" instead of "‹ Sign out". A 401 from any call (idle timeout, logout elsewhere, block, password reset) returns to the login screen with "Your session has ended". The bell's once-a-minute poll keeps the server session fresh, so the console also signs itself out (same message, and `POST /auth/session/logout/`) after 30 minutes without a key press, click, scroll or pointer move (`IDLE_MS`). Every sign-out puts the whole state back to `INITIAL` (lists, panels, forms, timers), and answers still on their way are dropped: each list and panel load takes a `ticket()`, and only the latest one may write its result.
 - **Permissions:** `GET /me/` returns `permissions` as `app_label.codename` strings. The console hides sidebar pages (`NAV_PERM`), Add User and its role choices (`accounts.manage_*`), Settings in the menu, Audit Export CSV and the user panel's buttons (the user's `allowed_actions`). A missing list means no permissions. The server still enforces every action.
 - **Additions to the prototype**, all in the prototype's own inline styles: username and password fields; the change-password card; a pager under Users, Posts and Audit (server-side, 20 per page); empty and loading rows; "Reset password" in the user panel; a Roles list with Remove and "+ Add role" in the user panel; a Contact messages page after Audit Log, built like the Audit Log page, with a masked mobile, no message column and a View panel built from the service request panel (`panels/ContactPanel.tsx`; audit WEB-DP-001, 13 Nov 2026); Urgent and event chips, a video player and Mark urgent in the post panel; one Export CSV handler per report and no Export PDF; labels for every audit action key; Username, optional Email and Mobile, and "Temporary password (optional)" with Generate in Add User; "Import CSV"; "Change password" in the profile menu; Reset password (a dialog with Generate) and Unlock in the user panel; a dialog that shows a temporary password once, with Copy and no Cancel; bindings for the signed-in name, state name, category filter and real photos. A `409 already_decided` review answer shows in the existing toast.

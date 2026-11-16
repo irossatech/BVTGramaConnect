@@ -37,7 +37,10 @@ src/
     api.ts                  server calls (GCApi.get/post)
 
   console/                  Super Admin console
-    Console.tsx             state and logic; render() only picks the screen and panels
+    Console.tsx             state, sign-in, session, navigation and shared helpers; render() only picks the screen and panels
+    model.ts                the console's own shapes (State, forms, rows) and small shared helpers
+    logic/                  one file per screen (its loaders, actions and renderVals() part), plus host.ts
+                            (ConsoleHost: what a screen may use of the console); see .claude/architecture.md
     ConsolePage.tsx         page <head> (noindex), page CSS; loads Console client-only
     layout/                 AuthLayout (sign-in frame), Sidebar (grouped pages), TopBar, Notifications (the bell's list)
     screens/                one file per screen: Login, ChangePassword, Dashboard, Geography, Users, Posts,
@@ -215,7 +218,7 @@ While the app is not in the stores, the website's "Direct download" link downloa
 
 ## When the designer changes a prototype
 
-The components are now the source; a new prototype export is not copied in. Apply the designer's changes to the markup in `src/website/Site.tsx` or `src/console/Console.tsx` by hand, then check the pages in a browser (`.claude/operations.md`).
+The components are now the source; a new prototype export is not copied in. Apply the designer's changes to the markup by hand (the website's `src/website/sections/`, the console's `src/console/screens/`, `panels/` and `layout/`), then check the pages in a browser (`.claude/operations.md`).
 
 ## Console sign-in and session
 
