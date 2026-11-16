@@ -35,22 +35,25 @@ import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import type { ConsoleHost } from "./logic/host";
 import { contactPanelView, contactsView, loadContacts } from "./logic/messages";
-import { loadRequests, openRequest, requestPanelView, requestsView } from "./logic/requests";
+import { loadRequests, requestPanelView, requestsView } from "./logic/requests";
 import { adFormView, adsView, loadAds } from "./logic/ads";
-import { auditRow, auditView, loadAudit } from "./logic/audit";
+import { auditView, loadAudit } from "./logic/audit";
 import { loadReports, reportsView } from "./logic/reports";
 import { loadCategories, loadSettings, settingsView } from "./logic/settings";
 import { loadServices, servicesView } from "./logic/services";
 import { loadNumbers, loadTypes, numbersView } from "./logic/numbers";
 import { geographyView } from "./logic/geography";
 import { loadUsers, userPanelView, usersView } from "./logic/users";
-import { adaptPost, loadPosts, openPost, postPanelView, postsView } from "./logic/posts";
-import type { Area, Dashboard, GeoState,
-  ConsoleNotification, LoginResponse, Me, NotificationPage, Post, ServiceRequest,
+import { loadPosts, postPanelView, postsView } from "./logic/posts";
+import { composeView } from "./logic/compose";
+import { loadNotifs, notificationsView } from "./logic/notifications";
+import { dashboardView, loadDash } from "./logic/dashboard";
+import type { Area, GeoState,
+  LoginResponse, Me,
 } from "./types";
 
 import { FORMS, LEVEL_OF_ROLE, one, isStatus, blobPreviews, historyPage, EMPTY_NU } from "./model";
-import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, ComposeForm, GeoDistrictRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
+import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, GeoDistrictRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
 export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
@@ -462,14 +465,14 @@ export default class Component extends React.Component<Props, State> {
     this.loadGeo();
     loadCategories(this.host);
     this.loadPage(page);
-    this.loadNotifs();
+    loadNotifs(this.host);
     this.lastActive = Date.now();
     clearInterval(this.notifTimer);
     this.notifTimer = setInterval(() => {
       // An unattended console signs out after IDLE_MS; the poll itself must not keep it signed in.
       if (this.checkIdle()) return;
       // Only while signed in, the tab is visible and the list is closed (an open list is not reshuffled under the cursor).
-      if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') this.loadNotifs();
+      if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') loadNotifs(this.host);
     }, 60000);
   }
 
@@ -547,7 +550,7 @@ export default class Component extends React.Component<Props, State> {
 
   // ---- loading ----
   private loadPage(p: PageKey) {
-    if (p === 'dashboard') this.loadDash();
+    if (p === 'dashboard') loadDash(this.host);
     if (p === 'users') loadUsers(this.host, 1);
     if (p === 'posts') loadPosts(this.host, 1);
     if (p === 'audit') loadAudit(this.host, 1);
@@ -590,10 +593,6 @@ export default class Component extends React.Component<Props, State> {
       }
       this.setState({geo, stateRow: st, expanded});
     }).catch((e: unknown) => this.fail(e));
-  }
-
-  private loadDash() {
-    this.api.get<Dashboard>('/admin/dashboard/').then((dash) => this.setState({dash, pendingCount: dash.kpis.pending})).catch((e: unknown) => this.fail(e));
   }
 
 
@@ -671,254 +670,11 @@ export default class Component extends React.Component<Props, State> {
       }).catch(() => {}), 400);
   }
 
-  // ---- new post (the app's Compose) ----
-  // Up to 3 photos, or one video, never both (lead's decision of 2026-11-13, for everyone who posts);
-  // the video at most 60 MB and 60 seconds (lead's decision of 2026-11-14; banner videos have no
-  // time limit, logic/ads.ts). The same numbers as the server: MAX_PHOTOS_PER_POST, MAX_IMAGE_UPLOAD_MB,
-  // MAX_VIDEO_UPLOAD_MB and VIDEO_MAX_SECONDS. Change them together.
-  private static readonly CF_MAX_PHOTOS = 3;
-  private static readonly CF_MAX_MB = 10;
-  private static readonly CF_VIDEO_MAX_MB = 60;
-  private static readonly CF_VIDEO_MAX_S = 60;
-
-  private openCompose() {
-    const cats = this.state.categories.filter((c) => c.is_active);
-    this.setState({cf: {cat: cats[0]?.key || '', lang: 'te', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
-  }
-
-  private closeCompose() {
-    const f = this.state.cf;
-    if (f && f.saving) return;
-    f?.previews.forEach((u) => URL.revokeObjectURL(u));
-    this.setState({cf: null});
-  }
-
-  private cfErrors(f: ComposeForm): Partial<Record<'cat' | 'title' | 'body', string>> {
-    const e: Partial<Record<'cat' | 'title' | 'body', string>> = {};
-    if (!f.cat) e.cat = 'Choose a category.';
-    if (!f.title.trim()) e.title = 'Write a title.';
-    if (!f.body.trim()) e.body = 'Write the message.';
-    return e;
-  }
-
-  private onCF(e: FieldChange) {
-    const {name, value} = e.target;
-    this.setState((st) => {
-      if (!st.cf) return null;
-      const p: Partial<ComposeForm> = name === 'd' ? {d: value, m: '', v: ''} : name === 'm' ? {m: value, v: ''} : {[name]: value};
-      return {cf: {...st.cf, ...p}};
-    });
-  }
-
   /** Add one file to the form, at the end. */
-  private addCFItem(file: File, kind: 'image' | 'video', url: string, dur: number, poster: Blob | null, err = '') {
-    this.setState((st) => {
-      const f = st.cf;
-      if (!f) {
-        URL.revokeObjectURL(url);
-        return null;
-      }
-      return {cf: {...f, files: [...f.files, file], previews: [...f.previews, url], kinds: [...f.kinds, kind], durs: [...f.durs, dur], posters: [...f.posters, poster], photoErr: err || f.photoErr}};
-    });
-  }
 
   /** A video's length and first frame, read in the browser. Null when the browser cannot play it. */
-  private readVideo(url: string): Promise<{secs: number; poster: Blob | null} | null> {
-    return new Promise((resolve) => {
-      const probe = document.createElement('video');
-      probe.preload = 'auto';
-      probe.muted = true;
-      let secs = 0;
-      // A browser that never seeks still gets an answer: the length without a poster.
-      setTimeout(() => resolve(secs > 0 ? {secs, poster: null} : null), 8000);
-      const posterNow = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = probe.videoWidth;
-          canvas.height = probe.videoHeight;
-          const ctx = canvas.getContext('2d');
-          if (!ctx || !canvas.width || !canvas.height) return resolve({secs, poster: null});
-          ctx.drawImage(probe, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => resolve({secs, poster: blob}), 'image/jpeg', 0.85);
-        } catch {
-          resolve({secs, poster: null});
-        }
-      };
-      probe.onloadedmetadata = () => {
-        secs = probe.duration;
-        if (!isFinite(secs) || secs <= 0) return resolve(null);
-        probe.currentTime = Math.min(1, secs / 2); // the first second, as the server's poster
-      };
-      probe.onseeked = posterNow;
-      probe.onerror = () => resolve(secs > 0 ? {secs, poster: null} : null);
-      probe.src = url;
-    });
-  }
-
-  // Up to 3 photos, or one video, never both. Photos are added at once; a video after its length and
-  // first frame are read (sent as duration_s and poster for a server without ffmpeg); one over
-  // 60 seconds is refused here (the server allows half a second of slack, as here).
-  private pickCFMedia(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = this.state.cf;
-    const picked = Array.from(e.target.files || []);
-    e.target.value = '';
-    if (!f || !picked.length) return;
-    const setErr = (photoErr: string) => this.setState((st) => st.cf ? {cf: {...st.cf, photoErr}} : null);
-    const isPhoto = (x: File) => /^image\/(jpeg|png|webp)$/.test(x.type);
-    const isVideo = (x: File) => /^video\/(mp4|quicktime)$/.test(x.type);
-    const both = 'A post has up to ' + Component.CF_MAX_PHOTOS + ' photos or one video, not both.';
-    if (f.kinds.includes('video') || f.checking) return setErr(both + ' Remove the video first.');
-    if (picked.some((x) => !isPhoto(x) && !isVideo(x))) return setErr('Choose JPG, PNG or WebP photos, or an MP4 or MOV video.');
-    const videos = picked.filter(isVideo), photos = picked.filter(isPhoto);
-    if (videos.length) {
-      if (photos.length || f.files.length) return setErr(both + (f.files.length ? ' Remove the photos first.' : ''));
-      if (videos.length > 1) return setErr('A post can have one video.');
-      const file = videos[0];
-      if (file.size > Component.CF_VIDEO_MAX_MB * 1024 * 1024) return setErr(file.name + ' is larger than ' + Component.CF_VIDEO_MAX_MB + ' MB.');
-      const url = URL.createObjectURL(file);
-      this.setState({cf: {...f, photoErr: '', checking: 1}});
-      this.readVideo(url).then((read) => {
-        this.setState((st) => st.cf ? {cf: {...st.cf, checking: 0}} : null);
-        if (!read) {
-          URL.revokeObjectURL(url);
-          return setErr(file.name + ' could not be read. Try an MP4 file.');
-        }
-        if (read.secs > Component.CF_VIDEO_MAX_S + 0.5) {
-          URL.revokeObjectURL(url);
-          return setErr(file.name + ' is longer than ' + Component.CF_VIDEO_MAX_S + ' seconds.');
-        }
-        this.addCFItem(file, 'video', url, Math.round(read.secs), read.poster);
-      });
-      return;
-    }
-    const room = Math.max(0, Component.CF_MAX_PHOTOS - f.files.length);
-    const small = photos.filter((x) => x.size <= Component.CF_MAX_MB * 1024 * 1024);
-    const added = small.slice(0, room);
-    const err = small.length < photos.length ? 'Photos larger than ' + Component.CF_MAX_MB + ' MB were not added.'
-      : added.length < small.length ? 'Up to ' + Component.CF_MAX_PHOTOS + ' photos per post.' : '';
-    this.setState({cf: {...f, photoErr: err}});
-    added.forEach((x) => this.addCFItem(x, 'image', URL.createObjectURL(x), 0, null));
-  }
-
-  private removeCFPhoto(i: number) {
-    const f = this.state.cf;
-    if (!f || f.saving) return;
-    URL.revokeObjectURL(f.previews[i]);
-    const keep = (_: unknown, k: number) => k !== i;
-    this.setState({cf: {...f, files: f.files.filter(keep), previews: f.previews.filter(keep), kinds: f.kinds.filter(keep), durs: f.durs.filter(keep), posters: f.posters.filter(keep), photoErr: ''}});
-  }
-
-  private saveCompose() {
-    const f = this.state.cf;
-    if (!f || f.saving) return;
-    if (Object.keys(this.cfErrors(f)).length) {
-      this.setState({cf: {...f, tried: true}});
-      return;
-    }
-    const st = this.state.stateRow;
-    const target = f.v ? {level: 'VILLAGE', id: Number(f.v)} : f.m ? {level: 'MANDAL', id: Number(f.m)} : f.d ? {level: 'DISTRICT', id: Number(f.d)} : st ? {level: 'STATE', id: st.id} : null;
-    if (!target) {
-      this.toast('Areas are still loading. Try again in a moment.', '#b3261e');
-      return;
-    }
-    if (f.checking) {
-      this.toast('A video is still being checked. Try again in a moment.', '#b3261e');
-      return;
-    }
-    const setF = (p: Partial<ComposeForm>) => this.setState((x) => ({cf: x.cf && {...x.cf, ...p}}));
-    const count = f.files.length;
-    setF({saving: true, step: 'Saving…'});
-    const created: Promise<Post> = f.postId
-      ? Promise.resolve({id: f.postId} as Post)
-      : this.api.post<Post>('/posts/', {category: f.cat, language: f.lang, title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count});
-    created.then(async (p) => {
-      if (!count) return p;
-      setF({postId: p.id});
-      // One file per request, in the order picked; each goes after those already on the post.
-      for (let i = this.state.cf?.uploaded || 0; i < count; i++) {
-        const video = f.kinds[i] === 'video';
-        setF({step: 'Uploading ' + (video ? 'video' : 'photo') + ' ' + (i + 1) + ' of ' + count + '…'});
-        const form = new FormData();
-        form.append('kind', f.kinds[i]);
-        form.append('file', f.files[i]);
-        if (video) {
-          // Used only by a server without ffmpeg; one with it measures and cuts its own poster.
-          if (f.durs[i]) form.append('duration_s', String(f.durs[i]));
-          const poster = f.posters[i];
-          if (poster) form.append('poster', poster, 'poster.jpg');
-        }
-        await this.api.upload('/posts/' + p.id + '/media/', form);
-        setF({uploaded: i + 1});
-      }
-      setF({step: 'Publishing…'});
-      return this.api.post<Post>('/posts/' + p.id + '/submit/');
-    }).then((p) => {
-      f.previews.forEach((u) => URL.revokeObjectURL(u));
-      this.setState({cf: null});
-      this.toast(p && p.status === 'PUBLISHED' ? 'Post published' : 'Post sent for review');
-      if (this.state.page === 'posts') loadPosts(this.host, 1);
-    }).catch((e: unknown) => {
-      setF({saving: false, step: ''});
-      this.fail(e);
-    });
-  }
-
-  // ---- notifications (the bell) ----
-  private loadNotifs(more?: boolean) {
-    const cursor = more ? this.state.notifNext : null;
-    if (more && !cursor) return;
-    this.setState({notifLoading: true, notifError: false});
-    this.api.get<NotificationPage>('/notifications/', cursor ? {cursor} : undefined).then((d) => {
-      let next: string | null = null;
-      try {
-        next = d.next ? new URL(d.next, window.location.href).searchParams.get('cursor') : null;
-      } catch {
-        next = null;
-      }
-      this.setState((s) => ({notifs: more ? [...s.notifs, ...(d.results || [])] : (d.results || []), notifUnread: d.unread_count ?? 0, notifNext: next, notifLoading: false}));
-    }).catch(() => this.setState({notifLoading: false, notifError: true}));
-  }
-
-  private toggleNotifs() {
-    const open = !this.state.notifOpen;
-    this.setState({notifOpen: open, menuOpen: false});
-    if (open) this.loadNotifs();
-  }
-
-  // Open what the notification is about (its post or service request) and mark it read.
-  private openNotif(n: ConsoleNotification) {
-    if (!n.read_at) {
-      const now = new Date().toISOString();
-      this.setState((s) => ({notifs: s.notifs.map((x) => x.id === n.id ? {...x, read_at: now} : x), notifUnread: Math.max(0, s.notifUnread - 1)}));
-      this.api.post('/notifications/' + n.id + '/read/').catch(() => {});
-    }
-    this.setState({notifOpen: false});
-    if (n.post_id) {
-      this.api.get<Post>('/posts/' + n.post_id + '/').then((p) => openPost(this.host, adaptPost(this.host, p))).catch((e: unknown) => this.fail(e));
-    } else if (n.service_request_id) {
-      this.api.get<ServiceRequest>('/service-requests/' + n.service_request_id + '/').then((r) => openRequest(this.host, r)).catch((e: unknown) => this.fail(e));
-    }
-  }
-
-  private readAllNotifs() {
-    const now = new Date().toISOString();
-    this.setState((s) => ({notifs: s.notifs.map((x) => x.read_at ? x : {...x, read_at: now}), notifUnread: 0}));
-    this.api.post('/notifications/read-all/').catch((e: unknown) => {
-      this.fail(e);
-      this.loadNotifs();
-    });
-  }
 
   /** "Just now", "5 min ago", "3 h ago", "2 d ago", then the date. */
-  private ago(iso: string) {
-    const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-    if (isNaN(min)) return '';
-    if (min < 1) return 'Just now';
-    if (min < 60) return min + ' min ago';
-    if (min < 24 * 60) return Math.floor(min / 60) + ' h ago';
-    if (min < 7 * 24 * 60) return Math.floor(min / (24 * 60)) + ' d ago';
-    return this.fmt(iso, false);
-  }
 
   private areaOptions(role: string): AreaOption[] {
     const lv = Component.LEVEL_OF_ROLE[role];
@@ -967,28 +723,6 @@ export default class Component extends React.Component<Props, State> {
     ];
     const navKeys = C.PAGES.filter((k) => this.navOk(k));
     const navGroups = NAV_GROUPS.map((g) => ({label: g.label, items: g.keys.filter((k) => navKeys.includes(k)).map((k) => navItems[navKeys.indexOf(k)])})).filter((g) => g.items.length);
-    // dashboard
-    const D = s.dash;
-    const dayLabel = (iso: string) => {
-      const d = new Date(iso + 'T00:00:00');
-      return d.getDate() + ' ' + d.toLocaleString('en-GB', {month: 'short'});
-    };
-    const todayLabel = new Intl.DateTimeFormat('en-GB', {day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata'}).format(new Date());
-    const kpis = [
-      {label: 'Total posts', value: D ? D.kpis.total_posts : '…', sub: 'All statuses · ' + (D ? D.geo.districts : '…') + ' districts', color: '#0A2550', go: () => { this.setState({page: 'posts', statusTab: 'All'}, () => loadPosts(this.host, 1)); }},
-      {label: 'Pending review', value: D ? D.kpis.pending : '…', sub: D ? (D.kpis.pending ? 'Oldest ' + Math.round(D.kpis.oldest_pending_hours || 0) + ' h · ' + D.kpis.escalated + ' escalated' : 'Nothing waiting') : '', color: '#b35a0e', go: () => { this.setState({page: 'posts', statusTab: 'Pending'}, () => loadPosts(this.host, 1)); }},
-      {label: 'Published today', value: D ? D.kpis.published_today : '…', sub: todayLabel, color: '#1F8A3B', go: () => { this.setState({page: 'posts', statusTab: 'Published'}, () => loadPosts(this.host, 1)); }},
-      {label: 'Active admins', value: D ? D.kpis.active_admins : '…', sub: 'District · Mandal · Village', color: '#0D3B7A', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'active'}}, () => loadUsers(this.host, 1)); }},
-      {label: 'Blocked users', value: D ? D.kpis.blocked_users : '…', sub: 'Across all roles', color: '#b3261e', go: () => { this.setState({page: 'users', uf: {...s.uf, status: 'blocked'}}, () => loadUsers(this.host, 1)); }},
-    ];
-    const ppd = D ? D.posts_per_day : [];
-    const max = Math.max(1, ...ppd.map((c) => c.submitted));
-    const chart = ppd.map((c) => ({h1: Math.round(c.submitted / max * 100) + '%', h2: Math.round(c.published / max * 100) + '%', day: dayLabel(c.date), tip: dayLabel(c.date) + ': ' + c.submitted + ' submitted, ' + c.published + ' published'}));
-    // Every district, most pending first; the search box filters by English or Telugu name.
-    const dq = s.distQ.trim().toLowerCase();
-    const pendingByDistrict = (D ? D.pending_by_district : []).filter((r) => !dq || r.district.name.toLowerCase().includes(dq) || (r.name_te || '').includes(s.distQ.trim())).sort((a, b) => b.pending - a.pending).map((r) => ({name: r.district.name, te: r.name_te || '', count: r.pending, oldest: r.pending && r.oldest_pending_hours !== null ? Math.round(r.oldest_pending_hours) + ' h' : '—',
-      go: () => { this.setState({page: 'posts', statusTab: 'Pending', pf: {...s.pf, district: String(r.district.id)}}, () => loadPosts(this.host, 1)); }}));
-    const recent = (D ? D.recent_activity : []).map((a) => auditRow(this.host, a));
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
     // modal
     const m = s.modal;
@@ -996,21 +730,7 @@ export default class Component extends React.Component<Props, State> {
     const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, inputType: m.password ? 'password' : 'text', hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
       hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [], confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
     const me = s.me || {name: '', username: '', email: ''};
-    // The bell: one row per notification, coloured by what it is about.
-    const NK: Record<string, {label: string; color: string; bg: string; d: string}> = {POST_PUBLISHED: {label: 'Published', color: '#1F8A3B', bg: '#e4f4df', d: 'M20 6L9 17l-5-5'},
-      POST_RECHECK: {label: 'Needs changes', color: '#8f4bb4', bg: '#f1e6f7', d: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'},
-      POST_DISCARDED: {label: 'Discarded', color: '#b3261e', bg: '#fde8e6', d: 'M18 6L6 18M6 6l12 12'},
-      POST_UNPUBLISHED: {label: 'Taken down', color: '#b3261e', bg: '#fde8e6', d: 'M12 5v14M5 12l7 7 7-7'},
-      REVIEW_PENDING: {label: 'To review', color: '#b35a0e', bg: '#fff0dc', d: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'},
-      ESCALATION: {label: 'Escalated', color: '#b3261e', bg: '#fde8e6', d: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'},
-      ACCOUNT: {label: 'Account', color: '#0D3B7A', bg: '#e3f0fb', d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'},
-      SERVICE_REQUEST: {label: 'Service request', color: '#07818e', bg: '#dff3f4', d: 'M9 12h6M9 16h4M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'}};
-    const bell = {label: '', color: '#3b4a5c', bg: '#eef2f6', d: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0'};
-    const notifRows = s.notifs.map((n) => {
-      const k = NK[n.kind] || bell;
-      return {id: n.id, title: n.title, body: n.body, time: this.ago(n.created_at), unread: !n.read_at, label: k.label, color: k.color, bg: k.bg, d: k.d, linked: !!(n.post_id || n.service_request_id), open: () => this.openNotif(n)};
-    });
-    return {screen: s.screen, is, pg, pageTitle: titles[s.page], navGroups, navOpen: s.navOpen, toggleNav: () => this.setState((st) => ({navOpen: !st.navOpen})), notifOpen: s.notifOpen, notifRows, notifUnread: s.notifUnread, notifBadge: s.notifUnread > 99 ? '99+' : String(s.notifUnread), notifLoading: s.notifLoading, notifError: s.notifError, notifEmpty: !s.notifs.length && !s.notifLoading && !s.notifError, notifHasMore: !!s.notifNext, notifMore: () => this.loadNotifs(true), notifRetry: () => this.loadNotifs(), toggleNotifs: () => this.toggleNotifs(), closeNotifs: () => this.setState({notifOpen: false}), readAllNotifs: () => this.readAllNotifs(), menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen, notifOpen: false})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
+    return {screen: s.screen, is, pg, pageTitle: titles[s.page], navGroups, navOpen: s.navOpen, toggleNav: () => this.setState((st) => ({navOpen: !st.navOpen})), ...notificationsView(this.host), menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen, notifOpen: false})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
       meName: me.name, meInitial: (me.name || '?')[0], stateName: s.stateRow ? s.stateRow.name_en : '', stateTe: s.stateRow ? s.stateRow.name_te : '',
       logout: () => this.logout(),
       frameW: '100%', frameH: '100vh', scrollRef: (el: HTMLDivElement | null) => { this.scrollEl = el; },
@@ -1036,7 +756,7 @@ export default class Component extends React.Component<Props, State> {
         if (s.cpVoluntary) this.setState({screen: 'app', cpVoluntary: false, cpCurrent: '', cpNext: ''});
         else this.logout();
       },
-      kpis, chart, chartEmpty: !ppd.some((c) => c.submitted || c.published), pendingByDistrict, distQ: s.distQ, onDistQ: (e: FieldChange) => this.setState({distQ: e.target.value}), distEmptyText: s.distQ.trim() ? 'No district matches “' + s.distQ.trim() + '”.' : 'Nothing waiting for review.', recent, noDistricts: !s.geo.length,
+      ...dashboardView(this.host),
       ...geographyView(this.host),
       ...usersView(this.host), districtOpts,
       ...postsView(this.host),
@@ -1044,33 +764,7 @@ export default class Component extends React.Component<Props, State> {
       ...contactsView(this.host),
       ...requestsView(this.host),
       ...adsView(this.host), ...adFormView(this.host),
-      canCompose: this.can('posts.create_post') && s.me?.capabilities?.can_post !== false, openCompose: () => this.openCompose(),
-      cfShow: !!s.cf, closeCF: () => this.closeCompose(), onCF: (e: FieldChange) => this.onCF(e), pickCFPhotos: (e: React.ChangeEvent<HTMLInputElement>) => this.pickCFMedia(e), saveCF: () => this.saveCompose(),
-      cf: s.cf ? (() => {
-        const f = s.cf;
-        const err = f.tried ? this.cfErrors(f) : {};
-        const d = s.geo.find((x) => String(x.id) === f.d), m = d && d.mandals.find((x) => String(x.id) === f.m), vl = m && m.villages.find((x) => String(x.id) === f.v);
-        return {
-          cat: f.cat, lang: f.lang, title: f.title, body: f.body, d: f.d, m: f.m, v: f.v, urgent: f.urgent, saving: f.saving,
-          catOpts: s.categories.filter((c) => c.is_active).map((c) => ({id: c.key, label: (c.name_en || c.key) + (c.name_te ? ' · ' + c.name_te : '')})),
-          errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
-          titleCount: f.title.length + ' / 150', bodyCount: f.body.length + ' / 5000',
-          photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => this.removeCFPhoto(i)})),
-          canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < Component.CF_MAX_PHOTOS,
-          photoErr: f.photoErr,
-          // With photos already there only photos can be added; an empty form takes either.
-          accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
-          addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
-          mediaHelp: 'Up to ' + Component.CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + Component.CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + Component.CF_VIDEO_MAX_MB + ' MB and ' + Component.CF_VIDEO_MAX_S + ' seconds). Not both.',
-          photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
-            : f.files.length + ' of ' + Component.CF_MAX_PHOTOS + ' photos, or one video',
-          toggleUrgent: () => this.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
-          showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
-          where: vl && m ? vl.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village (everyone)',
-          dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [],
-          saveLabel: f.saving ? f.step || 'Saving…' : f.postId ? 'Retry' : 'Publish post',
-        };
-      })() : null,
+      ...composeView(this.host),
       ...servicesView(this.host),
       imp: s.imp ? {...s.imp, pct: Math.round(s.imp.done * 100 / s.imp.total), label: s.imp.phase + (s.imp.total > 1 ? ' part ' + Math.min(s.imp.done + 1, s.imp.total) + ' of ' + s.imp.total : '') + '…'} : null,
       ...requestPanelView(this.host), ...contactPanelView(this.host),
