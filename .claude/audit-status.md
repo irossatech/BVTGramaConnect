@@ -72,6 +72,8 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-DP-001 (Important numbers) | 2026-11-14, owner: phones and emails in the Important numbers table stay in full. They are published to citizens on purpose so people can call them; masking them protects nothing and could hide a wrong number from the Super Admin (BackEnd `docs/security-review.md`, "Important numbers: public by design") | No masking in that table. Users, Service requests and Contact messages stay masked (see Fixed) |
 | WEB-DP-005 Searches put names and mobiles in URLs | 2026-11-14, lead: accepted exception, the same as the backend. Searches stay `GET ?q=`; the server's Nginx log drops query strings (`gc_noquery` log format) | No move of person searches to POST |
 | WEB-DP-007 Temporary password left on the clipboard | 2026-11-14, owner: accepted, keep as is. The temporary-password dialog keeps its Copy button, and a copied password stays on the clipboard until something else is copied. The risk is low: the password is temporary (it must be changed at the first login), only Super Admins see the dialog, and someone would need the same computer before that first login | No warning text in the dialog (option A, new text) and no automatic clearing of the clipboard on Done (option C). Revisit if the console is used on shared computers |
+| WEB-SEC-003 / WEB-HDR-001 Missing page security headers | 2026-11-16, option A (backend): the pages' Content-Security-Policy allows no `data:` fonts or pictures, and they send `Permissions-Policy` (camera, microphone, location, payment, USB off) and `Cross-Origin-Opener-Policy: same-origin` (BackEnd `deploy/templates/nginx-security.conf`). Checked first in Chrome under the new policy: every website page (375 and 1280 px, Telugu and English, 404) and every console screen with its panels, no violation and no script error | `blob:` stays for the console's photo and video previews. Production and qa use the hosting panel's nginx, which needs the same headers (BackEnd `deploy/RUNBOOK.md`); a new `data:` picture or font in the web build would now be blocked |
+| WEB-HDR-002 Private API answers could be cached | 2026-11-16, option A (backend only): every `/api/` answer is `Cache-Control: no-store, private` unless its view marks it public (BackEnd `grama/cache_headers.py`), so a shared computer keeps no copy of users, mobiles, messages, requests, the audit log or CSV exports after logout. No web change | The public feed, banners, numbers, geography, services and bills keep their public caching for 2G/3G |
 
 ## By design
 
@@ -97,9 +99,7 @@ Tracked by the backend team in BVTGramaConnect_BackEnd; nothing to change in thi
 
 | Finding | What |
 |---|---|
-| WEB-SEC-003 / WEB-HDR-001 | Permissions-Policy and COOP headers; the CSP still allows `data:` fonts and images the build never uses (`deploy/templates/nginx-security.conf`) |
-| WEB-HDR-002 | Caching headers on API answers with personal data |
-| WEB-SEC-011 | Citizen block/discard checks only the post's first area |
+| WEB-SEC-011 | Citizen block/discard checks only the post's first area. Harmless while only the Super Admin holds `posts.block_citizen`. Options: check every area (A), require a state-wide grant (B), or accept (C); waiting for the lead's choice (2026-11-16) |
 | WEB-SEC-014 | Admin endpoints also accept the mobile app's JWT |
 | WEB-SEC-016 | Removing a role assignment needs no specific permission |
 | WEB-SEC-019 | Lockout per username and IP, so guessing from many IPs is not capped |
