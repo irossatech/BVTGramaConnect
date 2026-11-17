@@ -25,6 +25,7 @@ button:disabled{cursor:not-allowed!important}
 @media (hover:hover){.sa-navb:not([aria-current]):hover{background:rgba(255,255,255,.07)!important;color:#fff!important}}
 tbody tr{transition:background-color .12s ease}
 @media (hover:hover){tbody tr:hover{background-color:#f5f8fc}}
+.sa-search{transition:border-color .15s,background-color .15s}.sa-search:focus-within{border-color:#0D3B7A!important;background:#fff!important}.sa-search input:focus{box-shadow:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* Tables at every width: pills (role, category, status), headers, dates and numbers stay on one line;
    names and titles may wrap. A table wider than its card scrolls inside the card. */
@@ -34,6 +35,9 @@ tbody tr{transition:background-color .12s ease}
 .sa-content div:has(> table){overflow-x:auto!important;overscroll-behavior-x:contain}
 /* Phones and tablets: the side bar becomes a drawer behind the menu button, splits stack, wide tables scroll sideways. */
 .sa-scrim{display:none}
+/* Audit log rows: a light highlight on hover and a clear keyboard focus ring (every width). */
+.sa-audit-row:hover{background:#f7f9fb}
+.sa-audit-row:focus-visible{outline:2px solid #0D3B7A;outline-offset:-2px}
 @media (max-width:900px){
 .sa-shell{grid-template-columns:minmax(0,1fr)!important}
 .sa-side{position:fixed;top:0;bottom:0;left:0;width:min(280px,85vw);z-index:70;transform:translateX(-100%);visibility:hidden;transition:transform .25s var(--ease-out),visibility 0s .25s}
@@ -71,4 +75,4 @@ tbody tr{transition:background-color .12s ease}
 .sa-geo-form.is-open{display:block;position:fixed!important;inset:0;top:0!important;max-height:none!important;z-index:55;border-radius:0!important;background:rgba(10,37,80,.45);padding:16px;overflow-y:auto;animation:sa-fade .15s ease-out}
 }
 @keyframes sa-slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-</style><noscript data-n-css=""></noscript><script defer="" noModule="" src="/_next/static/chunks/polyfills-42372ed130431b0a.js"></script><script src="/_next/static/chunks/webpack-197fb3f25fe29f2f.js" defer=""></script><script src="/_next/static/chunks/framework-a52eb3e3738ab579.js" defer=""></script><script src="/_next/static/chunks/main-aae4dee63c008341.js" defer=""></script><script src="/_next/static/chunks/pages/_app-b0a01ec7d4defc80.js" defer=""></script><script src="/_next/static/chunks/pages/console-2483602d71d8f226.js" defer=""></script><script src="/_next/static/6z4zeDu_mc22UIUCgR9Gz/_buildManifest.js" defer=""></script><script src="/_next/static/6z4zeDu_mc22UIUCgR9Gz/_ssgManifest.js" defer=""></script></head><body><div id="__next"></div><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{}},"page":"/console","query":{},"buildId":"6z4zeDu_mc22UIUCgR9Gz","nextExport":true,"autoExport":true,"isFallback":false,"scriptLoader":[]}</script></body></html>
+</style><noscript data-n-css=""></noscript><script defer="" noModule="" src="/_next/static/chunks/polyfills-42372ed130431b0a.js"></script><script src="/_next/static/chunks/webpack-8635570d741d7977.js" defer=""></script><script src="/_next/static/chunks/framework-a52eb3e3738ab579.js" defer=""></script><script src="/_next/static/chunks/main-aae4dee63c008341.js" defer=""></script><script src="/_next/static/chunks/pages/_app-b0a01ec7d4defc80.js" defer=""></script><script src="/_next/static/chunks/pages/console-d8a5a0ca9ea09359.js" defer=""></script><script src="/_next/static/YWga-HuF8zhUDtDF_1Zg-/_buildManifest.js" defer=""></script><script src="/_next/static/YWga-HuF8zhUDtDF_1Zg-/_ssgManifest.js" defer=""></script></head><body><div id="__next"></div><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{}},"page":"/console","query":{},"buildId":"YWga-HuF8zhUDtDF_1Zg-","nextExport":true,"autoExport":true,"isFallback":false,"scriptLoader":[]}</script></body></html>
