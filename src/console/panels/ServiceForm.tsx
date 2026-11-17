@@ -20,35 +20,35 @@ export default function ServiceForm({ v }: { v: View }) {
             <span style={{fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>How it looks on Home</span>
           </div>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English) <span style={{color: "#b3261e"}}>*</span></span>
+            <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Name in English</span>
             <input name="en" value={val(v.sf?.en, "")} onChange={v.sf?.onField} placeholder={v.sf?.bill ? "e.g. Gas Booking" : "e.g. Ration Card"} maxLength={60} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", borderColor: v.sf?.err ? "#b3261e" : "#cfd8e3"}} />
             {v.sf?.err ? <span role="alert" style={{fontSize: "12px", color: "#b3261e", fontWeight: "700"}}>{I(v.sf.err)}</span> : null}
           </label>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (Telugu)</span>
+            <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Name in Telugu <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
             <input name="te" value={val(v.sf?.te, "")} onChange={v.sf?.onField} placeholder="ఉదా: రేషన్ కార్డు" maxLength={60} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-            <span style={{fontSize: "12px", color: "#6b7a8c"}}>Shown when the app is in Telugu. Left empty, the English name is used.</span>
+            <span style={{fontSize: "12px", color: "#6b7a8c"}}>Empty: the English name is used.</span>
           </label>
           {v.sf?.bill ? null : <>
             <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Request example (English)</span>
+              <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Request example in English <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
               <input name="hintEn" value={val(v.sf?.hintEn, "")} onChange={v.sf?.onField} placeholder="e.g. apply for a new ration card" maxLength={100} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
             </label>
             <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Request example (Telugu)</span>
+              <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Request example in Telugu <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
               <input name="hintTe" value={val(v.sf?.hintTe, "")} onChange={v.sf?.onField} placeholder="ఉదా: కొత్త రేషన్ కార్డు కోసం దరఖాస్తు" maxLength={100} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-              <span style={{fontSize: "12px", color: "#6b7a8c"}}>Shown in grey in the citizen’s “Your request” box when they request this service. Left empty, a general example is shown.</span>
+              <span style={{fontSize: "12px", color: "#6b7a8c"}}>The grey hint in the citizen’s request box.</span>
             </label>
           </>}
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Icon <span style={{color: "#b3261e"}}>*</span></span>
+            <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Icon</span>
             <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "12px", background: "#fff", border: v.sf?.ownIcon ? "2px solid " + v.sf.c : "1px solid #cfd8e3"}}>
               <span style={{width: "48px", height: "48px", borderRadius: "12px", background: v.sf?.ownIcon ? v.sf.tint : "#f7f9fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>
                 {v.sf?.ownIcon ? <img src={v.sf.ownIcon} alt="" style={{width: "32px", height: "32px", objectFit: "contain"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D3B7A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" /></svg>}
               </span>
               <span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
                 <span style={{fontWeight: "700", fontSize: "13.5px", color: "#0A2550"}}>{v.sf?.ownIcon ? "Your icon" : "Upload your own icon"}</span>
-                <span style={{fontSize: "12px", color: "#6b7a8c"}}>Square PNG, JPG or WebP, at least 64 × 64, up to 2 MB. For example a department logo.</span>
+                <span style={{fontSize: "12px", color: "#6b7a8c"}}>Square, at least 64 × 64, up to 2 MB.</span>
               </span>
               <button type="button" onClick={v.sf?.pickIcon} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}>{v.sf?.ownIcon ? "Change" : "Upload"}</button>
               {v.sf?.ownIcon ? <button type="button" onClick={v.sf?.removeIcon} aria-label="Remove the uploaded icon" style={{height: "32px", padding: "0 10px", border: "0", borderRadius: "999px", background: "none", color: "#b3261e", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}>Remove</button> : null}
@@ -63,7 +63,7 @@ export default function ServiceForm({ v }: { v: View }) {
             </div>
           </div>
           <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Colour</span>
+            <span style={{fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Colour</span>
             <div role="radiogroup" aria-label="Colour" style={{display: "flex", gap: "12px", flexWrap: "wrap"}}>
               {list(v.sf?.colors).map((_o, _i1) => (
                 <button key={_i1} role="radio" aria-checked={_o?.on} aria-label={"Colour: " + _o?.label} onClick={_o?.pick} style={{width: "46px", height: "46px", padding: "3px", borderRadius: "50%", border: "2.5px solid " + (_o?.on ? _o?.c : "transparent"), background: "none", cursor: "pointer"}}>
@@ -72,16 +72,13 @@ export default function ServiceForm({ v }: { v: View }) {
               ))}
             </div>
           </div>
-          <div style={{display: "flex", alignItems: "center", gap: "12px", border: "1px solid #eef2f6", borderRadius: "14px", padding: "12px 14px"}}>
-            <div style={{flex: "1"}}>
-              <div style={{fontSize: "14px", fontWeight: "700", color: "#0A2550"}}>Show on Home</div>
-              <div style={{fontSize: "12px", color: "#6b7a8c"}}>When off, citizens do not see it</div>
-            </div>
-            <button type="button" role="switch" aria-checked={!!v.sf?.active} aria-label={"Show on Home"} onClick={v.sf?.toggle} disabled={false} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${v.sf?.active ? "flex-end" : "flex-start"};background: ${v.sf?.active ? "#1F8A3B" : "#cfd8e3"};opacity: ${false ? .5 : 1}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
-          </div>
+          <label style={{display: "flex", alignItems: "center", gap: "12px", cursor: "pointer"}}>
+            <span style={{flex: "1", fontSize: "13px", fontWeight: "700", color: "#0A2550"}}>Show on Home</span>
+            <button type="button" role="switch" aria-checked={!!v.sf?.active} aria-label="Show on Home" onClick={v.sf?.toggle} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${v.sf?.active ? "flex-end" : "flex-start"};background: ${v.sf?.active ? "#1F8A3B" : "#cfd8e3"}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
+          </label>
         </div>
         <div style={{display: "flex", gap: "10px", padding: "16px 24px", borderTop: "1px solid #eef2f6"}}>
-          <button onClick={v.closeSF} style={{flex: "1", height: "46px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", fontSize: "14px", cursor: "pointer"}}>Cancel</button>
+          <button onClick={v.closeSF} disabled={v.sf?.saving} style={{flex: "1", height: "46px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", fontSize: "14px", cursor: v.sf?.saving ? "not-allowed" : "pointer", opacity: v.sf?.saving ? ".6" : "1"}}>Cancel</button>
           <button onClick={v.saveSF} disabled={v.sf?.saving} style={{flex: "1", height: "46px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", fontSize: "14px", cursor: "pointer", opacity: v.sf?.saving ? ".6" : "1"}}>{I(v.sf?.saveLabel)}</button>
         </div>
       </div>

@@ -9,8 +9,9 @@ export function loadContacts(h: ConsoleHost, page: number) {
   const s = h.state;
   const latest = h.ticket('contacts');
   h.setState({contactLoading: true});
-  // contact=0: rows with the mobile's last 4 digits and no message (audit WEB-DP-001); View reads the message in full.
-  h.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, contact: '0', page, page_size: PAGE_SIZE})
+  // Full rows: the table shows each message (owner, 2026-11-17, reverses the "no message" part of audit WEB-DP-001);
+  // the mobile stays masked on screen and is shown in full only in View.
+  h.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
@@ -47,14 +48,18 @@ export function contactsView(h: ConsoleHost) {
       h.setState({contactQ: e.target.value});
       h.later('contacts', () => loadContacts(h, 1), 300);
     },
-    contactFilter: s.contactFilter, contactFilters: [{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}], onContactFilter: (e: FieldChange) => h.setState({contactFilter: e.target.value}, () => loadContacts(h, 1)),
+    // The server sends no counts per status, so the pills show labels only.
+    contactTabs: [{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}].map((t) => ({label: t.label, on: s.contactFilter === t.id, go: () => h.setState({contactFilter: t.id}, () => loadContacts(h, 1))})),
     contactRows: s.contacts.map((c) => {
       const done = isHandled(c);
-      // Mobile masked and no message in the table (audit WEB-DP-001); View shows both in full.
+      // Mobile masked in the table (audit WEB-DP-001); View shows it in full. The message is shown whole.
       const mobile = c.mobile_last4 ? '+91 ******' + c.mobile_last4 : maskMobile(c.mobile);
-      return {rowKey: String(c.id), time: h.fmt(c.created_at, false), name: c.name, mobile: mobile || '—', village: c.village_text || '—', status: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e', toggleLabel: done ? 'Mark new' : 'Mark handled', toggle: () => toggleContact(h, c), view: () => openContact(h, c)};
+      return {rowKey: String(c.id), time: h.fmt(c.created_at, false), name: c.name, mobile: mobile || '', village: c.village_text || '', message: c.message || '',
+        handled: done, showHandled: done && s.contactFilter === 'all', toggleLabel: done ? 'Mark new' : 'Mark handled', toggleColor: done ? '#3b4a5c' : '#1d7a33', toggle: () => toggleContact(h, c), view: () => openContact(h, c)};
     }),
-    contactCount: s.contactCount + (s.contactCount === 1 ? ' message' : ' messages'), contactEmpty: !s.contacts.length, contactEmptyText: s.contactLoading ? 'Loading…' : 'No messages match.', contactPager: pager(s.contactPage, s.contactPages, (p) => loadContacts(h, p)),
+    contactEmpty: !s.contacts.length,
+    contactEmptyText: s.contactLoading ? 'Loading…' : s.contactQ.trim() ? 'No messages match “' + s.contactQ.trim() + '”' : s.contactFilter === 'new' ? 'No new messages' : s.contactFilter === 'handled' ? 'No handled messages' : 'No messages yet',
+    contactEmptyHint: s.contactLoading || s.contactQ.trim() ? '' : "Messages from the website's Contact page. The last 90 days are shown.", contactPager: pager(s.contactPage, s.contactPages, (p) => loadContacts(h, p)),
   };
 }
 
@@ -67,7 +72,7 @@ export function contactPanelView(h: ConsoleHost) {
       const c = s.cm, done = isHandled(c), digits = mobileDigits(c.mobile);
       return {name: c.name, time: h.fmt(c.created_at, true), statusLabel: done ? 'Handled' : 'New', sbg: done ? '#e4f4df' : '#fff0dc', scolor: done ? '#1d7a33' : '#b35a0e',
         mobile: digits.length === 10 ? '+91 ' + digits : (c.mobile || '—'), tel: digits ? 'tel:' + (digits.length === 10 ? '+91' : '') + digits : '', village: c.village_text || '—', message: c.message || '',
-        toggleLabel: done ? 'Mark new' : 'Mark handled', toggleColor: done ? '#b35a0e' : '#1d7a33', toggle: () => toggleContact(h, c)};
+        toggleLabel: done ? 'Mark as new' : 'Mark handled', handled: done, toggle: () => toggleContact(h, c)};
     })() : null),
   };
 }

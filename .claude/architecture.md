@@ -44,7 +44,7 @@ src/
       dashboard.ts          Dashboard
       geography.ts          Geography and the villages CSV import
       users.ts              Users, Add User and the user panel
-      posts.ts              Posts & Moderation and the post panel
+      posts.ts              Posts and the post panel
       compose.ts            New post (photos or one video)
       reports.ts            Reports
       audit.ts              Audit log

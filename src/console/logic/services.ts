@@ -138,26 +138,26 @@ export function servicesView(h: ConsoleHost) {
       const b = s.page === 'bills', c = catalogSet(b), L = s[c.l];
       return {
         catShow: b || (s.svcView === 'catalog' && h.navOk('services')),
-        catSub: b ? "What citizens see under Bills & Recharges on the app's Home. Only the Super Admin adds or changes them." : "The services citizens can choose from on the app's Home. Only the Super Admin adds or changes them.",
+        catSub: b ? "Bills & Recharges on the app's Home." : "Services citizens can request from the app's Home.",
         catNew: b ? 'New bill / recharge' : 'New service',
         catUnavailText: b ? "The bills list is not on the server yet. Until it is, citizens see the built-in bills below, and changes can't be saved." : "The services list is not on the server yet. Until it is, citizens see the built-in list below, and changes can't be saved.",
-        catHelp: b ? 'Use the arrows to set the order on Home. A hidden bill is not on Home.' : 'Use the arrows to set the order on Home. A hidden service is not on Home; requests already sent stay as they are.',
+        catHelp: b ? 'The arrows set the order on Home.' : 'The arrows set the order on Home. Hiding a service keeps the requests already sent.',
         svcRows: L.map((g, i) => {
           const [col, tint] = SVC_COLORS[g.color] || SVC_COLORS.blue;
           const icon = g.logo ? 'img:' + g.logo : (c.icons[g.icon] || c.icons[c.icon]);
           const on = g.is_active !== false;
-          return {name: g.name_en, sub: on ? (g.name_te && g.name_te !== g.name_en ? g.name_te : 'Shown on Home') : 'Hidden', on, c: col, tint, img: icon.startsWith('img:') ? icon.slice(4) : '', d: icon.startsWith('img:') ? '' : icon,
+          return {name: g.name_en, sub: g.name_te && g.name_te !== g.name_en ? g.name_te : '', on, c: col, tint, img: icon.startsWith('img:') ? icon.slice(4) : '', d: icon.startsWith('img:') ? '' : icon,
             up: () => moveService(h, g, -1, b), down: () => moveService(h, g, 1, b), canUp: i > 0 && !s[c.un], canDown: i < L.length - 1 && !s[c.un], toggle: () => toggleService(h, g, b), open: () => openService(h, g, b), locked: s[c.un]};
         }),
         svcsUnavailable: s[c.un], svcsEmpty: !L.length, svcsEmptyText: s[c.ld] ? 'Loading…' : b ? 'No bills yet. Add one and citizens see it under Bills & Recharges.' : 'No services yet. Add one and citizens can request it from Home.',
-        svcShownLabel: 'On Home: ' + L.filter((g) => g.is_active !== false).length, newService: () => openService(h, null, b),
+        svcShownLabel: L.length ? L.filter((g) => g.is_active !== false).length + ' of ' + L.length + ' on Home' : '', newService: () => openService(h, null, b),
       };
     })(),
-    sfShow: !!sf, closeSF: () => h.setState({sf: null}), saveSF: () => saveService(h),
+    sfShow: !!sf, closeSF: () => { if (!h.state.sf?.saving) h.setState({sf: null}); }, saveSF: () => saveService(h),
     sf: orEmpty(sf ? (() => {
       const f = sf, set = catalogSet(f.bill), [c, tint] = SVC_COLORS[f.color] || SVC_COLORS.blue, icon = f.image ? 'img:' + f.image : (set.icons[f.icon] || set.icons[set.icon]);
       return {...f, err: f.tried ? svcErr(h, f) : '', c, tint, img: icon.startsWith('img:') ? icon.slice(4) : '', d: icon.startsWith('img:') ? '' : icon, preview: f.en.trim() || (f.bill ? 'e.g. Gas Booking' : 'e.g. Ration Card'),
-        title: f.bill ? (f.key ? 'Edit bill / recharge' : 'New bill / recharge') : (f.key ? 'Edit service' : 'New service'), saveLabel: f.saving ? 'Saving…' : (f.key ? 'Save' : f.bill ? 'Add bill / recharge' : 'Add service'),
+        title: f.bill ? (f.key ? 'Edit bill / recharge' : 'New bill / recharge') : (f.key ? 'Edit service' : 'New service'), saveLabel: f.saving ? 'Saving…' : (f.key ? 'Save' : 'Add'),
         onField: (e: FieldChange) => {
           const {name, value} = e.target;
           if (name === 'en') h.suggestTe('sf', value);
@@ -169,6 +169,6 @@ export function servicesView(h: ConsoleHost) {
         colors: Object.entries(SVC_COLORS).map(([k, [cc, tt, label]]) => ({label, c: cc, tint: tt, on: f.color === k, pick: () => h.setState((st) => st.sf ? {sf: {...st.sf, color: k}} : null)}))};
     })() : null),
     svcView: s.svcView, canCatalog: h.navOk('services'),
-    svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, on: s.svcView === k, go: () => h.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#6b7a8c', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
+    svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, count: k === 'requests' ? (s.reqCounts?.NEW || 0) : 0, countLabel: (s.reqCounts?.NEW || 0) + ' new', on: s.svcView === k, go: () => h.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#6b7a8c', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
   };
 }

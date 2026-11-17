@@ -48,8 +48,8 @@ export function loadUsers(h: ConsoleHost, page: number) {
   const uf = h.state.uf;
   const latest = h.ticket('users');
   h.setState({usersLoading: true});
-  h.api.get<Paged<User>>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', is_active: uf.status ? String(uf.status === 'active') : '', q: uf.q, page, page_size: PAGE_SIZE})
-    .then((d) => latest() && h.setState({users: d.results.map((u) => adaptUser(h, u)), userCount: d.count, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
+  h.api.get<Paged<User> & {counts?: {active: number; blocked: number}}>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', is_active: uf.status ? String(uf.status === 'active') : '', q: uf.q, page, page_size: PAGE_SIZE})
+    .then((d) => latest() && h.setState({users: d.results.map((u) => adaptUser(h, u)), userCount: d.count, userCounts: d.counts ? {active: d.counts.active, blocked: d.counts.blocked} : null, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
       h.setState({usersLoading: false});
@@ -129,7 +129,7 @@ export function reassignUser(h: ConsoleHost, u: AdminUser) {
     return;
   }
   const raId = u.raId;
-  h.ask({title: 'Reassign area', body: 'Move ' + u.name + ' (' + R[u.role].label + ') to a different ' + (u.role === 'district' ? 'district' : u.role === 'mandal' ? 'mandal' : 'village') + '. Their pending reviews stay with the old area.', hasSelect: true, selectLabel: 'New area', options: opts, confirmLabel: 'Reassign', bg: '#0D3B7A', onConfirm: (_t, sel) => {
+  h.ask({title: 'Reassign area', body: 'Move ' + u.name + ' (' + R[u.role].label + ') to a different ' + (u.role === 'district' ? 'district' : u.role === 'mandal' ? 'mandal' : 'village') + '. Posts already waiting for their review stay with the old area.', hasSelect: true, selectLabel: 'New area', options: opts, confirmLabel: 'Reassign', bg: '#0D3B7A', onConfirm: (_t, sel) => {
     const o = opts.find((x) => x.id === sel) || opts[0];
     if (!o) return;
     h.api.patch('/users/' + u.id + '/role-assignments/' + raId + '/', {area: {level: o.level, id: Number(o.id)}}).then(() => {
@@ -264,15 +264,19 @@ function openUser(h: ConsoleHost, u: AdminUser) {
 export function userPanelView(h: ConsoleHost) {
   const s = h.state, R = ROLE;
   const pu = s.panelUser;
-  const su = pu ? {name: pu.name, te: pu.te, initial: pu.name[0], bg: R[pu.role].bg,
-    fields: [{k: 'Role', v: R[pu.role].label}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : (pu.email || '—')}, {k: 'District', v: pu.district || '—'}, {k: 'Mandal', v: pu.mandal || '—'}, {k: 'Village', v: pu.village || '—'}, {k: 'Status', v: (pu.active ? 'Active · last login ' + pu.last : 'Blocked') + (pu.locked ? ' · locked after failed logins' : '')}],
-    posts: s.panelUserPosts.map((p) => postRow(h, p)),
+  // Header: name, role and status; Contact: how to reach them and when they last signed in; areas are in Roles.
+  const su = pu ? {name: pu.name, te: pu.te !== pu.name ? pu.te : '', initial: pu.name[0], bg: R[pu.role].bg, roleLabel: R[pu.role].label, rbg: R[pu.role].tbg, rcolor: R[pu.role].tc,
+    active: pu.active, locked: pu.locked,
+    contact: [{k: 'Username', v: pu.username, href: ''}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : '', href: pu.mobile ? 'tel:+91' + pu.mobile : ''}, {k: 'Email', v: pu.email, href: pu.email ? 'mailto:' + pu.email : ''}, {k: 'Last login', v: pu.last || 'Never', href: ''}].filter((f) => f.v),
+    posts: s.panelUserPosts.map((p) => postRow(h, p)), noPosts: !s.panelUserPosts.length,
     roles: (pu.ras || []).map((ra) => {
       const k = RK[ra.role] || 'panchayat';
-      return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(h, pu, ra)};
+      // Reassign area moves the main role's area, so it sits on that role's row.
+      return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(h, pu, ra),
+        canReassign: !!pu.raId && ra.id === pu.raId && userCan(pu, 'reassign'), reassign: () => reassignUser(h, pu)};
     }),
     canEdit: userCan(pu, 'edit'), edit: () => editUser(h, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(h).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
-    addRole: () => addRole(h, pu), reassign: () => reassignUser(h, pu), reset: () => resetPassword(h, pu), unlock: () => unlockUser(h, pu), toggle: () => toggleUser(h, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1F8A3B'} : {fields: [], posts: [], roles: []};
+    addRole: () => addRole(h, pu), reassign: () => reassignUser(h, pu), reset: () => resetPassword(h, pu), unlock: () => unlockUser(h, pu), toggle: () => toggleUser(h, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1d7a33'} : {fields: [], posts: [], roles: []};
   return {su};
 }
 
@@ -283,8 +287,9 @@ export function usersView(h: ConsoleHost) {
   // Second line under the name: the Telugu name, else the login username (never the English name twice).
   // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
   const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
-    statusLabel: u.active ? 'Active' : 'Blocked', scolor: u.active ? '#1d7a33' : '#b3261e', lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
-    canReassign: !!u.raId && userCan(u, 'reassign'), canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), reassign: () => reassignUser(h, u), toggle: () => toggleUser(h, u)}));
+    blocked: !u.active, lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
+    // Reassign area is in the user panel (View); the table keeps View and Block / Unblock.
+    canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), toggle: () => toggleUser(h, u)}));
   const nu = s.nu;
   const canNU = nuValid(nu);
   const nuRoles = roleChoices(h);
@@ -298,7 +303,15 @@ export function usersView(h: ConsoleHost) {
         h.later('users', () => loadUsers(h, 1), name === 'q' ? 300 : 0);
       });
     },
-    userRows, userCount: s.userCount, userEmpty: !userRows.length, userEmptyText: s.usersLoading ? 'Loading…' : 'No users match these filters.', usersPager: pager(s.userPage, s.userPages, (p) => loadUsers(h, p)),
+    // Status pills; counts come with the list (role, district and search applied), the server's own numbers.
+    userTabs: ([['', 'All'], ['active', 'Active'], ['blocked', 'Blocked']] as const).map(([id, label]) => {
+      const c = s.userCounts;
+      return {label, on: uf.status === id, count: c ? (id === 'active' ? c.active : id === 'blocked' ? c.blocked : c.active + c.blocked) : undefined,
+        go: () => h.setState((st) => ({uf: {...st.uf, status: id}}), () => loadUsers(h, 1))};
+    }),
+    userRows, userCount: s.userCount, userEmpty: !userRows.length,
+    userEmptyText: s.usersLoading ? 'Loading…' : uf.q.trim() || uf.role || uf.district ? 'No users match these filters' : uf.status === 'blocked' ? 'No blocked users' : 'No users yet',
+    userEmptyHint: s.usersLoading ? '' : uf.q.trim() || uf.role || uf.district ? 'Try another search or filter.' : uf.status === 'blocked' ? '' : 'Add District, Mandal and Village Admins and Panchayat members with Add user.', usersPager: pager(s.userPage, s.userPages, (p) => loadUsers(h, p)),
     nuEdit: !!nu.id, nuTitle: nu.id ? 'Edit user' : 'Add User', nuSaveLabel: nu.id ? 'Save changes' : 'Create user',
     openAddUser: () => h.setState((st) => ({drawerOpen: true, nu: {...(st.nu.id ? {id: null, name: '', te: '', email: '', username: '', mobile: '', password: '', area: '', nuD: '', nuM: ''} : st.nu), role: nuRoles.some((r) => r.id === st.nu.role) ? st.nu.role : (nuRoles[0] ? nuRoles[0].id : st.nu.role)}})),
     canAddUser: nuRoles.length > 0, nuRoles,

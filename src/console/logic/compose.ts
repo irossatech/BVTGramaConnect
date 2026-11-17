@@ -7,6 +7,7 @@ import type { Post } from "../types";
 import type { ComposeForm, FieldChange } from "../model";
 import type { ConsoleHost } from "./host";
 import { loadPosts } from "./posts";
+import { loadCategories } from "./settings";
 
 // ---- new post (the app's Compose) ----
 // Up to 3 photos, or one video, never both (lead's decision of 2026-11-13, for everyone who posts);
@@ -20,7 +21,10 @@ const CF_VIDEO_MAX_S = 60;
 
 function openCompose(h: ConsoleHost) {
   const cats = h.state.categories.filter((c) => c.is_active);
-  h.setState({cf: {cat: cats[0]?.key || '', lang: 'te', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
+  // Fresh every time the form opens (a quick request), so a category switched on meanwhile is there; the list
+  // already loaded shows at once, and if the sign-in load has not come back yet the form picks the first on arrival.
+  loadCategories(h);
+  h.setState({cf: {cat: cats[0]?.key || '', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
 }
 
 function closeCompose(h: ConsoleHost) {
@@ -29,6 +33,14 @@ function closeCompose(h: ConsoleHost) {
   f?.previews.forEach((u) => URL.revokeObjectURL(u));
   h.setState({cf: null});
 }
+
+// The post's language, read from its text: any Telugu letter makes it Telugu (as the server's translation reads it).
+function cfLang(f: ComposeForm): 'te' | 'en' {
+  return /[\u0C00-\u0C7F]/.test(f.title + f.body) ? 'te' : 'en';
+}
+
+// A counter only near the limit; until then it is noise.
+const nearLimit = (n: number, max: number) => n >= max * 0.8 ? n + ' / ' + max : '';
 
 function cfErrors(f: ComposeForm): Partial<Record<'cat' | 'title' | 'body', string>> {
   const e: Partial<Record<'cat' | 'title' | 'body', string>> = {};
@@ -167,7 +179,7 @@ function saveCompose(h: ConsoleHost) {
   setF({saving: true, step: 'Saving…'});
   const created: Promise<Post> = f.postId
     ? Promise.resolve({id: f.postId} as Post)
-    : h.api.post<Post>('/posts/', {category: f.cat, language: f.lang, title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count});
+    : h.api.post<Post>('/posts/', {category: f.cat, language: cfLang(f), title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count});
   created.then(async (p) => {
     if (!count) return p;
     setF({postId: p.id});
@@ -211,24 +223,22 @@ export function composeView(h: ConsoleHost) {
       const err = f.tried ? cfErrors(f) : {};
       const d = s.geo.find((x) => String(x.id) === f.d), m = d && d.mandals.find((x) => String(x.id) === f.m), vl = m && m.villages.find((x) => String(x.id) === f.v);
       return {
-        cat: f.cat, lang: f.lang, title: f.title, body: f.body, d: f.d, m: f.m, v: f.v, urgent: f.urgent, saving: f.saving,
+        cat: f.cat, lang: cfLang(f), title: f.title, body: f.body, d: f.d, m: f.m, v: f.v, urgent: f.urgent, saving: f.saving,
         catOpts: s.categories.filter((c) => c.is_active).map((c) => ({id: c.key, label: (c.name_en || c.key) + (c.name_te ? ' · ' + c.name_te : '')})),
         errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
-        titleCount: f.title.length + ' / 150', bodyCount: f.body.length + ' / 5000',
+        titleCount: nearLimit(f.title.length, 150), bodyCount: nearLimit(f.body.length, 5000),
         photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => removeCFPhoto(h, i)})),
         canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < CF_MAX_PHOTOS,
         photoErr: f.photoErr,
         // With photos already there only photos can be added; an empty form takes either.
         accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
         addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
-        mediaHelp: 'Up to ' + CF_MAX_PHOTOS + ' photos (JPG, PNG or WebP, up to ' + CF_MAX_MB + ' MB each), or one video (MP4 or MOV, up to ' + CF_VIDEO_MAX_MB + ' MB and ' + CF_VIDEO_MAX_S + ' seconds). Not both.',
-        photoCount: f.checking ? 'checking the video…' : f.kinds.includes('video') ? '1 video'
-          : f.files.length + ' of ' + CF_MAX_PHOTOS + ' photos, or one video',
+        mediaHelp: f.checking ? 'Checking the video…' : 'Up to ' + CF_MAX_PHOTOS + ' photos, or 1 video up to ' + CF_VIDEO_MAX_S + ' seconds.',
         toggleUrgent: () => h.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
-        showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
-        where: vl && m ? vl.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village (everyone)',
+        showM: !!d, showV: !!m,
+        where: vl ? 'Only ' + vl.name + ' village' : m ? 'All villages in ' + m.name + ' mandal' : d ? 'All villages in ' + d.name + ' district' : 'Every village',
         dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [],
-        saveLabel: f.saving ? f.step || 'Saving…' : f.postId ? 'Retry' : 'Publish post',
+        saveLabel: f.saving ? f.step || 'Saving…' : f.postId ? 'Retry' : 'Publish',
       };
     })() : null,
   };

@@ -96,7 +96,9 @@ async function send(method: Method, path: string, opts: RequestOptions = {}): Pr
   }
   let response: Response;
   try {
-    response = await fetch(buildUrl(path, opts.query), { method, headers: headers(method, extra), body: payload, credentials: "same-origin" });
+    // cache "no-cache": the console always asks the server, never a copy the browser kept. The public category list,
+    // for one, is sent cacheable for an hour (for the app), and a newly switched-on category must show at once.
+    response = await fetch(buildUrl(path, opts.query), { method, headers: headers(method, extra), body: payload, credentials: "same-origin", cache: "no-cache" });
   } catch {
     // No answer at all (offline, server down): a plain message instead of the browser's "Failed to fetch".
     throw new ApiError("The server could not be reached. Check the connection and try again.", 0, "network", {});

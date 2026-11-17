@@ -66,7 +66,7 @@ function openAd(h: ConsoleHost, a: Ad | null) {
 
 export function adErrors(f: AdForm) {
   const e: AdErrors = {};
-  if (!f.title.trim()) e.title = 'Enter a name for the ad.';
+  if (!f.title.trim()) e.title = 'Give the banner a name.';
   if (f.kind === 'image' ? !f.preview : !f.vpreview) e.image = 'Choose a picture or video for the banner.';
   const l = f.link.trim();
   // https only, as the server (audit WEB-SEC-010): a plain http:// page can be changed on its way to the citizen.
@@ -136,7 +136,7 @@ function saveAd(h: ConsoleHost) {
   h.setState({af: {...f, saving: true}});
   req.then(() => {
     h.setState({af: null});
-    h.toast((f.id ? 'Ad saved · ' : 'Ad published · ') + fields.title);
+    h.toast((f.id ? 'Banner saved · ' : 'Banner published · ') + fields.title);
     loadAds(h);
   }).catch((e: unknown) => {
     stay();
@@ -153,32 +153,51 @@ function saveAd(h: ConsoleHost) {
 
 function toggleAd(h: ConsoleHost, a: Ad) {
   h.api.patch('/admin/ads/' + a.id + '/', {is_active: !a.is_active}).then(() => {
-    h.toast((a.is_active ? 'Paused · ' : 'Showing again · ') + a.title);
+    h.toast((a.is_active ? 'Banner paused · ' : 'Banner showing · ') + a.title);
     loadAds(h);
   }).catch((e: unknown) => h.fail(e));
 }
 
 function deleteAd(h: ConsoleHost, a: Ad) {
-  h.ask({title: 'Delete this ad?', body: '"' + a.title + '" will be removed from every Home page. This cannot be undone.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => h.api.del('/admin/ads/' + a.id + '/').then(() => {
+  h.ask({title: 'Delete this banner?', body: '"' + a.title + '" is removed from every Home page. This cannot be undone.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => h.api.del('/admin/ads/' + a.id + '/').then(() => {
     h.setState({af: null});
-    h.toast('Ad deleted · ' + a.title);
+    h.toast('Banner deleted · ' + a.title);
     loadAds(h);
   }).catch((e: unknown) => h.fail(e))});
+}
+
+// Running first, then what starts later, then paused and ended ones.
+const AD_ORDER: readonly AdStatus[] = ['live', 'scheduled', 'paused', 'ended'];
+
+// "17 Nov 2026 – 30 Nov 2026", "From 17 Nov 2026 · no end date", "Until 30 Nov 2026".
+function adDates(a: Ad) {
+  const from = dayLabel(a.starts_on), to = dayLabel(a.ends_on);
+  if (from && to) return from + ' – ' + to;
+  if (to) return 'Until ' + to;
+  return (from ? 'From ' + from + ' · ' : '') + 'no end date';
 }
 
 /** The page's renderVals() values (screens/Ads.tsx). */
 export function adsView(h: ConsoleHost) {
   const s = h.state;
+  const withStatus = s.ads.map((a) => ({a, k: adStatus(a)})).sort((x, y) => AD_ORDER.indexOf(x.k) - AD_ORDER.indexOf(y.k));
+  const shown = withStatus.filter((x) => s.adTab === 'all' || x.k === s.adTab);
+  const adTabs = [{id: 'all', label: 'All', count: s.ads.length}, ...AD_ORDER.map((k) => ({id: k, label: AD_STATUS[k].label, count: withStatus.filter((x) => x.k === k).length}))]
+    .map((t) => ({...t, on: s.adTab === t.id, go: () => h.setState({adTab: t.id})}));
+  const tabName = s.adTab === 'all' ? '' : AD_STATUS[s.adTab as AdStatus].label.toLowerCase() + ' ';
   return {
-    newAd: () => openAd(h, null), adsCountLabel: s.ads.filter((a) => adStatus(a) === 'live').length + ' running · ' + s.ads.length + ' in all', adsEmpty: !s.ads.length, adsUnavailable: s.adsUnavailable,
-    adsEmptyText: s.adsLoading ? 'Loading…' : s.adsUnavailable ? 'Ads will show here once the server is updated.' : 'No ads yet. Create one and it shows at the top of Home in the villages you choose.',
-    adSel: h.selView('adSel', s.ads.map((a) => a.id), (n) => ({title: 'Delete ' + n + ' ad' + (n === 1 ? '' : 's') + '?', body: 'They are removed from every Home page, with their pictures. This cannot be undone.', confirm: 'Delete ' + n, url: (id) => '/admin/ads/' + id + '/', done: () => loadAds(h)})),
-    adRows: s.ads.map((a) => {
-      const k = adStatus(a);
+    newAd: () => openAd(h, null), adTabs, adsEmpty: !shown.length, adsUnavailable: s.adsUnavailable,
+    adsEmptyText: s.adsLoading ? 'Loading…' : s.adsUnavailable ? 'Banners will show here once the server is updated' : s.ads.length ? 'No ' + tabName + 'banners' : 'No banners yet',
+    // Where banners show, only when there are none at all.
+    adsEmptyHint: s.adsLoading || s.adsUnavailable || s.ads.length ? '' : "Banners show at the top of citizens' Home, in their area and on their dates.",
+    adSel: h.selView('adSel', shown.map((x) => x.a.id), (n) => ({title: 'Delete ' + n + ' banner' + (n === 1 ? '' : 's') + '?', body: 'They are removed from every Home page. This cannot be undone.', confirm: 'Delete ' + n, url: (id) => '/admin/ads/' + id + '/', done: () => loadAds(h)})),
+    adRows: shown.map(({a, k}) => {
       const S = AD_STATUS[k];
       const ar = a.area;
-      return {rowKey: String(a.id), sel: s.adSel.includes(a.id), toggleSel: () => h.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video, area: !ar || ar.level === 'STATE' ? 'All villages' : ar.name + ' ' + ar.level.toLowerCase(),
-        dates: [a.starts_on ? 'From ' + dayLabel(a.starts_on) : '', a.ends_on ? 'till ' + dayLabel(a.ends_on) : 'no end date'].filter(Boolean).join(' '), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => toggleAd(h, a), open: () => openAd(h, a)};
+      return {rowKey: String(a.id), sel: s.adSel.includes(a.id), toggleSel: () => h.toggleSel('adSel', a.id), title: a.title, image: a.image, isVideo: !!a.video,
+        // A frame one second in: the server's poster is a plain grey placeholder while it has no ffmpeg.
+        frame: a.video ? a.video + '#t=1' : '', area: !ar || ar.level === 'STATE' ? 'Every village' : ar.name + ' ' + ar.level.toLowerCase(),
+        dates: adDates(a), status: S.label, sbg: S.bg, scolor: S.color, dim: k === 'live' ? 1 : .55, canToggle: k !== 'ended', on: !!a.is_active, toggle: () => toggleAd(h, a), open: () => openAd(h, a)};
     }),
   };
 }
@@ -188,7 +207,7 @@ export function adFormView(h: ConsoleHost) {
   const s = h.state;
   const af = s.af;
   return {
-    afShow: !!af, closeAF: () => h.setState({af: null}), pickAdMedia: () => pickAdMedia(h), saveAF: () => saveAd(h),
+    afShow: !!af, closeAF: () => { if (!h.state.af?.saving) h.setState({af: null}); }, pickAdMedia: () => pickAdMedia(h), saveAF: () => saveAd(h),
     onAF: (e: FieldChange) => {
       const t = e.target;
       const name = t.name;
@@ -210,7 +229,7 @@ export function adFormView(h: ConsoleHost) {
       const d = s.geo.find((x) => String(x.id) === f.d);
       const m = d && d.mandals.find((x) => String(x.id) === f.m);
       const v = m && m.villages.find((x) => String(x.id) === f.v);
-      return {...f, title_: f.id ? 'Edit ad' : 'New ad', saveLabel: f.saving ? 'Saving…' : f.id ? 'Save' : 'Publish ad', isEdit: !!f.id,
+      return {...f, title_: f.id ? 'Edit banner' : 'New banner', saveLabel: f.saving ? (f.vfile ? 'Uploading…' : 'Saving…') : f.id ? 'Save' : 'Publish', isEdit: !!f.id,
         del: () => {
           const ad = s.ads.find((a) => a.id === f.id);
           if (ad) deleteAd(h, ad);
@@ -218,11 +237,11 @@ export function adFormView(h: ConsoleHost) {
         // A refused file says why at once; a missing banner only after "Publish".
         errTitle: err.title || '', errImage: f.verr || err.image || '', errLink: err.link || '', errEnd: err.end || '',
         isVideo: f.kind === 'video',
-        mediaHint: f.vchecking ? 'Checking video length…' : 'A wide 3:2 picture (JPG or PNG, up to 5 MB), or a video of any length (MP4 or MOV, up to ' + AD_VIDEO_MAX_MB + ' MB)',
+        mediaHint: f.vchecking ? 'Checking the video…' : 'Wide 3:2 picture (up to 5 MB) or video (up to ' + AD_VIDEO_MAX_MB + ' MB)',
         durLabel: f.dur ? Math.floor(f.dur / 60) + ':' + String(f.dur % 60).padStart(2, '0') : '',
         toggleActive: () => h.setState((x) => x.af ? {af: {...x.af, active: !x.af.active}} : null),
-        showM: !!d, showV: !!m, allM: d ? 'All mandals in ' + d.name : '', allV: m ? 'All villages in ' + m.name : '',
-        where: v && m ? v.name + ' village only, ' + m.name + ' mandal' : m && d ? 'all villages of ' + m.name + ' mandal, ' + d.name : d ? 'all villages of ' + d.name + ' district' : 'every village',
+        showM: !!d, showV: !!m,
+        where: v ? 'Only ' + v.name + ' village' : m ? 'All villages in ' + m.name + ' mandal' : d ? 'All villages in ' + d.name + ' district' : 'Every village',
         dOpts: s.geo.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})), mOpts: d ? d.mandals.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : [], vOpts: m ? m.villages.filter((x) => x.active).map((x) => ({id: String(x.id), label: x.name})) : []};
     })() : null,
   };

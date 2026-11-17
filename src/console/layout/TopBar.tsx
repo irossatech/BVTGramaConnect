@@ -5,24 +5,24 @@ import Notifications from "./Notifications";
 
 export default function TopBar({ v }: { v: View }) {
   return (
-    <header className="sa-top" style={{height: "64px", flexShrink: "0", background: "#fff", borderBottom: "1px solid #eef2f6", display: "flex", alignItems: "center", gap: "16px", padding: "0 28px", position: "relative", zIndex: "30"}}>
+    <header className="sa-top" style={{height: "64px", flexShrink: "0", background: "#fff", borderBottom: "1px solid #eef2f6", display: "flex", alignItems: "center", gap: "12px", padding: "0 28px", position: "relative", zIndex: "30"}}>
       <button className="sa-burger" onClick={v.toggleNav} aria-label="Menu" aria-controls="sa-nav" aria-expanded={!!v.navOpen} style={{display: "none", width: "44px", height: "44px", marginLeft: "-8px", border: "0", borderRadius: "10px", background: "transparent", color: "#0A2550", cursor: "pointer", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
       <div className="sa-title" style={{fontFamily: "'Rubik',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", flex: "1", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(v.pageTitle)}</div>
-      <div className="sa-search" style={{display: "flex", alignItems: "center", gap: "8px", height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#f7f9fb", width: "280px", color: "#6b7a8c"}}>
+      <div className="sa-search" style={{display: "flex", alignItems: "center", gap: "10px", height: "40px", padding: "0 16px", boxSizing: "border-box", border: "1px solid #e3e8ef", borderRadius: "999px", background: "#f7f9fb", width: "300px", color: "#6b7a8c", marginRight: "4px"}}>
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-        <input value={val(v.gsearch, "")} onChange={v.onGSearch} placeholder="Search posts…" aria-label="Search posts" style={{flex: "1", border: "0", background: "transparent", outline: "none", fontSize: "13px"}} />
+        <input value={val(v.gsearch, "")} onChange={v.onGSearch} placeholder="Search posts…" aria-label="Search posts" style={{flex: "1", minWidth: "0", border: "0", background: "transparent", outline: "none", fontSize: "14px", color: "#17212e"}} />
       </div>
       <span style={{position: "relative", display: "flex"}}>
-        <button onClick={v.toggleNotifs} aria-label={v.notifUnread ? "Notifications, " + v.notifBadge + " unread" : "Notifications"} aria-expanded={!!v.notifOpen} aria-controls="sa-notifs" style={{width: "40px", height: "40px", border: "0", borderRadius: "10px", background: v.notifOpen ? "#eef4fb" : "transparent", color: v.notifOpen ? "#0D3B7A" : "#3b4a5c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative"}}>
+        <button onClick={v.toggleNotifs} aria-label={v.notifUnread ? "Notifications, " + v.notifBadge + " unread" : "Notifications"} aria-expanded={!!v.notifOpen} aria-controls="sa-notifs" style={{width: "40px", height: "40px", boxSizing: "border-box", border: "1px solid " + (v.notifOpen ? "#c9dbf0" : "#e3e8ef"), borderRadius: "999px", background: v.notifOpen ? "#eef4fb" : "#fff", color: v.notifOpen ? "#0D3B7A" : "#3b4a5c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative"}}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-          {v.notifUnread ? <span aria-hidden="true" style={{position: "absolute", top: "3px", right: "2px", minWidth: "18px", height: "18px", padding: "0 5px", boxSizing: "border-box", borderRadius: "999px", background: "#E9791E", color: "#fff", border: "2px solid #fff", fontSize: "10px", fontWeight: "700", lineHeight: "14px", textAlign: "center", fontFamily: "'Rubik',sans-serif"}}>{I(v.notifBadge)}</span> : null}
+          {v.notifUnread ? <span aria-hidden="true" style={{position: "absolute", top: "-4px", right: "-4px", minWidth: "18px", height: "18px", padding: "0 5px", boxSizing: "border-box", borderRadius: "999px", background: "#E9791E", color: "#fff", border: "2px solid #fff", fontSize: "10px", fontWeight: "700", lineHeight: "14px", textAlign: "center", fontFamily: "'Rubik',sans-serif"}}>{I(v.notifBadge)}</span> : null}
         </button>
         {v.notifOpen ? <Notifications v={v} /> : null}
       </span>
-      <button onClick={v.toggleMenu} style={{display: "flex", alignItems: "center", gap: "10px", height: "42px", padding: "0 10px 0 4px", border: "1px solid #eef2f6", borderRadius: "999px", background: "#fff", cursor: "pointer"}}>
-        <span style={{width: "34px", height: "34px", borderRadius: "50%", background: "#0D3B7A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Rubik',sans-serif", fontWeight: "700"}}>{I(v.meInitial)}</span>
+      <button onClick={v.toggleMenu} style={{display: "flex", alignItems: "center", gap: "10px", height: "40px", boxSizing: "border-box", padding: "0 12px 0 3px", border: "1px solid #e3e8ef", borderRadius: "999px", background: "#fff", cursor: "pointer"}}>
+        <span style={{width: "32px", height: "32px", borderRadius: "50%", background: "#0D3B7A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "14px"}}>{I(v.meInitial)}</span>
         <span className="sa-me" style={{textAlign: "left", lineHeight: "1.2"}}>
           <span style={{display: "block", fontWeight: "700", fontSize: "13px", color: "#0A2550"}}>{I(v.meName)}</span>
           <span style={{display: "block", fontSize: "11px", color: "#6b7a8c"}}>Super Admin</span>

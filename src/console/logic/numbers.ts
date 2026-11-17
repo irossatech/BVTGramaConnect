@@ -3,7 +3,7 @@
 // Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls /admin/contacts/, /contact-types/ and
 // /admin/contact-types/ (.claude/api.md, contract section 14).
 import type { AdminContact, AdminContactType, ContactImportResult, ContactTypeRef, ListOrPage, Paged } from "../types";
-import { isRowError, isStatus, orEmpty, pageCount, pager, PAGE_SIZE, pickFile, reportErrors, rows, type FieldChange, type NumTab, type TypeForm } from "../model";
+import { isRowError, isStatus, orEmpty, pageCount, pager, PAGE_SIZE, pickFile, reportErrors, rows, type FieldChange, type NumTab, type TypeForm, type NumberForm } from "../model";
 import type { ConsoleHost } from "./host";
 
 // The role key whose areas a number at this level can be given (for the area picker).
@@ -35,11 +35,37 @@ function phoneDigits(p: string) {
   return d.startsWith('+91') ? d.slice(3) : /^91\d{10}$/.test(d) ? d.slice(2) : d;
 }
 
+// The district and mandal an area sits in, to start the District → Mandal → Village steps of an existing number.
+function stepsOf(h: ConsoleHost, level: string, id: string): {nfD: string; nfM: string} {
+  for (const d of h.state.geo) {
+    if (level === 'DISTRICT' && String(d.id) === id) return {nfD: id, nfM: ''};
+    for (const m of d.mandals) {
+      if (level === 'MANDAL' && String(m.id) === id) return {nfD: String(d.id), nfM: id};
+      if (level === 'VILLAGE' && m.villages.some((v) => String(v.id) === id)) return {nfD: String(d.id), nfM: String(m.id)};
+    }
+  }
+  return {nfD: '', nfM: ''};
+}
+
+// District, then Mandal, then Village, as far as the number's level goes (Add user's steps).
+function placeSteps(h: ConsoleHost, f: NumberForm) {
+  const g = h.state.geo.filter((d) => d.active);
+  const d = g.find((x) => String(x.id) === f.nfD);
+  const m = d && d.mandals.find((x) => String(x.id) === f.nfM);
+  const opt = (x: {id: number | string; active: boolean}) => x.active;
+  const steps = [{key: 'nfD', label: 'District', ph: 'Choose a district', value: f.nfD || '', options: g.map((x) => ({id: String(x.id), label: h.nl(x)}))}];
+  if (f.level !== 'DISTRICT' && d) steps.push({key: 'nfM', label: 'Mandal', ph: 'Choose a mandal', value: f.nfM || '', options: d.mandals.filter(opt).map((x) => ({id: String(x.id), label: h.nl(x)}))});
+  if (f.level === 'VILLAGE' && m) steps.push({key: 'area', label: 'Village', ph: 'Choose a village', value: f.area || '', options: m.villages.filter(opt).map((x) => ({id: String(x.id), label: h.nl(x)}))});
+  const v = m && m.villages.find((x) => String(x.id) === f.area);
+  const place = !f.area ? '' : [f.level === 'VILLAGE' && v ? v.name : null, f.level !== 'DISTRICT' && m ? m.name : null, d ? d.name : null].filter(Boolean).join(' · ');
+  return {steps, place};
+}
+
 function openNumber(h: ConsoleHost, c: AdminContact | null) {
   const a = c && c.area && c.area.level !== 'STATE' ? c.area : null;
   h.setState({nf: c
-    ? {id: c.id, section: c.type.section, type: c.type.key, typeObj: {...c.type, is_other: !!c.custom_type}, custom: c.custom_type || '', name: c.name, te: c.name_te || '', phone: c.phone, email: c.email || '', level: a ? a.level : 'VILLAGE', area: a ? String(a.id) : '', sort: String(c.sort_order == null ? 100 : c.sort_order), consent: !!c.consent_recorded}
-    : {id: null, section: h.state.numTab === 'HELPLINE' ? 'HELPLINE' : 'AREA', type: '', custom: '', name: '', te: '', phone: '', email: '', level: 'VILLAGE', area: '', sort: '100', consent: false}});
+    ? {id: c.id, section: c.type.section, type: c.type.key, typeObj: {...c.type, is_other: !!c.custom_type}, custom: c.custom_type || '', name: c.name, te: c.name_te || '', phone: c.phone, email: c.email || '', level: a ? a.level : 'VILLAGE', area: a ? String(a.id) : '', ...(a ? stepsOf(h, a.level, String(a.id)) : {nfD: '', nfM: ''}), sort: String(c.sort_order == null ? 100 : c.sort_order), consent: !!c.consent_recorded}
+    : {id: null, section: h.state.numTab === 'HELPLINE' ? 'HELPLINE' : 'AREA', type: '', custom: '', name: '', te: '', phone: '', email: '', level: 'VILLAGE', area: '', nfD: '', nfM: '', sort: '100', consent: false}});
 }
 
 function nfView(h: ConsoleHost) {
@@ -51,7 +77,7 @@ function nfView(h: ConsoleHost) {
   if (own && !types.some((x) => x.key === own.key)) types.unshift(own);
   const type = types.find((x) => x.key === f.type) || types[0] || null;
   const areas = f.section === 'AREA' ? h.areaOptions(LVROLE[f.level]) : [];
-  const area = areas.find((x) => x.id === f.area) || areas[0] || null;
+  const area = areas.find((x) => x.id === f.area) || null; // picked through the steps, never a silent first one
   const mobile = /^[6-9]\d{9}$/.test(phoneDigits(f.phone));
   const ok = !!(f.name.trim() && phoneDigits(f.phone) && type && (!type.is_other || f.custom.trim()) && (f.section !== 'AREA' || area) && (!mobile || f.consent) && (!f.email.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())));
   return {f, types, type, areas, area, mobile, ok};
@@ -184,7 +210,7 @@ export function numbersView(h: ConsoleHost) {
   const numTabList: {id: NumTab; label: string}[] = [{id: 'AREA', label: 'For villages'}, {id: 'HELPLINE', label: 'Government helplines'}, ...(h.can('contacts.manage_contact_types') ? [{id: 'TYPES' as const, label: 'Types'}] : [])];
   const numTabs = numTabList.map((t) => {
     const on = s.numTab === t.id;
-    return {label: t.label, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', go: () => h.setState({numTab: t.id, numType: '', nf: null}, () => { if (t.id === 'TYPES') loadTypes(h); else loadNumbers(h, 1); })};
+    return {label: t.label, on, go: () => h.setState({numTab: t.id, numType: '', nf: null}, () => { if (t.id === 'TYPES') loadTypes(h); else loadNumbers(h, 1); })};
   });
   const numIds = s.nums.filter((c) => (c.allowed_actions || []).includes('remove')).map((c) => c.id);
   const numRows = s.nums.map((c) => {
@@ -195,7 +221,7 @@ export function numbersView(h: ConsoleHost) {
       sbg: rc ? '#fff0dc' : '#e4f4df', scolor: rc ? '#b35a0e' : '#1d7a33', canEdit: al.includes('edit'), canVerify: al.includes('verify'), canRemove: al.includes('remove'), edit: () => openNumber(h, c), verify: () => verifyNumber(h, c), remove: () => removeNumber(h, c)};
   });
   // "Other" is not a type: not listed
-  const typeRows = s.ctypesAdmin.filter((t) => !t.is_other).map((t) => ({key: t.key, section: t.section === 'HELPLINE' ? 'Government helplines' : 'For villages', en: t.name_en, te: t.name_te, count: String(t.contact_count), ...sw(t.is_active), toggle: () => toggleType(h, t), edit: () => editType(h, t), del: () => deleteType(h, t)}));
+  const typeRows = s.ctypesAdmin.filter((t) => !t.is_other).map((t) => ({key: t.key, section: t.section === 'HELPLINE' ? 'Government helplines' : 'For villages', en: t.name_en, te: t.name_te, count: t.contact_count, on: !!t.is_active, ...sw(t.is_active), toggle: () => toggleType(h, t), edit: () => editType(h, t), del: () => deleteType(h, t)}));
   const nv = nfView(h);
   const tf: Partial<TypeForm> = s.tf || {};
   const tfErr: Partial<{en: string; te: string}> = s.tf && s.tf.tried ? tfErrs(s.tf) : {};
@@ -208,7 +234,9 @@ export function numbersView(h: ConsoleHost) {
     },
     numType: s.numType, numTypeOpts: [{id: '', label: 'All types'}, ...s.ctypes.filter((x) => x.section === s.numTab).map((x) => ({id: x.key, label: x.name}))], onNumType: (e: FieldChange) => h.setState({numType: e.target.value}, () => loadNumbers(h, 1)),
     numAreaFilter: s.numTab === 'AREA' && s.geo.length > 1, numDistrict: s.numDistrict, numDistrictOpts: [{id: '', label: 'All districts'}, ...districtOpts], onNumDistrict: (e: FieldChange) => h.setState({numDistrict: e.target.value}, () => loadNumbers(h, 1)),
-    numCount: s.numCount + (s.numCount === 1 ? ' number' : ' numbers'), numEmpty: !numRows.length, numEmptyText: s.numLoading ? 'Loading…' : (s.numQ || s.numType || s.numDistrict ? 'No numbers match.' : 'No numbers yet. Add one, or import a CSV file.'), numPager: pager(s.numPage, s.numPages, (p) => loadNumbers(h, p)), addNumber: () => openNumber(h, null), importNumbers: () => importNumbers(h), addType: () => addType(h),
+    numCount: s.numCount + (s.numCount === 1 ? ' number' : ' numbers'), numEmpty: !numRows.length,
+    numEmptyText: s.numLoading ? 'Loading…' : s.numQ || s.numType || s.numDistrict ? 'No numbers match' : s.numTab === 'HELPLINE' ? 'No helplines yet' : 'No numbers yet',
+    numEmptyHint: s.numLoading ? '' : s.numQ || s.numType || s.numDistrict ? 'Try another search or filter.' : 'Add a number, or import many at once from a CSV file.', numPager: pager(s.numPage, s.numPages, (p) => loadNumbers(h, p)), addNumber: () => openNumber(h, null), importNumbers: () => importNumbers(h), addType: () => addType(h),
     tfShow: !!s.tf, tf, tfErr, tfSaveLabel: s.tf && s.tf.saving ? (s.tf.id ? 'Saving…' : 'Adding…') : (s.tf && s.tf.id ? 'Save' : 'Add type'), tfTitle: s.tf && s.tf.id ? 'Edit contact type' : 'Add contact type', tfEditing: !!(s.tf && s.tf.id), tfSectionLabel: s.tf && s.tf.section === 'HELPLINE' ? 'Government helplines' : 'For villages', closeTF: () => h.setState({tf: null}), saveTF: () => saveType(h),
     onTF: (e: FieldChange) => {
       const {name, value} = e.target;
@@ -218,7 +246,7 @@ export function numbersView(h: ConsoleHost) {
     tfSections: [{id: 'AREA', label: 'For villages', sub: 'Numbers for a district, mandal or village, such as a VRO or Mee Seva centre.'}, {id: 'HELPLINE', label: 'Government helplines', sub: 'Statewide numbers every citizen sees, such as 108 or 1912.'}].map((o) => ({...o, on: s.tf && s.tf.section === o.id, pick: () => h.setState((st) => st.tf ? {tf: {...st.tf, section: o.id}} : null)})),
     nfShow: !!nv, nf: orEmpty(nv ? {...nv.f, type: nv.type ? nv.type.key : '', area: nv.area ? nv.area.id : ''} : null), nfTitle: nv ? (nv.f.id ? 'Edit number' : nv.f.section === 'HELPLINE' ? 'Add helpline' : 'Add number') : '', nfSaveLabel: nv && nv.f.id ? 'Save changes' : 'Add number',
     nfTypes: nv ? [...nv.types.map((x) => ({id: x.key, label: x.name})), ...(h.can('contacts.manage_contact_types') ? [{id: '__new', label: '+ Add a new type…'}] : [])] : [], nfIsOther: !!(nv && nv.type && nv.type.is_other), nfIsArea: !!(nv && nv.f.section === 'AREA'),
-    nfLevels: [{id: 'VILLAGE', label: 'Village'}, {id: 'MANDAL', label: 'Mandal'}, {id: 'DISTRICT', label: 'District'}], nfAreas: nv ? nv.areas : [], nfMobile: !!(nv && nv.mobile),
+    nfLevels: [{id: 'VILLAGE', label: 'Village'}, {id: 'MANDAL', label: 'Mandal'}, {id: 'DISTRICT', label: 'District'}], nfAreas: nv ? nv.areas : [], ...(nv && nv.f.section === 'AREA' ? (({steps, place}) => ({nfSteps: steps, nfPlace: place}))(placeSteps(h, nv.f)) : {nfSteps: [], nfPlace: ''}), nfLevelLabel: nv ? ({VILLAGE: 'Village', MANDAL: 'Mandal', DISTRICT: 'District'} as Record<string, string>)[nv.f.level] || '' : '', nfMobile: !!(nv && nv.mobile),
     onNF: (e: FieldChange) => {
       const t = e.target;
       const {name, value} = t;
@@ -231,7 +259,10 @@ export function numbersView(h: ConsoleHost) {
       h.setState((st) => {
         if (!st.nf) return null;
         const n = {...st.nf, [name]: next};
-        if (name === 'level') n.area = '';
+        // Each step clears the ones after it; the step at the number's level is its area (Add user's areaPick).
+        if (name === 'level') Object.assign(n, {area: '', nfD: '', nfM: ''});
+        if (name === 'nfD') Object.assign(n, {nfM: '', area: n.level === 'DISTRICT' ? value : ''});
+        if (name === 'nfM') n.area = n.level === 'MANDAL' ? value : '';
         if (name === 'type') n.custom = '';
         return {nf: n};
       });

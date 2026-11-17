@@ -23,18 +23,19 @@ export default function DetailPanel({ v }: { v: View }) {
           {v.panel?.isUser ? <UserDetail v={v} /> : null}
         </div>
         {v.panel?.isPost ? <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", flexWrap: "wrap", gap: "10px", background: "#fff"}}>
+            {v.sp?.noActions ? <span style={{fontSize: "13px", color: "#6b7a8c"}}>No actions available for this post.</span> : null}
             {list(v.sp?.actions).map((_a, _i1) => (
               <React.Fragment key={_i1}>
                 <button onClick={_a?.go} style={css(`height:42px;padding:0 18px;border-radius:999px;font-weight:700;cursor:pointer;font-size:13px;border:1.5px solid ${_a?.border ?? ""};background: ${_a?.bg ?? ""};color: ${_a?.color ?? ""}`)}>{I(_a?.label)}</button>
               </React.Fragment>
             ))}
           </div> : null}
-        {v.panel?.isUser ? <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", flexWrap: "wrap", gap: "10px"}}>
-            {v.su?.canEdit ? <button onClick={v.su?.edit} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Edit details</button> : null}
-            {v.su?.canReassign ? <button onClick={v.su?.reassign} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Reassign area</button> : null}
-            {v.su?.canReset ? <button onClick={v.su?.reset} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Reset password</button> : null}
-            {v.su?.canUnlock ? <button onClick={v.su?.unlock} style={{height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Unlock</button> : null}
-            {v.su?.canToggle ? <button onClick={v.su?.toggle} style={css(`height:42px;padding:0 18px;border-radius:999px;font-weight:700;cursor:pointer;font-size:13px;border:0;color:#fff;background: ${v.su?.tbg ?? ""}`)}>{I(v.su?.toggleLabel)}</button> : null}
+        {/* Block on the left, on its own; Reset password and Edit details on the right. Change area and Unlock are in the panel. */}
+        {v.panel?.isUser ? <div style={{padding: "14px 24px", borderTop: "1px solid #eef2f6", display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center"}}>
+            {v.su?.canToggle ? <button onClick={v.su?.toggle} style={css(`height:40px;padding:0 16px;border-radius:999px;font-weight:700;cursor:pointer;font-size:13px;background:#fff;border:1.5px solid ${v.su?.tbg ?? ""};color: ${v.su?.tbg ?? ""}`)}>{I(v.su?.toggleLabel)}</button> : null}
+            <span style={{flex: "1"}} />
+            {v.su?.canReset ? <button onClick={v.su?.reset} style={{height: "40px", padding: "0 16px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Reset password</button> : null}
+            {v.su?.canEdit ? <button onClick={v.su?.edit} style={{height: "40px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "0", background: "#0D3B7A", color: "#fff"}}>Edit details</button> : null}
           </div> : null}
       </div>
       {" "}

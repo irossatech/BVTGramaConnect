@@ -1,5 +1,6 @@
 // Add or edit a user.
 import React from "react";
+import { SearchSelect } from "../ui/parts";
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -63,12 +64,12 @@ export default function UserDrawer({ v }: { v: View }) {
           {list(v.nuSteps).map((_st) => (
             <label key={_st.key} style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(_st.label)}</span>
-              <select name={_st.key} value={val(_st.value, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+              <SearchSelect name={_st.key} value={val(_st.value, "")} onChange={v.onNU} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
                 <option value="" disabled>{_st.ph}</option>
                 {list(_st.options).map((_o) => (
                   <option key={_o.id} value={val(_o?.id, "")}>{_o?.label}</option>
                 ))}
-              </select>
+              </SearchSelect>
             </label>
           ))}
           {v.noDistricts ? <div role="alert" style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: "#fff0dc", color: "#b35a0e", lineHeight: "1.5"}}>

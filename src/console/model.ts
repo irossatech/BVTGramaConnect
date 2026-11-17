@@ -14,7 +14,7 @@ export type Screen = "checking" | "login" | "change_password" | "app";
 export type PageKey = "dashboard" | "geography" | "users" | "posts" | "requests" | "bills" | "ads" | "reports" | "audit" | "contact" | "numbers" | "settings";
 /** A page, or the services list (a view of the requests page with its own permissions). */
 export type NavKey = PageKey | "services";
-export type StatusTab = "All" | "Pending" | "Published" | "Recheck" | "Discarded" | "TakenDown";
+export type StatusTab = "All" | "Pending" | "Escalated" | "Published" | "Recheck" | "Rejected";
 export type NumTab = "AREA" | "HELPLINE" | "TYPES";
 export type SvcView = "requests" | "catalog";
 export type GeoKind = "district" | "mandal" | "village";
@@ -68,7 +68,6 @@ export interface ModalSpec {
 /** The New post panel (same fields as the app's Compose). */
 export interface ComposeForm {
   cat: string;
-  lang: string;
   title: string;
   body: string;
   d: string;
@@ -222,6 +221,9 @@ export interface PostRow {
   media: Media[];
   videos: Media[];
   urgent: boolean;
+  /** Pending past the review time limit and sent up a level (the server's `escalated`). */
+  escalated?: boolean;
+  escalationLevel?: string;
   event: PostEvent | null;
   allowed: string[];
   citizen: PostCitizen | null;
@@ -305,6 +307,9 @@ export interface NumberForm {
   email: string;
   level: string;
   area: string;
+  /** The district and mandal picked on the way to the area (as in Add user). */
+  nfD?: string;
+  nfM?: string;
   sort: string;
   consent: boolean;
 }
@@ -327,7 +332,7 @@ export interface ImportProgress {
   name: string;
 }
 
-export type SelKey = "numSel" | "adSel";
+export type SelKey = "numSel" | "adSel" | "postSel";
 export type SelId = string | number;
 
 export interface BulkOptions {
@@ -391,6 +396,8 @@ export interface State {
   geoForm: GeoForm | null;
   users: AdminUser[];
   userCount: number;
+  /** The list's own active / blocked counts (role, district and search applied; not status), for the status pills. */
+  userCounts: { active: number; blocked: number } | null;
   userPage: number;
   userPages: number;
   usersLoading: boolean;
@@ -432,6 +439,10 @@ export interface State {
   statusTab: StatusTab;
   numSel: SelId[];
   adSel: SelId[];
+  /** Sponsored banners: the status tab ("all" or one AdStatus). */
+  adTab: string;
+  /** Waiting posts ticked on the Posts page for Publish / Discard selected. */
+  postSel: SelId[];
   bulk: string;
   panel: Panel | null;
   panelPost: PostRow | null;
@@ -442,6 +453,10 @@ export interface State {
   nu: NewUserForm;
   audit: AuditEntry[];
   auditCount: number;
+  /** The period the server lists (`window`: from, to), e.g. "19 Aug – 17 Nov 2026". */
+  auditWindow: string;
+  /** The Audit log entry open in its details panel. */
+  auditOpen: AuditEntry | null;
   auditPage: number;
   auditPages: number;
   auditQ: string;
@@ -472,6 +487,8 @@ export interface State {
   nf: NumberForm | null;
   tf: TypeForm | null;
   dash: Dashboard | null;
+  /** The Users list's own active/blocked counts, so the Dashboard cards match the list they open. */
+  dashPeople: { active: number; blocked: number } | null;
   reports: { summary: ReportSummary | null; byArea: ReportDistrict[]; reviewTime: ReportReviewTime[]; activity: ReportActivity[] };
   categories: Category[];
   settings: SettingsState;

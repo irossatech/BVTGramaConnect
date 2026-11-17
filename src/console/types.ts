@@ -177,6 +177,10 @@ export interface Post {
   targets?: Area[];
   event?: PostEvent | null;
   is_urgent?: boolean;
+  escalated?: boolean;
+  escalation_level?: string;
+  /** The public website link while published; null when not published or the server has no public address. */
+  share_url?: string | null;
   media?: Media[];
   author?: Actor;
   created_at: string;
@@ -213,8 +217,12 @@ export interface AuditEntry {
   action: string;
   target_label?: string;
   area?: Area | null;
-  /** The changed fields (may hold emails and mobiles). The console never shows them and drops them on load. */
+  /** Who or what did it: "console", "app", "citizen", "system"… */
+  via?: string;
+  /** The changed fields (may hold emails and mobiles). The console drops them on load, keeping only `summary`. */
   data?: unknown;
+  /** A short, safe line from `data` for the few actions with nothing in target_label (logic/audit.ts summaryOf). */
+  summary?: string;
 }
 
 export interface Dashboard {
@@ -226,8 +234,10 @@ export interface Dashboard {
     escalated: number;
     published_today: number;
     active_admins: number;
+    active_users?: number;
     blocked_users: number;
   };
+  escalation_hours?: number;
   posts_per_day: { date: string; submitted: number; published: number }[];
   pending_by_district: { district: Area; name_te?: string; pending: number; oldest_pending_hours: number | null }[];
   recent_activity: AuditEntry[];

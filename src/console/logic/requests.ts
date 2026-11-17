@@ -77,11 +77,11 @@ function assignRequest(h: ConsoleHost, r: ServiceRequest, id: string) {
 export function requestsView(h: ConsoleHost) {
   const s = h.state;
   return {
-    reqTabs: [...Object.keys(SVC_STATUS), 'ALL'].map((k) => {
+    reqTabs: ['ALL', ...Object.keys(SVC_STATUS)].map((k) => {
       const on = s.reqFilter === k;
       const c = s.reqCounts || {};
       const n = k === 'ALL' ? Object.values(c).reduce((a, b) => a + (b || 0), 0) : (c[k] || 0);
-      return {label: k === 'ALL' ? 'All' : SVC_STATUS[k].label, count: n, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => h.setState({reqFilter: k}, () => loadRequests(h, 1))};
+      return {label: k === 'ALL' ? 'All' : SVC_STATUS[k].label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => h.setState({reqFilter: k}, () => loadRequests(h, 1))};
     }),
     reqQ: s.reqQ,
     onReqQ: (e: FieldChange) => {
@@ -90,11 +90,13 @@ export function requestsView(h: ConsoleHost) {
     },
     reqRows: s.reqs.map((r) => {
       const st = SVC_STATUS[r.status] || SVC_STATUS.NEW;
-      // Citizen column: the name only; phone and address are in the panel ("Open").
-      return {rowKey: String(r.id), address: '', time: h.fmt(r.created_at, false), service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name, mobile: '',
-        place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : '—', open: () => openRequestRow(h, r)};
+      // Citizen column: the name only; phone and address are in the panel (the list is fetched without them).
+      return {rowKey: String(r.id), time: h.fmt(r.created_at, false), service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name,
+        place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : 'Not assigned', assigned: !!r.assigned_to, open: () => openRequestRow(h, r)};
     }),
-    reqCountLabel: s.reqCount + (s.reqCount === 1 ? ' request' : ' requests'), reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Service requests will show here once the server is updated.' : 'No requests here. Citizens send them from Services in the app.', reqPager: pager(s.reqPage, s.reqPages, (p) => loadRequests(h, p)),
+    reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Requests will show here once the server is updated.' : s.reqQ.trim() ? 'No requests match “' + s.reqQ.trim() + '”' : s.reqFilter === 'ALL' ? 'No requests yet' : 'No ' + SVC_STATUS[s.reqFilter].label.toLowerCase() + ' requests',
+    // Says where requests come from, only when the list is truly empty (not while loading or searching).
+    reqEmptyHint: s.reqLoading || s.reqUnavailable || s.reqQ.trim() ? '' : "Citizens send requests from Services in the app. Each goes to their village's Village Admin.", reqPager: pager(s.reqPage, s.reqPages, (p) => loadRequests(h, p)),
   };
 }
 
@@ -106,7 +108,7 @@ export function requestPanelView(h: ConsoleHost) {
     rqShow: !!rq, closeRQ: () => h.setState({rq: null}),
     rq: orEmpty(rq ? (() => {
       const r = rq.r, st = SVC_STATUS[r.status] || SVC_STATUS.NEW, al = r.allowed_actions || [];
-      return {service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: h.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: '+91 ' + (r.phone || ''), tel: 'tel:+91' + (r.phone || ''), email: r.email || '', mailto: 'mailto:' + (r.email || ''),
+      return {service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: h.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: r.phone ? '+91 ' + r.phone : '', tel: r.phone ? 'tel:+91' + r.phone : '', email: r.email || '', mailto: 'mailto:' + (r.email || ''),
         place: [r.village && r.village.name, r.mandal && r.mandal.name, r.district && r.district.name].filter(Boolean).join(', '), details: r.details || '', address: r.address || '', canAssign: al.includes('assign'), assigned: r.assigned_to ? String(r.assigned_to.id) : ''};
     })() : null),
     rqView: orEmpty(rq ? (() => {

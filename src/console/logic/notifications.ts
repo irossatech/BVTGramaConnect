@@ -52,8 +52,8 @@ function readAllNotifs(h: ConsoleHost) {
   });
 }
 
-/** "Just now", "5 min ago", "3 h ago", "2 d ago", then the date. */
-function ago(h: ConsoleHost, iso: string) {
+/** "Just now", "5 min ago", "3 h ago", "2 d ago", then the date. Also the Dashboard and the Audit log. */
+export function ago(h: ConsoleHost, iso: string) {
   const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (isNaN(min)) return '';
   if (min < 1) return 'Just now';
@@ -68,10 +68,10 @@ export function notificationsView(h: ConsoleHost) {
   const s = h.state;
   // The bell: one row per notification, coloured by what it is about.
   const NK: Record<string, {label: string; color: string; bg: string; d: string}> = {POST_PUBLISHED: {label: 'Published', color: '#1F8A3B', bg: '#e4f4df', d: 'M20 6L9 17l-5-5'},
-    POST_RECHECK: {label: 'Needs changes', color: '#8f4bb4', bg: '#f1e6f7', d: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'},
+    POST_RECHECK: {label: 'Recheck', color: '#8f4bb4', bg: '#f1e6f7', d: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'},
     POST_DISCARDED: {label: 'Discarded', color: '#b3261e', bg: '#fde8e6', d: 'M18 6L6 18M6 6l12 12'},
     POST_UNPUBLISHED: {label: 'Taken down', color: '#b3261e', bg: '#fde8e6', d: 'M12 5v14M5 12l7 7 7-7'},
-    REVIEW_PENDING: {label: 'To review', color: '#b35a0e', bg: '#fff0dc', d: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'},
+    REVIEW_PENDING: {label: 'Waiting for review', color: '#b35a0e', bg: '#fff0dc', d: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'},
     ESCALATION: {label: 'Escalated', color: '#b3261e', bg: '#fde8e6', d: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'},
     ACCOUNT: {label: 'Account', color: '#0D3B7A', bg: '#e3f0fb', d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'},
     SERVICE_REQUEST: {label: 'Service request', color: '#07818e', bg: '#dff3f4', d: 'M9 12h6M9 16h4M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'}};

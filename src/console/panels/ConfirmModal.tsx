@@ -1,5 +1,6 @@
 // The confirm / prompt dialog.
 import React from "react";
+import { SearchSelect } from "../ui/parts";
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -13,13 +14,13 @@ export default function ConfirmModal({ v }: { v: View }) {
           <div id="gc-modal-body" style={{fontSize: "14px", color: "#3b4a5c", lineHeight: "1.55"}}>{I(v.modal?.body)}</div>
           {v.modal?.hasSelect ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.selectLabel)}</span>
-              <select value={val(v.modalSel, "")} onChange={v.onModalSel} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+              <SearchSelect value={val(v.modalSel, "")} onChange={v.onModalSel} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
                 {list(v.modal?.options).map((_o, _i1) => (
                   <React.Fragment key={_i1}>
                     <option value={val(_o?.id, "")}>{_o?.label}</option>
                   </React.Fragment>
                 ))}
-              </select>
+              </SearchSelect>
             </label> : null}
           {v.modal?.needsText ? <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.textLabel)}</span>

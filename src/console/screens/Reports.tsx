@@ -6,6 +6,7 @@ import type { View } from "../Console";
 export default function Reports({ v }: { v: View }) {
   return (
     <>
+      <p style={{margin: "0", fontSize: "13px", color: "#3b4a5c", lineHeight: "1.5"}}>{"All numbers cover the last "}{I(v.repDays)}{" days. Export CSV downloads the full report for Excel."}</p>
       <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "16px"}}>
         {list(v.repSummary).map((_k, _i1) => (
           <React.Fragment key={_i1}>
@@ -19,9 +20,12 @@ export default function Reports({ v }: { v: View }) {
       </div>
       <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "start"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
-          <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-            <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Posts by area</span>
-            <button onClick={v.exportByArea} disabled={!!v.exporting} aria-busy={v.exporting === "posts-by-area"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "posts-by-area" ? "Exporting…" : "Export CSV"}</button>
+          <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px"}}>
+            <span style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+              <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Posts by area</span>
+              <span style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>Busiest districts first, with their mandals below. A post for several areas counts in each.</span>
+            </span>
+            <button onClick={v.exportByArea} disabled={!!v.exporting} aria-busy={v.exporting === "posts-by-area"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: v.exporting ? "not-allowed" : "pointer", opacity: v.exporting ? ".6" : "1", fontSize: "12px", flexShrink: "0", whiteSpace: "nowrap"}}>{v.exporting === "posts-by-area" ? "Exporting…" : "Export CSV"}</button>
           </div>
           {/* 26 districts and their mandals: the list scrolls inside the card, its header stays put. */}
           <div className="sa-scrolly" style={{maxHeight: "420px", overflowY: "auto", margin: "0 -4px", padding: "0 4px"}}>
@@ -31,13 +35,13 @@ export default function Reports({ v }: { v: View }) {
                 <th style={{padding: "8px 0", borderBottom: "1px solid #eef2f6", fontWeight: "600"}}>Area</th>
                 <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Total</th>
                 <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Published</th>
-                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Pending</th>
+                <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Waiting</th>
                 <th style={{padding: "8px 0 8px 16px", borderBottom: "1px solid #eef2f6", fontWeight: "600", textAlign: "right"}}>Rejected</th>
               </tr>
             </thead>
             <tbody>
-              {!list(v.byArea).length ? <tr><td colSpan={5} style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No posts in the last 30 days.</td></tr> : null}
-              {list(v.byArea).map((_r, _i1) => (
+              {v.byAreaEmpty ? <tr><td colSpan={5} style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>{I(v.byAreaEmpty)}</td></tr> : null}
+              {v.byAreaEmpty ? null : list(v.byArea).map((_r, _i1) => (
                 <React.Fragment key={_i1}>
                   <tr>
                     <td style={css(`padding:9px 0;border-bottom:1px solid #f3f5f8;font-weight: ${_r?.weight ?? ""};color:#0A2550;padding-left: ${_r?.indent ?? ""}`)}>{I(_r?.name)}</td>
@@ -53,32 +57,36 @@ export default function Reports({ v }: { v: View }) {
           </div>
         </div>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
-          <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-            <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Average review time by level</span>
-            <button onClick={v.exportReviewTime} disabled={!!v.exporting} aria-busy={v.exporting === "review-time"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "review-time" ? "Exporting…" : "Export CSV"}</button>
+          <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px"}}>
+            <span style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+              <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>How fast posts are reviewed</span>
+              <span style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>Average hours from a post being sent in to a decision.</span>
+            </span>
+            <button onClick={v.exportReviewTime} disabled={!!v.exporting} aria-busy={v.exporting === "review-time"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: v.exporting ? "not-allowed" : "pointer", opacity: v.exporting ? ".6" : "1", fontSize: "12px", flexShrink: "0", whiteSpace: "nowrap"}}>{v.exporting === "review-time" ? "Exporting…" : "Export CSV"}</button>
           </div>
+          {v.reviewLoading ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px"}}>Loading…</div> : null}
           {list(v.reviewTime).map((_r, _i1) => (
             <React.Fragment key={_i1}>
               <div style={{display: "flex", flexDirection: "column", gap: "6px", padding: "8px 0", borderBottom: "1px solid #f3f5f8"}}>
-                <div style={{display: "flex", justifyContent: "space-between", fontSize: "13px"}}>
+                <div style={{display: "flex", justifyContent: "space-between", gap: "12px", fontSize: "13px"}}>
                   <span style={{fontWeight: "700", color: "#0A2550"}}>{I(_r?.level)}</span>
-                  <span style={{color: "#3b4a5c"}}>
-                    <b style={css(`font-family:'Rubik',sans-serif;font-size:16px;color: ${_r?.color ?? ""}`)}>{I(_r?.hours)}</b>
-                    {" h avg · "}{I(_r?.n)}{" reviews · SLA "}{I(_r?.sla)}{" h"}
-                  </span>
+                  <span style={css(`color: ${_r?.slow ? "#b3261e" : "#3b4a5c"};font-weight: ${_r?.slow ? "700" : "400"}`)}>{I(_r?.text)}{_r?.slow ? " · too slow" : null}</span>
                 </div>
                 <div style={{height: "8px", borderRadius: "4px", background: "#eef2f6", overflow: "hidden"}}><div style={css(`height:100%;border-radius:4px;background: ${_r?.color ?? ""};width: ${_r?.w ?? ""}`)} /></div>
               </div>
             </React.Fragment>
           ))}
-          <div style={{fontSize: "12px", color: "#6b7a8c"}}>{"Escalation after "}{I(v.settings?.escalation)}{" h without action (Settings)."}</div>
+          <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>{"A full bar means "}{I(v.repLimitH)}{" h, the review time limit. Posts waiting longer are escalated to the next level. Change it in Settings."}</div>
         </div>
       </div>
       <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "12px"}}>
-        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-          <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Admin activity · last 30 days</span>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px"}}>
+          <span style={{display: "flex", flexDirection: "column", gap: "4px"}}>
+            <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>Admin activity</span>
+            <span style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>The 8 admins who reviewed the most posts. Export CSV for every admin.</span>
+          </span>
           <div style={{display: "flex", gap: "8px"}}>
-            <button onClick={v.exportActivity} disabled={!!v.exporting} aria-busy={v.exporting === "admin-activity"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{v.exporting === "admin-activity" ? "Exporting…" : "Export CSV"}</button>
+            <button onClick={v.exportActivity} disabled={!!v.exporting} aria-busy={v.exporting === "admin-activity"} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: v.exporting ? "not-allowed" : "pointer", opacity: v.exporting ? ".6" : "1", fontSize: "12px", flexShrink: "0", whiteSpace: "nowrap"}}>{v.exporting === "admin-activity" ? "Exporting…" : "Export CSV"}</button>
           </div>
         </div>
         <table style={{width: "100%", fontSize: "13px"}}>
@@ -88,14 +96,14 @@ export default function Reports({ v }: { v: View }) {
               <th style={{padding: "10px 12px", fontWeight: "600"}}>Role · Area</th>
               <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Reviewed</th>
               <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Published</th>
-              <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Recheck</th>
+              <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}} title="Sent back to the author to fix">Recheck</th>
               <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Discarded</th>
-              <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Avg time</th>
-              <th style={{padding: "10px 12px", fontWeight: "600"}}>Last active</th>
+              <th style={{padding: "10px 12px", fontWeight: "600", textAlign: "right"}}>Avg review time</th>
+              <th style={{padding: "10px 12px", fontWeight: "600"}}>Last signed in</th>
             </tr>
           </thead>
           <tbody>
-            {!list(v.adminActivity).length ? <tr><td colSpan={8} style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No admin reviews in the last 30 days.</td></tr> : null}
+            {v.activityEmpty ? <tr><td colSpan={8} style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>{I(v.activityEmpty)}</td></tr> : null}
             {list(v.adminActivity).map((_r, _i1) => (
               <React.Fragment key={_i1}>
                 <tr style={{borderTop: "1px solid #f3f5f8"}}>
@@ -105,7 +113,7 @@ export default function Reports({ v }: { v: View }) {
                   <td style={{padding: "10px 12px", textAlign: "right", color: "#1d7a33", fontVariantNumeric: "tabular-nums"}}>{I(_r?.pub)}</td>
                   <td style={{padding: "10px 12px", textAlign: "right", color: "#8f4bb4", fontVariantNumeric: "tabular-nums"}}>{I(_r?.re)}</td>
                   <td style={{padding: "10px 12px", textAlign: "right", color: "#6b7a8c", fontVariantNumeric: "tabular-nums"}}>{I(_r?.dis)}</td>
-                  <td style={{padding: "10px 12px", textAlign: "right", fontVariantNumeric: "tabular-nums"}}>{I(_r?.avg)}{" h"}</td>
+                  <td style={{padding: "10px 12px", textAlign: "right", fontVariantNumeric: "tabular-nums"}}>{I(_r?.avg)}</td>
                   <td style={{padding: "10px 12px", color: "#6b7a8c"}}>{I(_r?.last)}</td>
                 </tr>
               </React.Fragment>

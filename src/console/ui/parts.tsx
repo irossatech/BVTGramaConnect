@@ -17,6 +17,48 @@ export const SelBar = ({sel, removeLabel}: {sel?: SelView; removeLabel: string})
   </div>
 ) : null;
 
+/** Status filter pills (Posts, Service requests, Sponsored banners, Contact messages); a zero count is dimmed,
+ *  and a pill without a count (the server sends none) shows just its label. */
+export function StatusPills({ items, label }: { items?: readonly {label: string; count?: number; on: boolean; go: () => void}[]; label: string }) {
+  return (
+    <div role="group" aria-label={label} style={{display: "flex", gap: "8px", flexWrap: "wrap", flex: "1", minWidth: "0"}}>
+      {list(items).map((t, i) => (
+        <button key={i} onClick={t.go} aria-pressed={t.on} style={css(`height:34px;padding:0 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid ${t.on ? "#0D3B7A" : "#cfd8e3"};background: ${t.on ? "#0D3B7A" : "#fff"};color: ${t.on ? "#fff" : "#3b4a5c"}`)}>
+          {t.label}
+          {t.count === undefined ? null : <span style={css(`font-size:12px;font-family:'Rubik',sans-serif;opacity:${t.count ? 1 : .55}`)}>{t.count}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** A page's sections as a switch (Services: Citizen requests / Services list; Important numbers); a count shows as a badge. */
+export function SegmentTabs({ items, label }: { items?: readonly {label: string; on: boolean; go: () => void; count?: number; countLabel?: string}[]; label: string }) {
+  return (
+    <div role="tablist" aria-label={label} style={{display: "inline-flex", alignSelf: "flex-start", flexWrap: "wrap", gap: "4px", padding: "4px", borderRadius: "12px", background: "#eef2f6"}}>
+      {list(items).map((t, i) => (
+        <button key={i} role="tab" aria-selected={t.on} onClick={t.go} style={css(`height:36px;padding:0 18px;border:0;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;background: ${t.on ? "#fff" : "transparent"};color: ${t.on ? "#0A2550" : "#6b7a8c"};box-shadow: ${t.on ? "0 1px 3px rgba(10,37,80,.12)" : "none"}`)}>
+          {t.label}
+          {t.count ? <span aria-label={t.countLabel} style={{minWidth: "20px", height: "20px", padding: "0 6px", borderRadius: "999px", fontSize: "11px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#0D3B7A", color: "#fff", fontFamily: "'Rubik',sans-serif"}}>{t.count}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** An empty list: an icon, what is (not) there, and one line on what to do. */
+export function EmptyState({ title, hint, icon }: { title?: string; hint?: string; icon: string }) {
+  return (
+    <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "48px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", textAlign: "center"}}>
+      <span style={{width: "48px", height: "48px", borderRadius: "14px", background: "#eef4fb", color: "#0D3B7A", display: "flex", alignItems: "center", justifyContent: "center"}}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
+      </span>
+      <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>{I(title)}</span>
+      {hint ? <span style={{fontSize: "13px", color: "#6b7a8c", maxWidth: "420px", lineHeight: "1.5"}}>{I(hint)}</span> : null}
+    </div>
+  );
+}
+
 /** Prev / Page n of m / Next under a paged table. */
 export function Pager({ p }: { p: View["usersPager"] }) {
   return (
@@ -39,5 +81,55 @@ export function DistrictOptions({ v }: { v: View }) {
         </React.Fragment>
       ))}
     </>
+  );
+}
+
+// A <select> with a search box (districts, mandals, villages). Same props and children as <select>; a list of
+// SEARCH_FROM choices or fewer stays a plain <select>. onChange gets {target: {name, value}}, as from a <select>.
+const SEARCH_FROM = 8;
+type Opt = {value: string; label: string; disabled?: boolean};
+function optionsOf(children: React.ReactNode): Opt[] {
+  const out: Opt[] = [];
+  const walk = (n: React.ReactNode): void => React.Children.forEach(n, (c) => {
+    if (!React.isValidElement(c)) return;
+    const p = c.props as {value?: unknown; children?: React.ReactNode; disabled?: boolean};
+    if (c.type === "option") out.push({value: String(p.value ?? ""), label: React.Children.toArray(p.children).join(""), disabled: p.disabled});
+    else if (typeof c.type === "function") walk((c.type as (q: unknown) => React.ReactNode)(c.props)); // DistrictOptions
+    else walk(p.children);
+  });
+  walk(children);
+  return out;
+}
+export function SearchSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const [open, setOpen] = React.useState(false);
+  const [q, setQ] = React.useState("");
+  const opts = optionsOf(props.children);
+  if (opts.length <= SEARCH_FROM) return <select {...props} />;
+  const {value, onChange, name, style = {}} = props;
+  const what = String(props["aria-label"] || "").toLowerCase();
+  const cur = opts.find((o) => o.value === String(value ?? ""));
+  const needle = q.trim().toLowerCase();
+  const shown = opts.filter((o) => !o.disabled && o.label.toLowerCase().includes(needle));
+  const close = () => { setOpen(false); setQ(""); };
+  const pick = (o: Opt) => {
+    close();
+    onChange?.({target: {name: name || "", value: o.value}, currentTarget: {name: name || "", value: o.value}} as unknown as React.ChangeEvent<HTMLSelectElement>);
+  };
+  return (
+    <div style={{position: "relative", flex: style.flex, minWidth: style.minWidth}} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close(); }} onKeyDown={(e) => { if (e.key === "Escape" && open) { e.stopPropagation(); close(); } }}>
+      <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={props["aria-label"]} onClick={() => (open ? close() : setOpen(true))} style={{...style, flex: undefined, minWidth: undefined, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", cursor: "pointer", textAlign: "left", color: "#17212e"}}>
+        <span style={{overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{cur ? cur.label : ""}</span>
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b4a5c" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink: "0"}}><path d="M6 9l6 6 6-6" /></svg>
+      </button>
+      {open ? <div style={{position: "absolute", zIndex: 60, top: "calc(100% + 4px)", left: "0", minWidth: "100%", width: "max-content", maxWidth: "340px", boxSizing: "border-box", background: "#fff", border: "1px solid #cfd8e3", borderRadius: "10px", boxShadow: "0 8px 24px rgba(10,37,80,.14)", padding: "6px"}}>
+        <input type="search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (shown[0]) pick(shown[0]); } }} placeholder={"Search " + what} aria-label={"Search " + what} style={{width: "100%", boxSizing: "border-box", height: "36px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "8px", fontSize: "13px", outlineColor: "#0D3B7A"}} />
+        <div role="listbox" aria-label={props["aria-label"]} style={{maxHeight: "260px", overflowY: "auto", marginTop: "6px"}}>
+          {shown.map((o, i) => (
+            <button key={i} type="button" role="option" aria-selected={o === cur} onClick={() => pick(o)} style={{display: "block", width: "100%", textAlign: "left", padding: "8px 10px", border: "0", borderRadius: "6px", background: o === cur ? "#e3f0fb" : "transparent", color: "#17212e", fontSize: "13px", fontWeight: o === cur ? "700" : "400", cursor: "pointer"}}>{o.label}</button>
+          ))}
+          {shown.length ? null : <div style={{padding: "8px 10px", color: "#6b7a8c", fontSize: "13px"}}>No match</div>}
+        </div>
+      </div> : null}
+    </div>
   );
 }

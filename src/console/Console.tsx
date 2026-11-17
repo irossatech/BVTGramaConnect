@@ -25,6 +25,7 @@ import DetailPanel from "./panels/DetailPanel";
 import UserDrawer from "./panels/UserDrawer";
 import RequestPanel from "./panels/RequestPanel";
 import ContactPanel from "./panels/ContactPanel";
+import AuditPanel from "./panels/AuditPanel";
 import ServiceFormPanel from "./panels/ServiceForm";
 import AdFormPanel from "./panels/AdForm";
 import ComposeFormPanel from "./panels/ComposeForm";
@@ -77,17 +78,17 @@ export default class Component extends React.Component<Props, State> {
   private static readonly INITIAL: State = {
     screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, navOpen: false, exporting: null, notifOpen: false, notifs: [], notifUnread: 0, notifNext: null, notifLoading: false, notifError: false, gsearch: '', me: null,
     geo: [], stateRow: null, expanded: {}, geoQ: '', geoForm: null,
-    users: [], userCount: 0, userPage: 1, userPages: 1, usersLoading: false,
+    users: [], userCount: 0, userCounts: null, userPage: 1, userPages: 1, usersLoading: false,
     reqs: [], reqCount: 0, reqPage: 1, reqPages: 1, reqLoading: false, reqFilter: 'NEW', svcView: 'requests', ads: [], adsLoading: false, adsUnavailable: false, af: null,
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
     rq: null, cm: null, rqAssignees: [], uf: {role: '', district: '', status: '', q: ''},
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
-    numSel: [], adSel: [], bulk: '', cf: null,
+    numSel: [], adSel: [], adTab: 'all', postSel: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
-    audit: [], auditCount: 0, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', distQ: '', auditLoading: false,
+    audit: [], auditCount: 0, auditWindow: '', auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
-    dash: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
+    dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
     settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},
     modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', toasts: [], imp: null,
   };
@@ -461,10 +462,13 @@ export default class Component extends React.Component<Props, State> {
     if (cat) want = 'requests';
     const asked = Component.PAGES.find((k) => k === want);
     const page = asked && this.navOk(asked, me) ? asked : (Component.PAGES.find((k) => this.navOk(k, me)) || 'dashboard');
-    this.setState({me, screen: 'app', page, svcView: cat ? 'catalog' : 'requests', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}});
+    // Loaders that check permissions run once `me` is in state (Services reads navOk('services'), categories
+    // can('posts.manage_categories')): before the update lands they would see no user and skip their list.
+    this.setState({me, screen: 'app', page, svcView: cat ? 'catalog' : 'requests', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}}, () => {
+      loadCategories(this.host);
+      this.loadPage(page);
+    });
     this.loadGeo();
-    loadCategories(this.host);
-    this.loadPage(page);
     loadNotifs(this.host);
     this.lastActive = Date.now();
     clearInterval(this.notifTimer);
@@ -707,12 +711,11 @@ export default class Component extends React.Component<Props, State> {
     const is = {checking: s.screen === 'checking', auth: s.screen === 'login' || s.screen === 'change_password', login: s.screen === 'login', changePassword: s.screen === 'change_password', app: s.screen === 'app'};
     const pg: Partial<Record<PageKey, boolean>> = {};
     pg[s.page] = true;
-    const titles: Readonly<Record<NavKey, string>> = {bills: 'Bills & Recharges', ads: 'Sponsored banners', services: 'Services', requests: 'Services', dashboard: 'Dashboard', geography: 'Geography · Master Data', users: 'Users', posts: 'Posts & Moderation', reports: 'Reports', audit: 'Audit Log', contact: 'Contact messages', numbers: 'Important numbers', settings: 'Settings'};
+    const titles: Readonly<Record<NavKey, string>> = {bills: 'Bills & Recharges', ads: 'Sponsored banners', services: 'Services', requests: 'Services', dashboard: 'Dashboard', geography: 'Geography · Master Data', users: 'Users', posts: 'Posts', reports: 'Reports', audit: 'Audit Log', contact: 'Contact messages', numbers: 'Important numbers', settings: 'Settings'};
     const pendingN = s.pendingCount;
     const navItems = C.PAGES.filter((k) => this.navOk(k)).map((k) => {
       const on = s.page === k;
-      // The side bar says just "Posts" next to its pending count; the page title keeps "Posts & Moderation".
-      return {label: k === 'posts' ? 'Posts' : titles[k].split(' ·')[0], d: C.ICON[k], color: on ? '#fff' : 'rgba(255,255,255,.78)', bg: on ? '#0D3B7A' : 'transparent', on, hasCount: k === 'posts' && pendingN > 0, count: pendingN, go: () => this.goPage(k)};
+            return {label: k === 'posts' ? 'Posts' : titles[k].split(' ·')[0], d: C.ICON[k], color: on ? '#fff' : 'rgba(255,255,255,.78)', bg: on ? '#0D3B7A' : 'transparent', on, hasCount: k === 'posts' && pendingN > 0, count: pendingN, go: () => this.goPage(k)};
     });
     // The side bar in four short groups (same pages, same order inside a group); a group this user cannot open is left out.
     const NAV_GROUPS: readonly {label: string; keys: readonly PageKey[]}[] = [
@@ -850,6 +853,7 @@ export default class Component extends React.Component<Props, State> {
           {/* IMPORTANT NUMBER DRAWER */}
           {v.rqShow ? <RequestPanel v={v} /> : null}
           {v.cmShow ? <ContactPanel v={v} /> : null}
+          {v.aeShow ? <AuditPanel v={v} /> : null}
           {v.sfShow ? <ServiceFormPanel v={v} /> : null}
           {v.afShow ? <AdFormPanel v={v} /> : null}
           {v.cfShow ? <ComposeFormPanel v={v} /> : null}

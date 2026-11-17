@@ -1,5 +1,6 @@
 // Add or edit an important number.
 import React from "react";
+import { SearchSelect } from "../ui/parts";
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
 
@@ -60,21 +61,21 @@ export default function NumberForm({ v }: { v: View }) {
                 ))}
               </select>
             </label>
-            <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Area</span>
-              <select name="area" value={val(v.nf?.area, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
-                {list(v.nfAreas).map((_o, _i1) => (
-                  <React.Fragment key={_i1}>
-                    <option value={val(_o?.id, "")}>{_o?.label}</option>
-                  </React.Fragment>
-                ))}
-              </select>
-            </label>
+            {list(v.nfSteps).map((_st) => (
+              <label key={_st.key} style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+                <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(_st.label)}</span>
+                <SearchSelect name={_st.key} aria-label={_st.label} value={val(_st.value, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#fff"}}>
+                  <option value="" disabled>{_st.ph}</option>
+                  {list(_st.options).map((_o) => (
+                    <option key={_o.id} value={val(_o?.id, "")}>{_o?.label}</option>
+                  ))}
+                </SearchSelect>
+              </label>
+            ))}
+            <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nfPlace ? "#e4f4df" : "#f6f8f3", color: v.nfPlace ? "#1d7a33" : "#6b7a8c"}}>
+              {v.nfPlace ? "✓ " + v.nfLevelLabel + " · " + v.nfPlace : "Choose the place"}
+            </div>
           </> : null}
-          <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Order (0–1000, lower shows first)</span>
-            <input name="sort" type="number" min="0" max="1000" value={val(v.nf?.sort, "")} onChange={v.onNF} style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
-          </label>
           <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
             {v.nfIsArea ? "Citizens of the area and every village below it see this number in the app's Contacts tab." : "Helplines are statewide: every citizen sees them under Government helplines."}
           </div>

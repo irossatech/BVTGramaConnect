@@ -32,6 +32,7 @@ button:disabled{cursor:not-allowed!important}
 @media (hover:hover){.sa-navb:not([aria-current]):hover{background:rgba(255,255,255,.07)!important;color:#fff!important}}
 tbody tr{transition:background-color .12s ease}
 @media (hover:hover){tbody tr:hover{background-color:#f5f8fc}}
+.sa-search{transition:border-color .15s,background-color .15s}.sa-search:focus-within{border-color:#0D3B7A!important;background:#fff!important}.sa-search input:focus{box-shadow:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* Tables at every width: pills (role, category, status), headers, dates and numbers stay on one line;
    names and titles may wrap. A table wider than its card scrolls inside the card. */
@@ -41,6 +42,9 @@ tbody tr{transition:background-color .12s ease}
 .sa-content div:has(> table){overflow-x:auto!important;overscroll-behavior-x:contain}
 /* Phones and tablets: the side bar becomes a drawer behind the menu button, splits stack, wide tables scroll sideways. */
 .sa-scrim{display:none}
+/* Audit log rows: a light highlight on hover and a clear keyboard focus ring (every width). */
+.sa-audit-row:hover{background:#f7f9fb}
+.sa-audit-row:focus-visible{outline:2px solid #0D3B7A;outline-offset:-2px}
 @media (max-width:900px){
 .sa-shell{grid-template-columns:minmax(0,1fr)!important}
 .sa-side{position:fixed;top:0;bottom:0;left:0;width:min(280px,85vw);z-index:70;transform:translateX(-100%);visibility:hidden;transition:transform .25s var(--ease-out),visibility 0s .25s}
