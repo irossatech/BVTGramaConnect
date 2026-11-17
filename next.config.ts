@@ -50,6 +50,7 @@ export default function nextConfig(phase: string): NextConfig {
     devIndicators: false, // no Next.js "N" badge over the page in `npm run dev` (it never ships in the build)
     reactStrictMode: false, // the ported logic classes run componentDidMount once, as in the prototypes
     images: { unoptimized: true },
+    experimental: { agentUpgrade: "security" }, // `next upgrade --agent=security` (16.4.2 → 16.4.6 security advisory)
     env: {
       GC_API_BASE: process.env.GC_API_BASE || "/api/v1",
       GC_SITE_URL: (process.env.GC_SITE_URL || "https://www.gramaconnect.com").replace(/\/+$/, ""),
