@@ -8,7 +8,10 @@ import type { ConsoleHost } from "./host";
 // Service request: what the citizen is told when it moves to each status.
 const SVC_MOVE: Readonly<Record<string, string>> = {NEW:'The request goes back to New.',APPROVED:'The citizen sees that it is approved.',IN_PROGRESS:'The citizen sees that work has started.',COMPLETED:'The citizen sees that it is done. Write what they should do next.',REJECTED:'Write why. The citizen sees your reason.'};
 // Service requests from citizens (backend plan: service-requests). Status keys as the server sends them.
-const SVC_STATUS: Readonly<Record<string, Tone & {dot: string}>> = {NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'}};
+// CANCELLED (2026-11-18) is set only by the citizen in the app: it gets a tab and a label, never a button here.
+const SVC_STATUS: Readonly<Record<string, Tone & {dot: string}>> = {NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'},CANCELLED:{label:'Cancelled',bg:'#eef2f6',color:'#5b6b7d',dot:'#5b6b7d'}};
+/** The statuses an official can move a request to. */
+const OFFICIAL_MOVES = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'];
 const SERVICES: Readonly<Record<string, string>> = {aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
 
 export function loadRequests(h: ConsoleHost, page: number) {
@@ -47,7 +50,7 @@ export function openRequest(h: ConsoleHost, r: ServiceRequest) {
 
 // Only the person a request is assigned to changes it (the server sends that as allowed_actions); everyone else reads.
 function svcAllowed(r: ServiceRequest) {
-  return (r.allowed_actions || []).includes('set_status') ? Object.keys(SVC_STATUS) : [];
+  return (r.allowed_actions || []).includes('set_status') ? OFFICIAL_MOVES : [];
 }
 
 function patchRequest(h: ConsoleHost, r: ServiceRequest, body: {status?: string; assigned_to?: string | null; note?: string}, msg: string) {
@@ -112,20 +115,26 @@ export function requestPanelView(h: ConsoleHost) {
         place: [r.village && r.village.name, r.mandal && r.mandal.name, r.district && r.district.name].filter(Boolean).join(', '), details: r.details || '', address: r.address || '', canAssign: al.includes('assign'), assigned: r.assigned_to ? String(r.assigned_to.id) : ''};
     })() : null),
     rqView: orEmpty(rq ? (() => {
-      const r = rq.r, steps = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED'], rej = r.status === 'REJECTED', at = rej ? 1 : steps.indexOf(r.status);
+      const r = rq.r, steps = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED'], rej = r.status === 'REJECTED', cancelled = r.status === 'CANCELLED';
+      // Cancelled: the steps it had reached (the last status before the cancel, from the history), then a grey cross.
+      const before = cancelled ? [...(r.history || [])].reverse().find((ev) => ev.status && ev.status !== 'CANCELLED')?.status || 'NEW' : '';
+      const at = rej ? 1 : cancelled ? Math.max(0, steps.indexOf(before)) + 1 : steps.indexOf(r.status);
       const allowed = svcAllowed(r), cur = SVC_STATUS[r.status] || SVC_STATUS.NEW;
-      // Every step reached (the current one too) is a filled green tick; Rejected: a red cross after New.
-      const tone = (i: number) => rej && i === 1 ? '#b3261e' : i <= at ? '#1F8A3B' : '#cfd8e3';
+      // Every step reached (the current one too) is a filled green tick; Rejected: a red cross after New;
+      // Cancelled: a grey cross after the last step reached.
+      const crossAt = rej || cancelled ? at : -1, crossColor = rej ? '#b3261e' : '#5b6b7d';
+      const tone = (i: number) => i === crossAt ? crossColor : i <= at ? '#1F8A3B' : '#cfd8e3';
       return {steps: steps.map((k, i) => {
-          const red = rej && i === 1, on = i <= at;
-          return {label: red ? 'Rejected' : SVC_STATUS[k].label, bg: on ? tone(i) : '#fff', border: tone(i), bw: 2, mark: on ? (red ? '✕' : '✓') : '', weight: i === at ? 800 : 600, color: red ? '#b3261e' : i === at ? '#0A2550' : '#6b7a8c', line: i === 0 ? '' : (on ? tone(i) : '#cfd8e3')};
+          const cross = i === crossAt, on = i <= at;
+          return {label: cross ? (rej ? 'Rejected' : 'Cancelled') : SVC_STATUS[k].label, bg: on ? tone(i) : '#fff', border: tone(i), bw: 2, mark: on ? (cross ? '✕' : '✓') : '', weight: i === at ? 800 : 600, color: cross ? crossColor : i === at ? '#0A2550' : '#6b7a8c', line: i === 0 ? '' : (on ? tone(i) : '#cfd8e3')};
         }),
         curLabel: cur.label, curBg: cur.bg, curColor: cur.color, note: r.note || '',
-        viewOnly: !allowed.length ? ((r.allowed_actions || []).includes('assign') ? 'Nobody handles this request yet. Assign it to someone below.' : 'View only. ' + (r.assigned_to ? r.assigned_to.name : 'Nobody') + ' handles this request; only they can change it.') : '',
+        viewOnly: cancelled ? 'The citizen cancelled this request. It cannot be changed.'
+          : !allowed.length ? ((r.allowed_actions || []).includes('assign') ? 'Nobody handles this request yet. Assign it to someone below.' : 'View only. ' + (r.assigned_to ? r.assigned_to.name : 'Nobody') + ' handles this request; only they can change it.') : '',
         moves: allowed.filter((k) => k !== r.status).map((k) => ({label: SVC_STATUS[k].label, go: () => moveRequest(h, r, k), color: k === 'REJECTED' ? '#b3261e' : '#0D3B7A'})),
         assignedName: r.assigned_to ? r.assigned_to.name : 'Not assigned', onAssign: (e: FieldChange) => assignRequest(h, r, e.target.value)};
     })() : null),
     rqAssigneeOpts: rq ? [{id: '', label: 'Not assigned'}, ...(rq.r.assigned_to && !s.rqAssignees.some((a) => rq.r.assigned_to && a.id === String(rq.r.assigned_to.id)) ? [{id: String(rq.r.assigned_to.id), label: rq.r.assigned_to.name}] : []), ...s.rqAssignees] : [],
-    rqHistory: rq ? [...(rq.r.history || []).slice().reverse().map((ev) => ({dot: (SVC_STATUS[ev.status ?? ''] || {dot: '#9aa6b4'}).dot, what: [ev.status ? (SVC_STATUS[ev.status] || {label: ev.status}).label : '', ev.assigned_to !== undefined ? ('Assigned to ' + (ev.assigned_to ? ev.assigned_to.name : 'nobody')) : ''].filter(Boolean).join(' · '), note: ev.note || '', meta: h.fmt(ev.at, true) + (ev.by ? ' · by ' + ev.by.name : '')})), {dot: '#9aa6b4', what: 'Request received', note: '', meta: h.fmt(rq.r.created_at, true) + ' · from ' + rq.r.name}] : [],
+    rqHistory: rq ? [...(rq.r.history || []).slice().reverse().map((ev) => ({dot: (SVC_STATUS[ev.status ?? ''] || {dot: '#9aa6b4'}).dot, what: [ev.status ? (SVC_STATUS[ev.status] || {label: ev.status}).label : '', ev.assigned_to !== undefined ? ('Assigned to ' + (ev.assigned_to ? ev.assigned_to.name : 'nobody')) : ''].filter(Boolean).join(' · '), note: ev.note || '', meta: h.fmt(ev.at, true) + (ev.by ? ' · by ' + ev.by.name : ev.by_citizen ? ' · by the citizen' : '')})), {dot: '#9aa6b4', what: 'Request received', note: '', meta: h.fmt(rq.r.created_at, true) + ' · from ' + rq.r.name}] : [],
   };
 }
