@@ -28,7 +28,7 @@ export default function UserDrawer({ v }: { v: View }) {
           </label>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Username</span>
-            <input name="username" type="text" value={val(v.nu?.username, "")} onChange={v.onNU} readOnly={v.nuEdit} placeholder="e.g. ravi.kumar" style={css(`height:44px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;outline-color:#0D3B7A;background: ${v.nuEdit ? "#f7f9fb" : "#fff"}`)} />
+            <input name="username" type="text" value={val(v.nu?.username, "")} onChange={v.onNU} placeholder="e.g. ravi.kumar" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
           </label>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Email (optional)</span>
@@ -39,7 +39,7 @@ export default function UserDrawer({ v }: { v: View }) {
             <input name="mobile" value={val(v.nu?.mobile, "")} onChange={v.onNU} maxLength={10} placeholder="10 digits" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
           </label>
           {v.nuEdit ? <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
-              The username cannot change. Use Reassign area, Add role or Reset password in the user panel for the rest.
+              A new username works from their next sign-in; tell them in person. Use Reassign area, Add role or Reset password in the user panel for the rest.
             </div> : <>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Temporary password (optional)</span>

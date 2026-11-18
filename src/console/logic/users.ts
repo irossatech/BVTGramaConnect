@@ -208,7 +208,9 @@ export function editUser(h: ConsoleHost, u: AdminUser) {
 }
 
 function saveUserEdit(h: ConsoleHost, f: NewUserForm) {
-  h.api.patch('/users/' + f.id + '/', {name: f.name.trim(), name_te: f.te.trim(), email: f.email.trim() || null, mobile: f.mobile || null}).then(() => {
+  // The username too (owner 2026-11-17): the server trims, lower-cases and collapses spaces, answers 409 when it
+  // is taken and audits it only when it really changed (backend contract, PATCH /users/{id}/).
+  h.api.patch('/users/' + f.id + '/', {username: f.username.trim(), name: f.name.trim(), name_te: f.te.trim(), email: f.email.trim() || null, mobile: f.mobile || null}).then(() => {
     h.setState({drawerOpen: false, nu: {...EMPTY_NU}});
     h.toast('Details saved · ' + f.name.trim());
     if (f.id) refreshUser(h, f.id);
