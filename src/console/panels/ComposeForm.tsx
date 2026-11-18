@@ -9,6 +9,8 @@ const label = {fontSize: "13px", fontWeight: "700", color: "#0A2550"} as const;
 const hint = {fontSize: "12px", color: "#6b7a8c"} as const;
 const errText = {fontSize: "12px", fontWeight: "700", color: "#b3261e"} as const;
 const col = {display: "flex", flexDirection: "column", gap: "6px"} as const;
+// A required field's mark: the red star the prototype's Compose uses. Screen readers get aria-required instead.
+const Req = () => <span aria-hidden="true" style={{color: "#b3261e"}}> *</span>;
 
 export default function ComposeForm({ v }: { v: View }) {
   const f = v.cf;
@@ -25,18 +27,18 @@ export default function ComposeForm({ v }: { v: View }) {
         </div>
         <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px"}}>
           <label style={col}>
-            <span style={label}>Title</span>
-            <input name="title" value={val(f.title, "")} onChange={v.onCF} maxLength={150} lang={f.lang} aria-invalid={!!f.errTitle} style={field(!!f.errTitle)} />
+            <span style={label}>Title<Req /></span>
+            <input name="title" value={val(f.title, "")} onChange={v.onCF} maxLength={150} lang={f.lang} aria-required={true} aria-invalid={!!f.errTitle} style={field(!!f.errTitle)} />
             {f.errTitle ? <span style={errText}>{I(f.errTitle)}</span> : f.titleCount ? <span style={hint}>{I(f.titleCount)}</span> : null}
           </label>
           <label style={col}>
-            <span style={label}>Message</span>
-            <textarea name="body" value={val(f.body, "")} onChange={v.onCF} maxLength={5000} rows={6} lang={f.lang} aria-invalid={!!f.errBody} style={css(`width:100%;box-sizing:border-box;padding:12px;border-radius:10px;font-size:14px;line-height:1.55;resize:vertical;border:1px solid ${f.errBody ? "#b3261e" : "#cfd8e3"}`)} />
+            <span style={label}>Message<Req /></span>
+            <textarea name="body" value={val(f.body, "")} onChange={v.onCF} maxLength={5000} rows={6} lang={f.lang} aria-required={true} aria-invalid={!!f.errBody} style={css(`width:100%;box-sizing:border-box;padding:12px;border-radius:10px;font-size:14px;line-height:1.55;resize:vertical;border:1px solid ${f.errBody ? "#b3261e" : "#cfd8e3"}`)} />
             {f.errBody ? <span style={errText}>{I(f.errBody)}</span> : f.bodyCount ? <span style={hint}>{I(f.bodyCount)}</span> : null}
           </label>
           <label style={col}>
-            <span style={label}>Category</span>
-            <select name="cat" value={val(f.cat, "")} onChange={v.onCF} aria-invalid={!!f.errCat} style={field(!!f.errCat)}>
+            <span style={label}>Category<Req /></span>
+            <select name="cat" value={val(f.cat, "")} onChange={v.onCF} aria-required={true} aria-invalid={!!f.errCat} style={field(!!f.errCat)}>
               {list(f.catOpts).map((_o, _i1) => <option key={_i1} value={_o.id}>{_o.label}</option>)}
             </select>
             {f.errCat ? <span style={errText}>{I(f.errCat)}</span> : null}
