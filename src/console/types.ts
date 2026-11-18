@@ -391,6 +391,8 @@ interface Named {
 export interface ServiceRequestEvent {
   at: string;
   by?: { name: string } | null;
+  /** The citizen's cancel (by is null; note is their reason). Backend: citizen cancel, 2026-11-18. */
+  by_citizen?: boolean;
   status?: string;
   assigned_to?: { name: string } | null;
   note?: string;
