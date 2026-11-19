@@ -43,8 +43,12 @@ export interface ConsoleHost {
   suggestTe(form: TeForm, english: string): void;
   /** Runs `run` after `ms` unless called again with the same key first (search boxes). Sign-out cancels it. */
   later(key: string, run: () => void, ms: number): void;
-  /** Loads the geography tree (district, mandal and village pickers). */
+  /** Loads the geography tree: districts and mandals (with their village counts); villages load per mandal. */
   loadGeo(): void;
+  /** Loads one mandal's villages into the tree (once; again after loadGeo). Opening or picking a mandal calls it. */
+  loadVillages(mandalId: number | string): Promise<void>;
+  /** Loads every village (once): geography search and export, and pickers that list all villages. */
+  loadAllVillages(): Promise<void>;
   /** Ticks or unticks one row for the bulk bar. */
   toggleSel(key: SelKey, id: SelId): void;
   /** The bulk bar's values for a list's ticked rows. */

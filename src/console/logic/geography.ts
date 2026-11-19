@@ -1,11 +1,13 @@
 // Geography page (sidebar "Geography"): the district > mandal > village tree with search, the add/edit form (names,
 // LGD code, PIN, location from a pasted map link), deactivate/reactivate, CSV export and the villages CSV import.
-// Moved out of Console.tsx unchanged (audit WEB-ARCH-001). The tree itself (GET /geo/tree/) is loaded by Console.tsx
-// (loadGeo), since every page uses it. Calls /geo/districts/, /geo/mandals/, /geo/villages/ (.claude/api.md).
+// Moved out of Console.tsx unchanged (audit WEB-ARCH-001). The tree (GET /geo/tree/, districts and mandals with their
+// village counts) is loaded by Console.tsx (loadGeo), since every page uses it; a mandal's villages load when it is
+// opened (loadVillages, GET /geo/admin/villages/), and every village only for search and export (loadAllVillages).
+// Calls /geo/districts/, /geo/mandals/, /geo/villages/ (.claude/api.md).
 import { saveFile } from "../api";
 import { decodeUtf8, fileLine, planParts, type CsvPart } from "../csv-parts";
 import type { GeoImportResult } from "../types";
-import { csvCell, isStatus, pickFile, reportErrors, type FieldChange, type GeoErrs, type GeoForm, type GeoKind, type GeoNode } from "../model";
+import { csvCell, isStatus, pickFile, reportErrors, type FieldChange, type GeoErrs, type GeoForm, type GeoKind, type GeoMandalRow, type GeoNode } from "../model";
 import type { ConsoleHost } from "./host";
 
 // Largest villages CSV the console reads (the server takes at most GEO_IMPORT_MAX_BYTES, 20 MB, per part).
@@ -46,6 +48,11 @@ function geoPlace(h: ConsoleHost, f: GeoForm) {
   } else if (f.kind === 'mandal') parts.push(f.parentName || f.parent);
   parts.push(h.state.stateRow ? h.state.stateRow.name_en : 'Andhra Pradesh');
   return parts.filter(Boolean).join(', ');
+}
+
+// A mandal's number of villages: its loaded list, else the server's count (villages load when it is opened).
+function villageCount(m: GeoMandalRow) {
+  return m.loaded ? m.villages.length : m.count;
 }
 
 // Same checks as the app's area sheet; the server checks again.
@@ -236,9 +243,17 @@ export function geographyView(h: ConsoleHost) {
     const sel = s.geoForm && s.geoForm.id === node.id && s.geoForm.kind === kind;
     return {kind, name: node.name, te: node.te && node.te !== node.name ? node.te : '', indent: (8 + depth * 28) + 'px', rowBg: sel ? '#f0f6fd' : 'transparent', opacity: node.active ? 1 : .55, toggleVis: hasKids ? 'visible' : 'hidden', chev: open ? 'M6 9l6 6 6-6' : 'M9 6l6 6-6 6', open: hasKids ? open : undefined, toggleLabel: (open ? 'Collapse ' : 'Expand ') + node.name,
       tagBg: tag[kind][0], tagColor: tag[kind][1], inactive: !node.active, meta, canAdd: hasKids, childKind: kind === 'district' ? 'Mandal' : 'Village',
-      toggle: () => h.setState((st) => ({expanded: {...st.expanded, [key]: !st.expanded[key]}})),
+      // Opening a mandal loads its villages (once); until then it shows the server's count.
+      toggle: () => {
+        if (kind === 'mandal' && !open) void h.loadVillages(node.id);
+        h.setState((st) => ({expanded: {...st.expanded, [key]: !st.expanded[key]}}));
+      },
       select: () => h.setState({geoForm: {kind, id: node.id, parentId, parentName, parentKey, parent: parentName || (s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh'), name: node.name, te: node.te || '', lgd: node.lgd || '', lat: node.lat || '', lng: node.lng || '', pin: node.pin || '', active: node.active, wasActive: node.active, isVillage: kind === 'village'}}),
-      add: () => h.setState({geoForm: {kind: kind === 'district' ? 'mandal' : 'village', id: null, parentId: node.id, parentName: node.name, parentKey: key, parent: node.name, name: '', te: '', lgd: '', lat: '', lng: '', pin: '', active: true, isVillage: kind === 'mandal'}}),
+      // Adding a village: its mandal's villages are needed for the "name already exists" check.
+      add: () => {
+        if (kind === 'mandal') void h.loadVillages(node.id);
+        h.setState({geoForm: {kind: kind === 'district' ? 'mandal' : 'village', id: null, parentId: node.id, parentName: node.name, parentKey: key, parent: node.name, name: '', te: '', lgd: '', lat: '', lng: '', pin: '', active: true, isVillage: kind === 'mandal'}});
+      },
       deact: () => geoDeact(h, {...node, kind}), deactLabel: node.active ? 'Deactivate' : 'Reactivate', deactColor: node.active ? '#b3261e' : '#1d7a33'};
   };
   const tree: ReturnType<typeof treeRow>[] = [];
@@ -247,7 +262,7 @@ export function geographyView(h: ConsoleHost) {
     const open = !!s.expanded[key];
     tree.push(treeRow(node, kind, depth, parentId, parentName, parentKey, meta, key, open));
     if (kind === 'village' || !open) return;
-    if (node.mandals) node.mandals.forEach((k) => walk(k, 'mandal', depth + 1, node.id, node.name, key, k.villages.length + ' villages'));
+    if (node.mandals) node.mandals.forEach((k) => walk(k, 'mandal', depth + 1, node.id, node.name, key, villageCount(k) + ' villages'));
     else if (node.villages) node.villages.forEach((k) => walk(k, 'village', depth + 1, node.id, node.name, key, k.lat ? Number(k.lat).toFixed(4) + ', ' + Number(k.lng).toFixed(4) : ''));
   };
   // Search: every match with the path above it (district > mandal), opened, matches highlighted.
@@ -281,7 +296,7 @@ export function geographyView(h: ConsoleHost) {
         geoFound.villages += vs.length;
         const mKey = 'm' + m.id;
         const showAll = !vs.length && !!s.expanded[mKey];
-        tree.push(mark(treeRow(m, 'mandal', 1, d.id, d.name, dKey, m.villages.length + ' villages', mKey, vs.length > 0 || showAll), mHit));
+        tree.push(mark(treeRow(m, 'mandal', 1, d.id, d.name, dKey, villageCount(m) + ' villages', mKey, vs.length > 0 || showAll), mHit));
         for (const k of showAll ? m.villages : vs) {
           if (geoFound.shown >= VILLAGE_CAP) break;
           geoFound.shown++;
@@ -290,9 +305,13 @@ export function geographyView(h: ConsoleHost) {
       }
     }
   }
-  const geoSearch = gq ? {
+  const found = geoFound.districts + geoFound.mandals + geoFound.villages;
+  const geoSearch = gq && s.geoAllLoading ? {
+    // The first search is loading every village: districts and mandals already match; villages follow.
+    on: true, summary: 'Searching every village…', more: '', empty: '',
+  } : gq ? {
     on: true,
-    summary: geoFound.districts + geoFound.mandals + geoFound.villages === 0 ? '' : [
+    summary: found === 0 ? '' : [
       geoFound.districts ? geoFound.districts + (geoFound.districts === 1 ? ' district' : ' districts') : '',
       geoFound.mandals ? geoFound.mandals + (geoFound.mandals === 1 ? ' mandal' : ' mandals') : '',
       geoFound.villages ? geoFound.villages + (geoFound.villages === 1 ? ' village' : ' villages') : '',
@@ -307,8 +326,17 @@ export function geographyView(h: ConsoleHost) {
   const geoForm: Partial<GeoForm> = gf || {};
   const geoCoordsOk = !!gf && gf.isVillage && !geoErrs(h, {...gf, id: gf.id || 1}).coords && !!String(gf.lat || '').trim();
   return {
-    tree, geoQ: s.geoQ, geoSearch, onGeoQ: (e: FieldChange) => h.setState({geoQ: e.target.value}), clearGeoQ: () => h.setState({geoQ: ''}),
-    exportGeo: () => exportGeo(h),
+    // Search looks through every village: the first search loads them all (once).
+    tree, geoQ: s.geoQ, geoSearch, onGeoQ: (e: FieldChange) => {
+      if (e.target.value.trim()) void h.loadAllVillages();
+      h.setState({geoQ: e.target.value});
+    }, clearGeoQ: () => h.setState({geoQ: ''}),
+    // Export writes every village: loads them all first (once).
+    exportGeo: () => {
+      if (h.state.geoAll) return exportGeo(h);
+      h.toast('Getting every village for the export…');
+      void h.loadAllVillages().then(() => { if (h.state.geoAll) exportGeo(h); });
+    },
     addDistrict: () => h.setState({geoForm: {kind: 'district', id: null, parentId: null, parentName: null, parent: s.stateRow ? s.stateRow.name_en : 'Andhra Pradesh', name: '', te: '', lgd: '', lat: '', lng: '', pin: '', isVillage: false}}), importCsv: () => importCsv(h),
     geoForm, geoFormShow: !!gf, geoFormEmpty: !gf, geoFormTitle: gf ? ((gf.id ? 'Edit ' : 'Add ') + gf.kind) : 'Details', geoSaveLabel: gf && gf.id ? 'Save changes' : 'Add', geoNamePh: gf ? {district: 'e.g. Bapatla', mandal: 'e.g. Ponnur', village: 'e.g. Kothapalem'}[gf.kind] : '',
     cannotSaveGeo: false, saveGeoOpacity: 1, geoErr, geoCoordsRequired: !!(gf && gf.isVillage && !gf.id), onGeoWhere: (e: FieldChange) => onGeoWhere(h, e.target.value),

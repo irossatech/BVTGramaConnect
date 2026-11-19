@@ -49,12 +49,12 @@ import { loadPosts, postPanelView, postsView } from "./logic/posts";
 import { composeView } from "./logic/compose";
 import { loadNotifs, notificationsView } from "./logic/notifications";
 import { dashboardView, loadDash } from "./logic/dashboard";
-import type { Area, GeoState,
+import type { Area, GeoState, GeoVillage,
   LoginResponse, Me,
 } from "./types";
 
 import { FORMS, LEVEL_OF_ROLE, one, isStatus, blobPreviews, historyPage, EMPTY_NU } from "./model";
-import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, GeoDistrictRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
+import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, GeoDistrictRow, GeoVillageRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
 export type { SelView } from "./model";
 
 export type View = ReturnType<Component["renderVals"]>;
@@ -77,7 +77,7 @@ export default class Component extends React.Component<Props, State> {
   // Everything the console shows starts from here, and goes back here on sign-out (nothing of the last session stays).
   private static readonly INITIAL: State = {
     screen: 'checking', page: 'dashboard', username: '', password: '', cpCurrent: '', cpNext: '', cpVoluntary: false, showPw: {}, menuOpen: false, navOpen: false, exporting: null, notifOpen: false, notifs: [], notifUnread: 0, notifNext: null, notifLoading: false, notifError: false, gsearch: '', me: null,
-    geo: [], stateRow: null, expanded: {}, geoQ: '', geoForm: null,
+    geo: [], geoAll: false, geoAllLoading: false, stateRow: null, expanded: {}, geoQ: '', geoForm: null,
     users: [], userCount: 0, userCounts: null, userPage: 1, userPages: 1, usersLoading: false,
     reqs: [], reqCount: 0, reqPage: 1, reqPages: 1, reqLoading: false, reqFilter: 'NEW', svcView: 'requests', ads: [], adsLoading: false, adsUnavailable: false, af: null,
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
@@ -162,6 +162,8 @@ export default class Component extends React.Component<Props, State> {
       c.timers[key] = setTimeout(run, ms);
     },
     loadGeo: () => c.loadGeo(),
+    loadVillages: (mandalId) => c.loadVillages(mandalId),
+    loadAllVillages: () => c.loadAllVillages(),
     toggleSel: (key, id) => c.toggleSel(key, id),
     selView: (key, ids, options) => c.selView(key, ids, options),
   }))(this);
@@ -293,6 +295,8 @@ export default class Component extends React.Component<Props, State> {
     this.stopTimers();
     this.seq = {};
     this.teNames = {};
+    this.villageLoads.clear();
+    this.allVillagesLoad = null;
     this.teAuto = undefined;
     this.nuGen = undefined;
     this.setState((s) => ({...Component.INITIAL, screen: 'login', toasts: s.toasts, username: keepUsername ? s.username : ''}));
@@ -571,32 +575,95 @@ export default class Component extends React.Component<Props, State> {
     }
     if (p === 'reports') loadReports(this.host);
     if (p === 'settings') loadSettings(this.host);
-    if (p === 'geography') this.loadGeo();
+    if (p === 'geography') {
+      this.loadGeo();
+      if (this.state.geoQ.trim()) void this.loadAllVillages(); // back to a search left typed in: it needs every village
+    }
   }
 
+  // The geography tree: districts and mandals, each mandal with its village count (GET /geo/tree/). The ~18,000
+  // villages no longer come with every sign-in (backend audit; contract, "Geography"): one mandal's load when it is
+  // opened or picked (loadVillages, GET /geo/admin/villages/?mandal=), and all of them only where a screen needs
+  // every one, Geography search and export or a list of all villages (loadAllVillages). Each load runs once.
+  private villageLoads = new Map<number, Promise<void>>();
+  private allVillagesLoad: Promise<void> | null = null;
+
   private loadGeo() {
-    return this.api.get<GeoState[]>('/geo/tree/', {villages: 1}).then((tree) => {
+    // A reload (after an edit or an import) keeps what was there: every village again if they were all loaded,
+    // else the villages of the mandals already loaded and of the mandals open in the tree.
+    const all = this.state.geoAll;
+    const wereLoaded = this.state.geo.flatMap((d) => d.mandals.filter((m) => m.loaded).map((m) => m.id));
+    this.villageLoads.clear();
+    this.allVillagesLoad = null;
+    return this.api.get<GeoState[]>('/geo/tree/', all ? {villages: 1} : {}).then((tree) => {
       const st = tree[0] || null;
-      const teMap: Record<string, string> = {};
-      const geo = (st ? st.districts : []).map((d): GeoDistrictRow => {
-        teMap['DISTRICT:' + d.id] = d.name_te;
-        return {id: d.id, name: d.name_en, te: d.name_te, lgd: d.lgd_code || '', active: d.is_active, mandals: d.mandals.map((m) => {
-          teMap['MANDAL:' + m.id] = m.name_te;
-          return {id: m.id, name: m.name_en, te: m.name_te, lgd: m.lgd_code || '', active: m.is_active, villages: (m.villages || []).map((v) => {
-            teMap['VILLAGE:' + v.id] = v.name_te;
-            return {id: v.id, name: v.name_en, te: v.name_te, lgd: v.lgd_code || '', lat: v.latitude || '', lng: v.longitude || '', pin: v.pin_code || '', active: v.is_active};
-          })};
-        })};
-      });
-      if (st) teMap['STATE:' + st.id] = st.name_te;
-      this.teNames = teMap;
+      const geo = this.geoRows(st, all);
       const expanded = {...this.state.expanded};
       if (geo[0] && !Object.keys(expanded).length) {
         expanded[geo[0].id] = true;
         if (geo[0].mandals[0]) expanded['m' + geo[0].mandals[0].id] = true;
       }
-      this.setState({geo, stateRow: st, expanded});
+      this.setState({geo, geoAll: all, stateRow: st, expanded}, () => {
+        if (all) return;
+        const open = Object.keys(this.state.expanded).filter((k) => /^m\d+$/.test(k) && this.state.expanded[k]).map((k) => Number(k.slice(1)));
+        for (const id of new Set([...wereLoaded, ...open])) void this.loadVillages(id);
+      });
     }).catch((e: unknown) => this.fail(e));
+  }
+
+  // The tree from the server as the console's rows; also fills the Telugu names (teNames) of every place in it.
+  private geoRows(st: GeoState | null, withVillages: boolean): GeoDistrictRow[] {
+    const teMap: Record<string, string> = {};
+    const geo = (st ? st.districts : []).map((d): GeoDistrictRow => {
+      teMap['DISTRICT:' + d.id] = d.name_te;
+      return {id: d.id, name: d.name_en, te: d.name_te, lgd: d.lgd_code || '', active: d.is_active, mandals: d.mandals.map((m) => {
+        teMap['MANDAL:' + m.id] = m.name_te;
+        const villages = (m.villages || []).map((v) => this.villageRow(v, teMap));
+        return {id: m.id, name: m.name_en, te: m.name_te, lgd: m.lgd_code || '', active: m.is_active, count: m.village_count ?? villages.length, loaded: withVillages, villages};
+      })};
+    });
+    if (st) teMap['STATE:' + st.id] = st.name_te;
+    this.teNames = teMap;
+    return geo;
+  }
+
+  private villageRow(v: GeoVillage, teMap: Record<string, string>): GeoVillageRow {
+    teMap['VILLAGE:' + v.id] = v.name_te;
+    return {id: v.id, name: v.name_en, te: v.name_te, lgd: v.lgd_code || '', lat: v.latitude || '', lng: v.longitude || '', pin: v.pin_code || '', active: v.is_active};
+  }
+
+  private loadVillages(mandalId: number | string): Promise<void> {
+    const id = Number(mandalId);
+    if (!id || this.state.geoAll) return Promise.resolve();
+    if (this.state.geo.some((d) => d.mandals.some((m) => m.id === id && m.loaded))) return Promise.resolve();
+    const going = this.villageLoads.get(id) || this.allVillagesLoad;
+    if (going) return going;
+    // Settles once the villages are in the state, so a caller reading h.state next finds them.
+    const load = this.api.get<GeoVillage[]>('/geo/admin/villages/', {mandal: id}).then((rows) => new Promise<void>((done) => {
+      const villages = rows.map((v) => this.villageRow(v, this.teNames));
+      this.setState((s) => ({geo: s.geo.map((d) => d.mandals.some((m) => m.id === id) ? {...d, mandals: d.mandals.map((m) => m.id === id ? {...m, villages, loaded: true, count: villages.length} : m)} : d)}), done);
+    })).catch((e: unknown) => {
+      this.villageLoads.delete(id);
+      this.fail(e);
+    });
+    this.villageLoads.set(id, load);
+    return load;
+  }
+
+  private loadAllVillages(): Promise<void> {
+    if (this.state.geoAll) return Promise.resolve();
+    if (this.allVillagesLoad) return this.allVillagesLoad;
+    this.setState({geoAllLoading: true});
+    const load = this.api.get<GeoState[]>('/geo/tree/', {villages: 1}).then((tree) => new Promise<void>((done) => {
+      const st = tree[0] || null;
+      this.setState({geo: this.geoRows(st, true), geoAll: true, geoAllLoading: false, stateRow: st}, done);
+    })).catch((e: unknown) => {
+      this.allVillagesLoad = null;
+      this.setState({geoAllLoading: false});
+      this.fail(e);
+    });
+    this.allVillagesLoad = load;
+    return load;
   }
 
 

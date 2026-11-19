@@ -66,6 +66,11 @@ function openNumber(h: ConsoleHost, c: AdminContact | null) {
   h.setState({nf: c
     ? {id: c.id, section: c.type.section, type: c.type.key, typeObj: {...c.type, is_other: !!c.custom_type}, custom: c.custom_type || '', name: c.name, te: c.name_te || '', phone: c.phone, email: c.email || '', level: a ? a.level : 'VILLAGE', area: a ? String(a.id) : '', ...(a ? stepsOf(h, a.level, String(a.id)) : {nfD: '', nfM: ''}), sort: String(c.sort_order == null ? 100 : c.sort_order), consent: !!c.consent_recorded}
     : {id: null, section: h.state.numTab === 'HELPLINE' ? 'HELPLINE' : 'AREA', type: '', custom: '', name: '', te: '', phone: '', email: '', level: 'VILLAGE', area: '', nfD: '', nfM: '', sort: '100', consent: false}});
+  // A village number: which mandal holds the village is known only once villages are loaded. Load them (once)
+  // and fill the District / Mandal steps, if this number is still open.
+  if (c && a && a.level === 'VILLAGE' && !stepsOf(h, 'VILLAGE', String(a.id)).nfM) {
+    void h.loadAllVillages().then(() => h.setState((st) => st.nf && st.nf.id === c.id ? {nf: {...st.nf, ...stepsOf(h, 'VILLAGE', String(a.id))}} : null));
+  }
 }
 
 function nfView(h: ConsoleHost) {
@@ -255,6 +260,7 @@ export function numbersView(h: ConsoleHost) {
         return;
       }
       if (name === 'name') h.suggestTe('nf', value);
+      if (name === 'nfM' && value) void h.loadVillages(value); // the Village step lists this mandal's villages
       const next = t instanceof HTMLInputElement && t.type === 'checkbox' ? t.checked : value;
       h.setState((st) => {
         if (!st.nf) return null;
