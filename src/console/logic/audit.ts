@@ -21,7 +21,8 @@ const KIND: Readonly<Record<string, readonly [string, string, string]>> = {post:
 export function loadAudit(h: ConsoleHost, page: number) {
   const latest = h.ticket('audit');
   h.setState({auditLoading: true});
-  h.api.get<Paged<AuditEntry> & {window?: {from: string; to: string}}>('/audit/', {q: h.state.auditQ, type: h.state.auditType, page, page_size: PAGE_SIZE})
+  // from / to only when chosen (empty values are not sent): with neither, the server lists its last 90 days.
+  h.api.get<Paged<AuditEntry> & {window?: {from: string; to: string}}>('/audit/', {q: h.state.auditQ, type: h.state.auditType, from: h.state.auditFrom, to: h.state.auditTo, page, page_size: PAGE_SIZE})
     // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
     .then((d) => latest() && h.setState({audit: d.results.map(({data, ...a}) => ({...a, summary: summaryOf(a.action, data)})), auditCount: d.count, auditWindow: windowLabel(d.window), auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
     .catch((e: unknown) => {
@@ -29,6 +30,16 @@ export function loadAudit(h: ConsoleHost, page: number) {
       h.setState({auditLoading: false});
       h.fail(e);
     });
+}
+
+// How far back the server shows the log (AUDIT_VISIBLE_DAYS, contract section 8); older entries stay saved.
+const AUDIT_VISIBLE_DAYS = 180;
+
+// A day as YYYY-MM-DD in the browser's local time (India for the Super Admins), `offset` days from today.
+function isoDay(offset: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 // The server lists a recent period only (90 to 180 days): "19 Aug – 17 Nov 2026".
@@ -113,7 +124,8 @@ function exportCsv(h: ConsoleHost) {
   if (s.page !== 'audit') return exportReport(h, 'posts-by-area');
   if (s.exporting) return;
   h.setState({exporting: 'audit'});
-  h.api.download('/audit/export/', {q: s.auditQ, type: s.auditType, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => h.toast('Audit log exported')).catch((e: unknown) => h.fail(e)).finally(() => h.setState({exporting: null}));
+  // The same period as the list. Over 50,000 entries the server answers "Choose a shorter date range" (shown by fail()).
+  h.api.download('/audit/export/', {q: s.auditQ, type: s.auditType, from: s.auditFrom, to: s.auditTo, format: 'csv'}, 'grama-audit-' + stamp + '.csv').then(() => h.toast('Audit log exported')).catch((e: unknown) => h.fail(e)).finally(() => h.setState({exporting: null}));
 }
 
 /** The page's renderVals() values (screens/Audit.tsx). */
@@ -128,6 +140,14 @@ export function auditView(h: ConsoleHost) {
     auditType: s.auditType,
     auditTypes: [['', 'All activity'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Sign-ins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({id, label})),
     onAuditType: (e: FieldChange) => h.setState({auditType: e.target.value}, () => loadAudit(h, 1)),
+    // From / To (contract section 8): any days within the last 180; To never before From. Clear goes back to
+    // the server's last 90 days.
+    auditFrom: s.auditFrom, auditTo: s.auditTo,
+    auditMinDay: isoDay(-AUDIT_VISIBLE_DAYS), auditToday: isoDay(0),
+    onAuditFrom: (e: FieldChange) => h.setState({auditFrom: e.target.value}, () => loadAudit(h, 1)),
+    onAuditTo: (e: FieldChange) => h.setState({auditTo: e.target.value}, () => loadAudit(h, 1)),
+    auditDatesSet: !!(s.auditFrom || s.auditTo),
+    clearAuditDates: () => h.setState({auditFrom: '', auditTo: ''}, () => loadAudit(h, 1)),
     // The third column's header names the item when one type is chosen; All activity mixes kinds, so "On what".
     auditOnWhat: ({posts: 'Post', users: 'User', areas: 'Area', settings: 'Change', logins: 'On what', system: 'On what'} as Readonly<Record<string, string>>)[s.auditType] || 'On what',
     onAuditQ: (e: FieldChange) => {

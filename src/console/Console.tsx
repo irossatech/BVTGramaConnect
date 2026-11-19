@@ -85,7 +85,7 @@ export default class Component extends React.Component<Props, State> {
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
     numSel: [], adSel: [], adTab: 'all', postSel: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
-    audit: [], auditCount: 0, auditWindow: '', auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', distQ: '', auditLoading: false,
+    audit: [], auditCount: 0, auditWindow: '', auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', auditFrom: '', auditTo: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
