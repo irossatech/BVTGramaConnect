@@ -59,7 +59,7 @@ export function contactsView(h: ConsoleHost) {
     }),
     contactEmpty: !s.contacts.length,
     contactEmptyText: s.contactLoading ? 'Loading…' : s.contactQ.trim() ? 'No messages match “' + s.contactQ.trim() + '”' : s.contactFilter === 'new' ? 'No new messages' : s.contactFilter === 'handled' ? 'No handled messages' : 'No messages yet',
-    contactEmptyHint: s.contactLoading || s.contactQ.trim() ? '' : "Messages from the website's Contact page. The last 90 days are shown.", contactPager: pager(s.contactPage, s.contactPages, (p) => loadContacts(h, p)),
+    contactEmptyHint: s.contactLoading || s.contactQ.trim() ? '' : "Messages from the website's Contact page. New messages stay here until you mark them handled.", contactPager: pager(s.contactPage, s.contactPages, (p) => loadContacts(h, p)),
   };
 }
 
