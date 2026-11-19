@@ -10,8 +10,8 @@ const oneLine = {whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellips
 export default function Audit({ v }: { v: View }) {
   return (
     <>
-      {/* Two toolbar rows: search, the type, the entries shown and Export CSV; then the period (Month, From, To,
-          Last 180 days) together on its own row, so From and To never wrap apart. */}
+      {/* Two toolbar rows: search, the type, the entries shown and Export CSV; then the period (From, To,
+          Last 180 days) together on its own row, so From and To never wrap apart. A month: From the 1st To its last day. */}
       <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
       <div className="sa-bar" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
         <label style={{position: "relative", flex: "0 1 300px", minWidth: "200px"}}>
@@ -24,12 +24,8 @@ export default function Audit({ v }: { v: View }) {
         <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c"}}>{I(v.auditInfo)}</span>
         {v.canExportAudit ? <button onClick={v.exportCsv} disabled={!!v.exporting} aria-busy={v.exporting === "audit"} style={{height: "38px", padding: "0 16px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px", whiteSpace: "nowrap", opacity: v.exporting ? ".6" : "1"}}>{v.exporting === "audit" ? "Exporting…" : "Export CSV"}</button> : null}
       </div>
-      {/* The period (contract section 8): any past days or a month, however old; none chosen = the last 180 days. */}
+      {/* The period (contract section 8): any past days, however old; none chosen = the last 180 days. */}
       <div role="group" aria-label="Period" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
-        <label style={{display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#6b7a8c"}}>
-          Month
-          <input type="month" aria-label="Month" value={val(v.auditMonth, "")} max={v.auditThisMonth} onChange={v.onAuditMonth} style={{height: "38px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px"}} />
-        </label>
         <label style={{display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#6b7a8c"}}>
           From
           <input type="date" aria-label="From date" value={val(v.auditFrom, "")} max={v.auditTo || v.auditToday} onChange={v.onAuditFrom} style={{height: "38px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px"}} />

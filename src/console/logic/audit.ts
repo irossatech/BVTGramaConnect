@@ -2,7 +2,7 @@
 // "Recent activity" uses too. Moved out of Console.tsx unchanged (audit WEB-ARCH-001).
 // Calls GET /audit/ and GET /audit/export/ (.claude/api.md).
 import type { AuditEntry, Paged } from "../types";
-import { isoDay, monthDays, monthOf } from "../auditDates";
+import { isoDay } from "../auditDates";
 import { pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange } from "../model";
 import type { ConsoleHost } from "./host";
 import { exportReport } from "./reports";
@@ -132,17 +132,11 @@ export function auditView(h: ConsoleHost) {
     auditType: s.auditType,
     auditTypes: [['', 'All activity'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Sign-ins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({id, label})),
     onAuditType: (e: FieldChange) => h.setState({auditType: e.target.value}, () => loadAudit(h, 1)),
-    // From / To and Month (contract section 8, lead's decision of 2026-11-19): any past days, however old, up to
-    // today; To never before From. A month fills From / To with its first and last day. "Last 180 days" clears
-    // them: the server's default.
+    // From / To (contract section 8, lead's decision of 2026-11-19): any past days, however old, up to today; To
+    // never before From (a month: From the 1st To its last day). "Last 180 days" clears them: the server's default.
     auditFrom: s.auditFrom, auditTo: s.auditTo, auditToday: isoDay(0),
-    auditMonth: monthOf(s.auditFrom, s.auditTo), auditThisMonth: isoDay(0).slice(0, 7),
     onAuditFrom: (e: FieldChange) => h.setState({auditFrom: e.target.value}, () => loadAudit(h, 1)),
     onAuditTo: (e: FieldChange) => h.setState({auditTo: e.target.value}, () => loadAudit(h, 1)),
-    onAuditMonth: (e: FieldChange) => {
-      const [from, to] = e.target.value ? monthDays(e.target.value) : ['', ''];
-      h.setState({auditFrom: from, auditTo: to}, () => loadAudit(h, 1));
-    },
     auditDatesSet: !!(s.auditFrom || s.auditTo),
     clearAuditDates: () => h.setState({auditFrom: '', auditTo: ''}, () => loadAudit(h, 1)),
     // The third column's header names the item when one type is chosen; All activity mixes kinds, so "On what".
