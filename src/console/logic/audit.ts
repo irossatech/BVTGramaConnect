@@ -2,6 +2,7 @@
 // "Recent activity" uses too. Moved out of Console.tsx unchanged (audit WEB-ARCH-001).
 // Calls GET /audit/ and GET /audit/export/ (.claude/api.md).
 import type { AuditEntry, Paged } from "../types";
+import { isoDay, monthDays, monthOf } from "../auditDates";
 import { pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange } from "../model";
 import type { ConsoleHost } from "./host";
 import { exportReport } from "./reports";
@@ -21,7 +22,8 @@ const KIND: Readonly<Record<string, readonly [string, string, string]>> = {post:
 export function loadAudit(h: ConsoleHost, page: number) {
   const latest = h.ticket('audit');
   h.setState({auditLoading: true});
-  // from / to only when chosen (empty values are not sent): with neither, the server lists its last 90 days.
+  // from / to only when chosen (empty values are not sent): with neither, the server lists its last 180 days;
+  // with them, those days however old (lead's decision of 2026-11-19).
   h.api.get<Paged<AuditEntry> & {window?: {from: string; to: string}}>('/audit/', {q: h.state.auditQ, type: h.state.auditType, from: h.state.auditFrom, to: h.state.auditTo, page, page_size: PAGE_SIZE})
     // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
     .then((d) => latest() && h.setState({audit: d.results.map(({data, ...a}) => ({...a, summary: summaryOf(a.action, data)})), auditCount: d.count, auditWindow: windowLabel(d.window), auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
@@ -32,17 +34,7 @@ export function loadAudit(h: ConsoleHost, page: number) {
     });
 }
 
-// How far back the server shows the log (AUDIT_VISIBLE_DAYS, contract section 8); older entries stay saved.
-const AUDIT_VISIBLE_DAYS = 180;
-
-// A day as YYYY-MM-DD in the browser's local time (India for the Super Admins), `offset` days from today.
-function isoDay(offset: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
-// The server lists a recent period only (90 to 180 days): "19 Aug – 17 Nov 2026".
+// The days the server actually listed (the answer's window): "24 May – 19 Nov 2026".
 function windowLabel(w?: {from: string; to: string}) {
   if (!w || !w.from || !w.to) return '';
   const day = (iso: string, year: boolean) => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', ...(year ? {year: 'numeric'} : {})});
@@ -140,12 +132,17 @@ export function auditView(h: ConsoleHost) {
     auditType: s.auditType,
     auditTypes: [['', 'All activity'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Sign-ins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({id, label})),
     onAuditType: (e: FieldChange) => h.setState({auditType: e.target.value}, () => loadAudit(h, 1)),
-    // From / To (contract section 8): any days within the last 180; To never before From. Clear goes back to
-    // the server's last 90 days.
-    auditFrom: s.auditFrom, auditTo: s.auditTo,
-    auditMinDay: isoDay(-AUDIT_VISIBLE_DAYS), auditToday: isoDay(0),
+    // From / To and Month (contract section 8, lead's decision of 2026-11-19): any past days, however old, up to
+    // today; To never before From. A month fills From / To with its first and last day. "Last 180 days" clears
+    // them: the server's default.
+    auditFrom: s.auditFrom, auditTo: s.auditTo, auditToday: isoDay(0),
+    auditMonth: monthOf(s.auditFrom, s.auditTo), auditThisMonth: isoDay(0).slice(0, 7),
     onAuditFrom: (e: FieldChange) => h.setState({auditFrom: e.target.value}, () => loadAudit(h, 1)),
     onAuditTo: (e: FieldChange) => h.setState({auditTo: e.target.value}, () => loadAudit(h, 1)),
+    onAuditMonth: (e: FieldChange) => {
+      const [from, to] = e.target.value ? monthDays(e.target.value) : ['', ''];
+      h.setState({auditFrom: from, auditTo: to}, () => loadAudit(h, 1));
+    },
     auditDatesSet: !!(s.auditFrom || s.auditTo),
     clearAuditDates: () => h.setState({auditFrom: '', auditTo: ''}, () => loadAudit(h, 1)),
     // The third column's header names the item when one type is chosen; All activity mixes kinds, so "On what".
@@ -159,6 +156,6 @@ export function auditView(h: ConsoleHost) {
     aeShow: !!s.auditOpen, closeAE: () => h.setState({auditOpen: null}), ae: s.auditOpen ? auditRow(h, s.auditOpen) : null,
     auditInfo: (s.auditCount === 1 ? '1 entry' : s.auditCount + ' entries') + (s.auditWindow ? ' · ' + s.auditWindow : ''),
     auditEmptyText: s.auditLoading ? 'Loading…' : s.auditQ.trim() ? 'No entries match “' + s.auditQ.trim() + '”' : 'No entries in this period',
-    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : 'Only recent entries are listed here; older ones stay saved.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
+    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : s.auditFrom || s.auditTo ? 'Nothing was recorded on these days.' : 'The last 180 days are listed; pick dates or a month for older entries.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
   };
 }
