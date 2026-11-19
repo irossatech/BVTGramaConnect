@@ -44,7 +44,7 @@ export default function UserDrawer({ v }: { v: View }) {
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Temporary password (optional)</span>
             <span style={{display: "flex", gap: "10px"}}>
-              <input name="password" type="text" value={val(v.nu?.password, "")} onChange={v.onNU} placeholder="Leave empty to generate one" autoComplete="off" style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
+              <input name="password" type="text" value={val(v.nu?.password, "")} onChange={v.onNU} placeholder="Leave empty to generate one" autoComplete="off" maxLength={128} style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
               <button onClick={v.genNU} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Generate</button>
             </span>
           </label>
