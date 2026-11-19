@@ -24,21 +24,15 @@ export function loadAudit(h: ConsoleHost, page: number) {
   h.setState({auditLoading: true});
   // from / to only when chosen (empty values are not sent): with neither, the server lists its last 180 days;
   // with them, those days however old (lead's decision of 2026-11-19).
-  h.api.get<Paged<AuditEntry> & {window?: {from: string; to: string}}>('/audit/', {q: h.state.auditQ, type: h.state.auditType, from: h.state.auditFrom, to: h.state.auditTo, page, page_size: PAGE_SIZE})
+  // `count` is the entries of exactly that period (with the search and type): the screen shows only that number.
+  h.api.get<Paged<AuditEntry>>('/audit/', {q: h.state.auditQ, type: h.state.auditType, from: h.state.auditFrom, to: h.state.auditTo, page, page_size: PAGE_SIZE})
     // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
-    .then((d) => latest() && h.setState({audit: d.results.map(({data, ...a}) => ({...a, summary: summaryOf(a.action, data)})), auditCount: d.count, auditWindow: windowLabel(d.window), auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
+    .then((d) => latest() && h.setState({audit: d.results.map(({data, ...a}) => ({...a, summary: summaryOf(a.action, data)})), auditCount: d.count, auditPage: page, auditPages: pageCount(d.count), auditLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
       h.setState({auditLoading: false});
       h.fail(e);
     });
-}
-
-// The days the server actually listed (the answer's window): "24 May – 19 Nov 2026".
-function windowLabel(w?: {from: string; to: string}) {
-  if (!w || !w.from || !w.to) return '';
-  const day = (iso: string, year: boolean) => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', ...(year ? {year: 'numeric'} : {})});
-  return day(w.from, w.from.slice(0, 4) !== w.to.slice(0, 4)) + ' – ' + day(w.to, true);
 }
 
 function humanAction(k: string) {
@@ -133,12 +127,10 @@ export function auditView(h: ConsoleHost) {
     auditTypes: [['', 'All activity'], ['posts', 'Posts'], ['users', 'Users'], ['areas', 'Areas'], ['logins', 'Sign-ins'], ['settings', 'Settings'], ['system', 'System']].map(([id, label]) => ({id, label})),
     onAuditType: (e: FieldChange) => h.setState({auditType: e.target.value}, () => loadAudit(h, 1)),
     // From / To (contract section 8, lead's decision of 2026-11-19): any past days, however old, up to today; To
-    // never before From (a month: From the 1st To its last day). "Last 180 days" clears them: the server's default.
+    // never before From (a month: From the 1st To its last day). Both cleared: the server's default period.
     auditFrom: s.auditFrom, auditTo: s.auditTo, auditToday: isoDay(0),
     onAuditFrom: (e: FieldChange) => h.setState({auditFrom: e.target.value}, () => loadAudit(h, 1)),
     onAuditTo: (e: FieldChange) => h.setState({auditTo: e.target.value}, () => loadAudit(h, 1)),
-    auditDatesSet: !!(s.auditFrom || s.auditTo),
-    clearAuditDates: () => h.setState({auditFrom: '', auditTo: ''}, () => loadAudit(h, 1)),
     // The third column's header names the item when one type is chosen; All activity mixes kinds, so "On what".
     auditOnWhat: ({posts: 'Post', users: 'User', areas: 'Area', settings: 'Change', logins: 'On what', system: 'On what'} as Readonly<Record<string, string>>)[s.auditType] || 'On what',
     onAuditQ: (e: FieldChange) => {
@@ -148,8 +140,9 @@ export function auditView(h: ConsoleHost) {
     auditRows, auditCount: s.auditCount, auditEmpty: !auditRows.length,
     // The details panel: every field in full (the table cuts long text short).
     aeShow: !!s.auditOpen, closeAE: () => h.setState({auditOpen: null}), ae: s.auditOpen ? auditRow(h, s.auditOpen) : null,
-    auditInfo: (s.auditCount === 1 ? '1 entry' : s.auditCount + ' entries') + (s.auditWindow ? ' · ' + s.auditWindow : ''),
+    // Only the number: the default period's entries, or the chosen From / To's (with the search and type).
+    auditInfo: s.auditCount === 1 ? '1 entry' : s.auditCount + ' entries',
     auditEmptyText: s.auditLoading ? 'Loading…' : s.auditQ.trim() ? 'No entries match “' + s.auditQ.trim() + '”' : 'No entries in this period',
-    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : s.auditFrom || s.auditTo ? 'Nothing was recorded on these days.' : 'The last 180 days are listed; pick dates or a month for older entries.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
+    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : s.auditFrom || s.auditTo ? 'Nothing was recorded on these days.' : 'Pick From and To dates to see older entries.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
   };
 }
