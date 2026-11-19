@@ -10,8 +10,8 @@ const oneLine = {whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellips
 export default function Audit({ v }: { v: View }) {
   return (
     <>
-      {/* Two toolbar rows: search, the type, the entries shown and Export CSV; then the period (From, To,
-          Last 180 days) together on its own row, so From and To never wrap apart. A month: From the 1st To its last day. */}
+      {/* Two toolbar rows: search, the type, the number of entries and Export CSV; then From and To together on
+          their own row, so they never wrap apart. Clearing both goes back to the default period. */}
       <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
       <div className="sa-bar" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
         <label style={{position: "relative", flex: "0 1 300px", minWidth: "200px"}}>
@@ -34,7 +34,6 @@ export default function Audit({ v }: { v: View }) {
           To
           <input type="date" aria-label="To date" value={val(v.auditTo, "")} min={v.auditFrom || undefined} max={v.auditToday} onChange={v.onAuditTo} style={{height: "38px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px"}} />
         </label>
-        {v.auditDatesSet ? <button onClick={v.clearAuditDates} style={{height: "38px", padding: "0 6px", border: "0", background: "none", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px", whiteSpace: "nowrap"}}>Last 180 days</button> : null}
       </div>
       </div>
       {/* A log table as web apps show one: fixed columns, newest first, a row opens the entry in full.

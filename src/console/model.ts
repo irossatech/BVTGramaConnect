@@ -455,8 +455,6 @@ export interface State {
   nu: NewUserForm;
   audit: AuditEntry[];
   auditCount: number;
-  /** The period the server lists (`window`: from, to), e.g. "19 Aug – 17 Nov 2026". */
-  auditWindow: string;
   /** The Audit log entry open in its details panel. */
   auditOpen: AuditEntry | null;
   auditPage: number;
