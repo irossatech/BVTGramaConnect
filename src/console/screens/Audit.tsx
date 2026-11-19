@@ -10,7 +10,7 @@ const oneLine = {whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellips
 export default function Audit({ v }: { v: View }) {
   return (
     <>
-      {/* One toolbar: search, the type, the period, Export CSV. */}
+      {/* One toolbar: search, the type, From / To, the period shown, Export CSV. */}
       <div className="sa-bar" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
         <label style={{position: "relative", flex: "0 1 300px", minWidth: "200px"}}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -19,6 +19,16 @@ export default function Audit({ v }: { v: View }) {
         <select aria-label="Type of activity" value={val(v.auditType, "")} onChange={v.onAuditType} style={{height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "160px"}}>
           {list(v.auditTypes).map((_t, _i1) => <option key={_i1} value={_t.id}>{_t.label}</option>)}
         </select>
+        {/* The period (contract section 8): any days within the last 180; none chosen = the last 90 days. */}
+        <label style={{display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#6b7a8c"}}>
+          From
+          <input type="date" aria-label="From date" value={val(v.auditFrom, "")} min={v.auditMinDay} max={v.auditTo || v.auditToday} onChange={v.onAuditFrom} style={{height: "38px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px"}} />
+        </label>
+        <label style={{display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#6b7a8c"}}>
+          To
+          <input type="date" aria-label="To date" value={val(v.auditTo, "")} min={v.auditFrom || v.auditMinDay} max={v.auditToday} onChange={v.onAuditTo} style={{height: "38px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px"}} />
+        </label>
+        {v.auditDatesSet ? <button onClick={v.clearAuditDates} style={{height: "38px", padding: "0 6px", border: "0", background: "none", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px", whiteSpace: "nowrap"}}>Last 90 days</button> : null}
         <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c"}}>{I(v.auditInfo)}</span>
         {v.canExportAudit ? <button onClick={v.exportCsv} disabled={!!v.exporting} aria-busy={v.exporting === "audit"} style={{height: "38px", padding: "0 16px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "13px", whiteSpace: "nowrap", opacity: v.exporting ? ".6" : "1"}}>{v.exporting === "audit" ? "Exporting…" : "Export CSV"}</button> : null}
       </div>

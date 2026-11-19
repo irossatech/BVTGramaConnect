@@ -464,6 +464,9 @@ export interface State {
   auditQ: string;
   /** Audit tab: '' (all) or posts, users, areas, logins, settings, system (GET /audit/?type=). */
   auditType: string;
+  /** Audit period chosen (YYYY-MM-DD, '' = not chosen), sent as from / to; both empty: the server's last 90 days. */
+  auditFrom: string;
+  auditTo: string;
   /** Dashboard: filter for the "Pending by district" list (English or Telugu name). */
   distQ: string;
   auditLoading: boolean;
