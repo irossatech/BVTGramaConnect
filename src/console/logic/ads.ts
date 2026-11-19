@@ -62,6 +62,13 @@ function openAd(h: ConsoleHost, a: Ad | null) {
   h.setState({af: a
     ? {id: a.id, title: a.title, link: a.link || '', ...media, kind: a.video ? 'video' : 'image', preview: a.video ? '' : a.image, vpreview: a.video || '', poster: a.video ? a.image : '', dur: a.duration_s || 0, ...adArea(h, a.area), start: a.starts_on || '', end: a.ends_on || '', active: !!a.is_active, tried: false, saving: false}
     : {id: null, title: '', link: '', ...media, kind: 'image', preview: '', vpreview: '', poster: '', dur: 0, d: '', m: '', v: '', start: today(), end: '', active: true, tried: false, saving: false}});
+  // A village banner: which mandal holds the village is known only once villages are loaded. Load them (once)
+  // and fill the District / Mandal / Village menus, if this banner is still open.
+  // A mandal banner: its optional Village menu lists that mandal's villages.
+  if (a && a.area && a.area.level === 'MANDAL') void h.loadVillages(a.area.id);
+  if (a && a.area && a.area.level === 'VILLAGE' && !adArea(h, a.area).v) {
+    void h.loadAllVillages().then(() => h.setState((st) => st.af && st.af.id === a.id ? {af: {...st.af, ...adArea(h, a.area)}} : null));
+  }
 }
 
 export function adErrors(f: AdForm) {
@@ -212,6 +219,7 @@ export function adFormView(h: ConsoleHost) {
       const t = e.target;
       const name = t.name;
       const value = t instanceof HTMLInputElement && t.type === 'checkbox' ? t.checked : t.value;
+      if (name === 'm' && value) void h.loadVillages(String(value)); // the Village menu lists this mandal's villages
       h.setState((x) => {
         if (!x.af) return null;
         const f = {...x.af, [name]: value};

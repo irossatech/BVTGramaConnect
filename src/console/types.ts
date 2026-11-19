@@ -107,6 +107,9 @@ export interface GeoVillage extends GeoRow {
 }
 
 export interface GeoMandal extends GeoRow {
+  /** How many villages the mandal has (GET /geo/tree/ always sends it). */
+  village_count?: number;
+  /** Only with ?villages=1; else load one mandal's villages with GET /geo/admin/villages/?mandal={id}. */
   villages?: GeoVillage[];
 }
 
@@ -114,7 +117,7 @@ export interface GeoDistrict extends GeoRow {
   mandals: GeoMandal[];
 }
 
-/** GET /geo/tree/?villages=1 returns [GeoState]. */
+/** GET /geo/tree/ returns [GeoState] (villages only with ?villages=1). */
 export interface GeoState {
   id: number;
   name_en: string;

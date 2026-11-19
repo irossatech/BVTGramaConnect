@@ -121,13 +121,27 @@ export function toggleUser(h: ConsoleHost, u: AdminUser) {
     }).catch((e: unknown) => h.fail(e))});
 }
 
+// A village role's dialog lists every village: load them all first (once), then open it.
+function withAllVillagesFor(h: ConsoleHost, role: string, open: () => void) {
+  if (LEVEL_OF_ROLE[role] === 'VILLAGE' && !h.state.geoAll) {
+    void h.loadAllVillages().then(() => { if (h.state.geoAll) open(); });
+    return;
+  }
+  open();
+}
+
 export function reassignUser(h: ConsoleHost, u: AdminUser) {
-  const R = ROLE;
-  const opts = h.areaOptions(u.role);
   if (!u.raId) {
     h.toast('This user has no role to move.', '#E9791E');
     return;
   }
+  withAllVillagesFor(h, u.role, () => reassignDialog(h, u));
+}
+
+function reassignDialog(h: ConsoleHost, u: AdminUser) {
+  const R = ROLE;
+  const opts = h.areaOptions(u.role);
+  if (!u.raId) return;
   const raId = u.raId;
   h.ask({title: 'Reassign area', body: 'Move ' + u.name + ' (' + R[u.role].label + ') to a different ' + (u.role === 'district' ? 'district' : u.role === 'mandal' ? 'mandal' : 'village') + '. Posts already waiting for their review stay with the old area.', hasSelect: true, selectLabel: 'New area', options: opts, confirmLabel: 'Reassign', bg: '#0D3B7A', onConfirm: (_t, sel) => {
     const o = opts.find((x) => x.id === sel) || opts[0];
@@ -155,7 +169,7 @@ export function addRole(h: ConsoleHost, u: AdminUser) {
     h.toast('You cannot add roles.', '#E9791E');
     return;
   }
-  h.ask({title: 'Add role', body: 'Give ' + u.name + ' another role. They choose which role to use after login.', hasSelect: true, selectLabel: 'Role', options: roles, confirmLabel: 'Next', bg: '#0D3B7A', onConfirm: (_t, role) => {
+  h.ask({title: 'Add role', body: 'Give ' + u.name + ' another role. They choose which role to use after login.', hasSelect: true, selectLabel: 'Role', options: roles, confirmLabel: 'Next', bg: '#0D3B7A', onConfirm: (_t, role) => withAllVillagesFor(h, role, () => {
     const opts = h.areaOptions(role);
     if (!opts.length) {
       h.toast('Add areas in Geography first.', '#E9791E');
@@ -168,7 +182,7 @@ export function addRole(h: ConsoleHost, u: AdminUser) {
         refreshUser(h, u.id);
       }).catch((e: unknown) => h.fail(e));
     }}), 0);
-  }});
+  })});
 }
 
 export function removeRole(h: ConsoleHost, u: AdminUser, ra: RoleAssignment) {
@@ -327,6 +341,7 @@ export function usersView(h: ConsoleHost) {
     onNU: (e: FieldChange) => {
       const {name, value} = e.target;
       if (name === 'name') h.suggestTe('nu', value);
+      if (name === 'nuM' && value) void h.loadVillages(value); // the Village step lists this mandal's villages
       h.setState((st) => {
         const n = {...st.nu, [name]: name === 'mobile' ? value.replace(/\D/g, '').slice(0, 10) : value};
         if (name === 'role' || name === 'nuD' || name === 'nuM') return {nu: areaPick(h, st.nu, name, value)};

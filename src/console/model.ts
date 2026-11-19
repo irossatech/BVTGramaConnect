@@ -113,6 +113,10 @@ export interface GeoMandalRow {
   te: string;
   lgd: string;
   active: boolean;
+  /** The server's village count, shown before the villages themselves are loaded. */
+  count: number;
+  /** Whether `villages` holds this mandal's villages yet (they load when the mandal is opened or picked). */
+  loaded: boolean;
   villages: GeoVillageRow[];
 }
 
@@ -391,6 +395,10 @@ export interface State {
   gsearch: string;
   me: Me | null;
   geo: GeoDistrictRow[];
+  /** Every mandal's villages are loaded (geography search, export, and village-role pickers need them all). */
+  geoAll: boolean;
+  /** The full village list is on its way. */
+  geoAllLoading: boolean;
   stateRow: GeoState | null;
   expanded: Record<string, boolean>;
   /** Geography search: district, mandal or village name (English or Telugu) or LGD code. */

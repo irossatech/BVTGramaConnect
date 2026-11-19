@@ -53,6 +53,7 @@ function cfErrors(f: ComposeForm): Partial<Record<'cat' | 'title' | 'body', stri
 
 function onCF(h: ConsoleHost, e: FieldChange) {
   const {name, value} = e.target;
+  if (name === 'm' && value) void h.loadVillages(value); // the Village menu lists this mandal's villages
   h.setState((st) => {
     if (!st.cf) return null;
     const p: Partial<ComposeForm> = name === 'd' ? {d: value, m: '', v: ''} : name === 'm' ? {m: value, v: ''} : {[name]: value};
