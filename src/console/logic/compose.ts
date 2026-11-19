@@ -6,6 +6,7 @@ import type React from "react";
 import type { Post } from "../types";
 import type { ComposeForm, FieldChange } from "../model";
 import type { ConsoleHost } from "./host";
+import { newClientRef } from "../clientRef";
 import { loadPosts } from "./posts";
 import { loadCategories } from "./settings";
 
@@ -24,7 +25,7 @@ function openCompose(h: ConsoleHost) {
   // Fresh every time the form opens (a quick request), so a category switched on meanwhile is there; the list
   // already loaded shows at once, and if the sign-in load has not come back yet the form picks the first on arrival.
   loadCategories(h);
-  h.setState({cf: {cat: cats[0]?.key || '', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', postId: '', uploaded: 0, photoErr: ''}});
+  h.setState({cf: {cat: cats[0]?.key || '', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', clientRef: newClientRef(), postId: '', uploaded: 0, photoErr: ''}});
 }
 
 function closeCompose(h: ConsoleHost) {
@@ -179,7 +180,7 @@ function saveCompose(h: ConsoleHost) {
   setF({saving: true, step: 'Saving…'});
   const created: Promise<Post> = f.postId
     ? Promise.resolve({id: f.postId} as Post)
-    : h.api.post<Post>('/posts/', {category: f.cat, language: cfLang(f), title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count});
+    : h.api.post<Post>('/posts/', {category: f.cat, language: cfLang(f), title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count, client_ref: f.clientRef});
   created.then(async (p) => {
     if (!count) return p;
     setF({postId: p.id});

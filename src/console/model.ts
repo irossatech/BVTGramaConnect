@@ -88,6 +88,8 @@ export interface ComposeForm {
   tried: boolean;
   /** What is happening while saving ("Uploading 2 of 3…"). */
   step: string;
+  /** Sent as client_ref with every Save of this form, so a Save again after a lost answer gets the same post back. */
+  clientRef: string;
   /** Set once the post exists, so a retry after a failed upload does not create it twice. */
   postId: string;
   uploaded: number;
