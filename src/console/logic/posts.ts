@@ -168,40 +168,62 @@ function hist(h: ConsoleHost, a: ReviewAction) {
 }
 
 // ---- several posts at once: waiting ones published or discarded, published ones taken down (2026-11-20, tester's
-// item 6). The server reviews one post per request, so one by one with progress ----
+// item 6), decided ones (Recheck, Rejected, Blocked) changed to another status (owner, 2026-11-20). The server
+// reviews one post per request, so one by one with progress ----
+
+// One review request per post. A null body skips that post (already in the chosen status), counted apart.
+async function runBulk(h: ConsoleHost, items: [SelId, Record<string, string> | null][], doing: string, doneWord: string, color: string) {
+  const n = items.length;
+  let ok = 0, taken = 0, skipped = 0, why = '';
+  for (let i = 0; i < n; i++) {
+    const [id, body] = items[i];
+    h.setState({bulk: doing + ' ' + (i + 1) + ' of ' + n + '…'});
+    if (!body) {
+      skipped++;
+      continue;
+    }
+    try {
+      await h.api.post('/posts/' + id + '/review/', body);
+      ok++;
+    } catch (e) {
+      if (e instanceof ApiError && e.code === 'already_decided') {
+        taken++;
+        continue;
+      }
+      // The session ended or this admin may not review these: the rest would fail too, so stop here.
+      if (isStatus(e, 401) || isStatus(e, 403)) {
+        h.setState({bulk: '', postSel: []});
+        if (isStatus(e, 403)) loadPosts(h, h.state.postPage);
+        h.fail(e);
+        return;
+      }
+      why = why || (e instanceof Error && e.message) || 'the server did not answer';
+    }
+  }
+  // A mixed pick keeps the other kinds selected for their own buttons.
+  const ids = items.map(([id]) => id);
+  h.setState({bulk: '', postSel: h.state.postSel.filter((id) => !ids.includes(id))});
+  loadPosts(h, h.state.postPage);
+  const done = ok + ' ' + doneWord;
+  const notes = [skipped ? skipped + ' skipped: already in that status, or a citizen’s post (it cannot go to Recheck)' : '', taken ? taken + ' already decided by another reviewer' : '', why ? (n - ok - taken - skipped) + ' failed: ' + why : ''].filter(Boolean);
+  if (notes.length) h.ask({title: done, body: notes.join('. ') + '.', confirmLabel: 'Close', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+  else h.toast(done, color);
+}
+
+// Change the decision on several decided posts: one new status and one reason for all, a `reverse` each.
+function bulkReverse(h: ConsoleHost, rows: PostRow[]) {
+  if (!rows.length || h.state.bulk) return;
+  const n = rows.length, what = n + (n === 1 ? ' post' : ' posts');
+  h.ask({title: 'Change the decision on ' + what, body: 'Choose the new status and say why. Each author is told. Posts already in that status are skipped.', hasSelect: true, selectLabel: 'New status', options: [{id: 'Published', label: 'Published'}, {id: 'Pending', label: 'Waiting (back to review)'}, {id: 'Recheck', label: 'Recheck'}, {id: 'Discarded', label: 'Discarded'}], sel: 'Published', needsText: true, textLabel: 'Reason for all (required)', confirmLabel: 'Change decision (' + n + ')', bg: '#0D3B7A',
+    onConfirm: (t, sel) => { void runBulk(h, rows.map((p) => [p.id, p.status === sel || (sel === 'Recheck' && p.citizen) ? null : {action: 'reverse', to_status: SAPI[sel], comment: t}]), 'Changing', 'changed', '#0D3B7A'); }});
+}
+
 function bulkReview(h: ConsoleHost, ids: SelId[], action: 'publish' | 'discard' | 'unpublish') {
   if (!ids.length || h.state.bulk) return;
   const n = ids.length;
-  const run = async (comment: string) => {
-    let ok = 0, taken = 0, why = '';
-    for (let i = 0; i < n; i++) {
-      h.setState({bulk: (action === 'publish' ? 'Publishing ' : action === 'unpublish' ? 'Taking down ' : 'Discarding ') + (i + 1) + ' of ' + n + '…'});
-      try {
-        await h.api.post('/posts/' + ids[i] + '/review/', action === 'publish' ? {action} : {action, comment});
-        ok++;
-      } catch (e) {
-        if (e instanceof ApiError && e.code === 'already_decided') {
-          taken++;
-          continue;
-        }
-        // The session ended or this admin may not review these: the rest would fail too, so stop here.
-        if (isStatus(e, 401) || isStatus(e, 403)) {
-          h.setState({bulk: '', postSel: []});
-          if (isStatus(e, 403)) loadPosts(h, h.state.postPage);
-          h.fail(e);
-          return;
-        }
-        why = why || (e instanceof Error && e.message) || 'the server did not answer';
-      }
-    }
-    // A mixed pick keeps the other kind selected for its own button.
-    h.setState({bulk: '', postSel: h.state.postSel.filter((id) => !ids.includes(id))});
-    loadPosts(h, h.state.postPage);
-    const done = ok + (action === 'publish' ? ' published' : action === 'unpublish' ? ' taken down' : ' discarded');
-    const notes = [taken ? taken + ' already decided by another reviewer' : '', why ? (n - ok - taken) + ' failed: ' + why : ''].filter(Boolean);
-    if (notes.length) h.ask({title: done, body: notes.join('. ') + '.', confirmLabel: 'Close', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
-    else h.toast(done, action === 'publish' ? '#1F8A3B' : '#cfd8e3');
-  };
+  const run = (comment: string) => runBulk(h, ids.map((id): [SelId, Record<string, string>] => [id, action === 'publish' ? {action} : {action, comment}]),
+    action === 'publish' ? 'Publishing' : action === 'unpublish' ? 'Taking down' : 'Discarding',
+    action === 'publish' ? 'published' : action === 'unpublish' ? 'taken down' : 'discarded', action === 'publish' ? '#1F8A3B' : '#cfd8e3');
   const what = n + (n === 1 ? ' post' : ' posts');
   if (action === 'publish') h.ask({title: 'Publish ' + what, body: "Citizens in each post's areas will see them straight away.", confirmLabel: 'Publish ' + n, bg: '#1F8A3B', onConfirm: () => { void run(''); }});
   else if (action === 'unpublish') h.ask({title: 'Take down ' + what, body: 'Citizens no longer see them. Each author is told your reason.', needsText: true, textLabel: 'Reason for all (required)', confirmLabel: 'Take down ' + n, bg: '#b3261e', onConfirm: (t) => { void run(t); }});
@@ -267,20 +289,25 @@ export function postsView(h: ConsoleHost) {
     return {label: t.label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => { h.setState({statusTab: t.id}, () => loadPosts(h, 1)); }};
   });
   const pf = s.pf;
-  // Only waiting posts this admin may publish or discard can be ticked; a tick left from another page or tab is ignored.
-  const canBulk = (p: PostRow) => p.status === 'Pending' ? p.allowed.includes('publish') || p.allowed.includes('discard') : p.status === 'Published' && p.allowed.includes('unpublish');
+  // Only posts this admin can act on can be ticked: waiting ones to publish or discard, published ones to take down,
+  // decided ones (Recheck, Rejected, Blocked) whose decision the server lets them change. A tick left from another
+  // page or tab is ignored.
+  const canReverse = (p: PostRow) => ['Recheck', 'Discarded', 'TakenDown', 'Blocked'].includes(p.status) && p.allowed.includes('reverse');
+  const canBulk = (p: PostRow) => p.status === 'Pending' ? p.allowed.includes('publish') || p.allowed.includes('discard') : p.status === 'Published' ? p.allowed.includes('unpublish') : canReverse(p);
   const selectable: SelId[] = s.posts.filter(canBulk).map((p) => p.id);
   const picked = s.postSel.filter((id) => selectable.includes(id));
   const pickedRows = s.posts.filter((p) => picked.includes(p.id));
   const waitRows = pickedRows.filter((p) => p.status === 'Pending'), pubRows = pickedRows.filter((p) => p.status === 'Published');
+  const revRows = pickedRows.filter(canReverse);
   const postSel = {show: selectable.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selectable.length, some: picked.length > 0 && picked.length < selectable.length,
     label: picked.length + ' selected', busy: s.bulk,
     toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []}),
     // A mixed pick (the All tab): each button acts on its own kind only and says how many.
     canPublish: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('publish')), canDiscard: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('discard')),
-    canTakeDown: pubRows.length > 0,
-    publishLabel: 'Publish ' + waitRows.length, discardLabel: 'Discard ' + waitRows.length, takeDownLabel: 'Take down ' + pubRows.length,
-    publish: () => bulkReview(h, waitRows.map((p) => p.id), 'publish'), discard: () => bulkReview(h, waitRows.map((p) => p.id), 'discard'), takeDown: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish')};
+    canTakeDown: pubRows.length > 0, canChange: revRows.length > 0,
+    publishLabel: 'Publish ' + waitRows.length, discardLabel: 'Discard ' + waitRows.length, takeDownLabel: 'Take down ' + pubRows.length, changeLabel: 'Change decision (' + revRows.length + ')',
+    publish: () => bulkReview(h, waitRows.map((p) => p.id), 'publish'), discard: () => bulkReview(h, waitRows.map((p) => p.id), 'discard'), takeDown: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish'),
+    change: () => bulkReverse(h, revRows)};
   const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: canBulk(p), sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
   const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
   return {

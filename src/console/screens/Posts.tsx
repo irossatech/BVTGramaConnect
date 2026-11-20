@@ -39,6 +39,7 @@ export default function Posts({ v }: { v: View }) {
           {v.postSel?.canPublish ? <button onClick={v.postSel?.publish} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.publishLabel)}</button> : null}
           {v.postSel?.canDiscard ? <button onClick={v.postSel?.discard} style={{height: "32px", padding: "0 14px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.discardLabel)}</button> : null}
           {v.postSel?.canTakeDown ? <button onClick={v.postSel?.takeDown} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.takeDownLabel)}</button> : null}
+          {v.postSel?.canChange ? <button onClick={v.postSel?.change} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.changeLabel)}</button> : null}
           <button onClick={v.postSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
         </>}
       </div> : null}
