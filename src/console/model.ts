@@ -485,6 +485,8 @@ export interface State {
   auditLoading: boolean;
   contacts: ContactMessage[];
   contactCount: number;
+  /** The pills' numbers from GET /admin/contact-messages/ status_counts (search applied, pill not). */
+  contactCounts: Partial<Record<"new" | "handled" | "all", number>>;
   contactPage: number;
   contactPages: number;
   contactQ: string;
