@@ -2,7 +2,7 @@
 
 Written by `npm run build`; checked by `npm run check-dist`. Not deployed (deploy.sh skips *.md).
 
-source: 992dbcabbf03e2aac579be3646c42251afd7bcf98bdfbf45e440118ef5373ed2 (149 files)
+source: a646b0ef2d0503722b66d5321a6a1b8b03154576643ca9d867500468fb75cc6f (149 files)
 GC_API_BASE: /api/v1
 GC_SITE_URL: https://www.gramaconnect.com
 GC_ANDROID_APK_URL: /downloads/bvt-grama-connect.apk

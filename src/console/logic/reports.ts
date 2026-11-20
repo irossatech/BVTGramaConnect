@@ -34,7 +34,7 @@ export function reportsView(h: ConsoleHost) {
   const SM = RP.summary;
   const loaded = !!SM; // summary arrives with the other three (one Promise.all)
   const days = SM ? SM.days : 30;
-  const repSummary = ([['Posts sent in', 'total', '#0A2550', 'Any status'], ['Published', 'published', '#1F8A3B', 'Now live'], ['Waiting for review', 'pending', '#b35a0e', 'Not reviewed yet'], ['Rejected', 'rejected', '#6b7a8c', 'Discarded or taken down']] as const)
+  const repSummary = ([['Posts sent in', 'total', '#0A2550', 'Any status'], ['Published', 'published', '#1F8A3B', 'Now live'], ['Waiting for review', 'pending', '#b35a0e', 'Not reviewed yet'], ['Rejected', 'rejected', '#6b7a8c', 'Discarded, taken down or blocked']] as const)
     .map(([label, k, color, sub]) => ({label, value: SM ? SM[k] : '…', color, sub}));
   const LV: Readonly<Partial<Record<string, readonly [string, string]>>> = {VILLAGE: ['Village Admins', '#1F8A3B'], MANDAL: ['Mandal Admins', '#07818e'], DISTRICT: ['District Admins', '#E9791E'], STATE: ['Super Admins', '#0D3B7A']};
   const limitH = RP.reviewTime[0]?.escalation_hours || 24;

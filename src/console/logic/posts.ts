@@ -8,14 +8,15 @@ import { isActor, isStatus, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldCha
 import type { ConsoleHost } from "./host";
 
 // Post status badges, by the console's status key (Pending, Published…, TakenDown for UNPUBLISHED).
-const STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Waiting'},Escalated:{bg:'#fde7e5',color:'#b3261e',label:'Escalated'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
+const STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Waiting'},Escalated:{bg:'#fde7e5',color:'#b3261e',label:'Escalated'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Blocked:{bg:'#f3e3e1',color:'#7a1f17',label:'Blocked'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
 // API status -> the console's status key.
-const SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',DRAFT:'Draft'};
+const SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',BLOCKED:'Blocked',DRAFT:'Draft'};
 // The console's status key -> API status.
 // "Rejected" is the one tab for discarded and taken-down posts (the server takes several statuses, comma-separated).
-const SAPI: Readonly<Record<string, string>> = {Rejected:'DISCARDED,UNPUBLISHED',Pending:'PENDING',Escalated:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
+// "Blocked" has a citizen's posts closed when the Super Admin blocked the phone (BLOCKED, owner's decision of 2026-11-20).
+const SAPI: Readonly<Record<string, string>> = {Rejected:'DISCARDED,UNPUBLISHED',Blocked:'BLOCKED',Pending:'PENDING',Escalated:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
 // What each review action says in the post panel's history.
-const HIST: Readonly<Record<string, string>> = {SUBMIT:'Sent in for review',RESUBMIT:'Sent in again after fixing',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',ESCALATE:'Escalated: waited past the time limit, sent up a level'};
+const HIST: Readonly<Record<string, string>> = {SUBMIT:'Sent in for review',RESUBMIT:'Sent in again after fixing',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',BLOCK:'Blocked: the citizen was blocked',ESCALATE:'Escalated: waited past the time limit, sent up a level'};
 // Event kinds on a post: label, background, colour.
 const EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
 
@@ -123,7 +124,7 @@ function postAction(h: ConsoleHost, kind: string, p: PostRow) {
     h.setState({panel: null});
     loadPosts(h, h.state.postPage);
   };
-  if (kind === 'blockCitizen') h.ask({title: 'Block this citizen', body: 'The phone cannot post until the block ends. Its other posts waiting for review in your area are discarded. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => h.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => h.fail(e))});
+  if (kind === 'blockCitizen') h.ask({title: 'Block this citizen', body: 'The phone cannot post until the block ends. Its posts waiting for review in your area move to Blocked. Its published posts stay. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => h.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => h.fail(e))});
   if (kind === 'unblockCitizen') h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33', onConfirm: () => h.api.post('/posts/' + p.id + '/unblock-citizen/', {comment: ''}).then(after('Citizen unblocked')).catch((e: unknown) => h.fail(e))});
   if (kind === 'discardCitizen') h.ask({title: 'Discard all their waiting posts', body: 'Every post from this phone that is waiting for review is discarded (for spam). The phone is not blocked.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard all', bg: '#3b4a5c', onConfirm: (t) => h.api.post<DiscardCitizenResult | null>('/posts/' + p.id + '/discard-citizen-posts/', {comment: t}).then((d) => after('Discarded ' + ((d && d.discarded) || 0) + ' posts')()).catch((e: unknown) => h.fail(e))});
   if (kind === 'publish') h.ask({title: 'Publish post', body: 'Publish "' + title + '"? Citizens in ' + (p.area || area) + ' will see it straight away.', confirmLabel: 'Publish', bg: '#1F8A3B', onConfirm: () => review(h, p, {action: 'publish'}, (n) => h.toast('Post published' + n), true)});
@@ -245,7 +246,7 @@ export function postRow(h: ConsoleHost, p: PostRow, withHistory?: boolean) {
 /** The page's renderVals() values (screens/Posts.tsx, and the top bar's search). */
 export function postsView(h: ConsoleHost) {
   const s = h.state, ST = STATUS;
-  const tabs = ['Pending', 'Escalated', 'Published', 'Recheck', 'Rejected'] as const;
+  const tabs = ['Pending', 'Escalated', 'Published', 'Recheck', 'Rejected', 'Blocked'] as const;
   const sc = s.statusCounts;
   const tabLabel = (k: typeof tabs[number]) => k === 'Pending' ? 'Waiting for review' : k === 'Rejected' ? 'Rejected' : ST[k].label;
   const statusTabs = [{id: 'All' as const, label: 'All'}, ...tabs.map((k) => ({id: k, label: tabLabel(k)}))].map((t) => {
