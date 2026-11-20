@@ -18,12 +18,15 @@ export const SelBar = ({sel, removeLabel}: {sel?: SelView; removeLabel: string})
 ) : null;
 
 /** Status filter pills (Posts, Service requests, Sponsored banners, Contact messages); a zero count is dimmed,
- *  and a pill without a count (the server sends none) shows just its label. */
+ *  and a pill without a count (the server sends none) shows just its label.
+ *  Always one row (2026-11-20): wrapped pills left the search box centred between two rows. The group takes its
+ *  natural width and grows into free space; on a narrow screen it scrolls sideways, and the toolbar puts what
+ *  sits beside it (search, New post) on the next row only when there is really no room. */
 export function StatusPills({ items, label }: { items?: readonly {label: string; count?: number; on: boolean; go: () => void}[]; label: string }) {
   return (
-    <div role="group" aria-label={label} style={{display: "flex", gap: "8px", flexWrap: "wrap", flex: "1", minWidth: "0"}}>
+    <div role="group" aria-label={label} style={{display: "flex", gap: "8px", flexWrap: "nowrap", flex: "1 0 auto", maxWidth: "100%", minWidth: "0", overflowX: "auto", scrollbarWidth: "thin"}}>
       {list(items).map((t, i) => (
-        <button key={i} onClick={t.go} aria-pressed={t.on} style={css(`height:34px;padding:0 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid ${t.on ? "#0D3B7A" : "#cfd8e3"};background: ${t.on ? "#0D3B7A" : "#fff"};color: ${t.on ? "#fff" : "#3b4a5c"}`)}>
+        <button key={i} onClick={t.go} aria-pressed={t.on} style={css(`flex-shrink:0;height:34px;padding:0 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid ${t.on ? "#0D3B7A" : "#cfd8e3"};background: ${t.on ? "#0D3B7A" : "#fff"};color: ${t.on ? "#fff" : "#3b4a5c"}`)}>
           {t.label}
           {t.count === undefined ? null : <span style={css(`font-size:12px;font-family:'Rubik',sans-serif;opacity:${t.count ? 1 : .55}`)}>{t.count}</span>}
         </button>

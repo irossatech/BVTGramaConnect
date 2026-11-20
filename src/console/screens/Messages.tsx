@@ -11,7 +11,7 @@ export default function Messages({ v }: { v: View }) {
     <>
       <div className="sa-bar" style={{display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap"}}>
         <StatusPills items={v.contactTabs} label="Filter messages" />
-        <label style={{position: "relative", flex: "0 1 300px", minWidth: "200px"}}>
+        <label style={{position: "relative", flex: "1 0 200px", maxWidth: "300px", minWidth: "200px", marginLeft: "auto"}}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           <input type="search" aria-label="Search contact messages" value={val(v.contactQ, "")} onChange={v.onContactQ} placeholder="Search name, mobile or message" style={{width: "100%", boxSizing: "border-box", height: "38px", padding: "0 12px 0 34px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "13.5px", background: "#fff"}} />
         </label>
