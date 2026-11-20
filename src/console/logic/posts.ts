@@ -4,7 +4,7 @@
 // (logic/users.ts). Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls /posts/ (.claude/api.md).
 import { ApiError, type Query } from "../api";
 import type { DiscardCitizenResult, Post, PostsPage, ReviewAction } from "../types";
-import { isActor, isStatus, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange, type PostRow, type SelId, type Tone } from "../model";
+import { isActor, isStatus, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange, type BulkAction, type PostRow, type SelId, type Tone } from "../model";
 import type { ConsoleHost } from "./host";
 
 // Post status badges, by the console's status key (Pending, Published…, TakenDown for UNPUBLISHED).
@@ -303,16 +303,19 @@ export function postsView(h: ConsoleHost) {
   const waitRows = actRows.filter((p) => p.status === 'Pending'), pubRows = actRows.filter((p) => p.status === 'Published');
   const revRows = actRows.filter(canReverse);
   const noAction = pickedRows.length - actRows.length;
+  // The bar over the table, as the app's: how many of the page are ticked, one button per action with its own count
+  // (a mixed pick on All: each acts on its own kind only), and why the other ticked posts have no action.
+  const canPub = waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('publish')), canDis = waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('discard'));
+  const actions: BulkAction[] = [
+    ...(canPub ? [{label: 'Publish', count: waitRows.length, bg: '#1F8A3B', fg: '#fff', border: '#1F8A3B', onClick: () => bulkReview(h, waitRows.map((p) => p.id), 'publish')}] : []),
+    ...(canDis ? [{label: 'Discard', count: waitRows.length, bg: '#fff', fg: '#3b4a5c', border: '#cfd8e3', onClick: () => bulkReview(h, waitRows.map((p) => p.id), 'discard')}] : []),
+    ...(pubRows.length ? [{label: 'Take down', count: pubRows.length, bg: '#b3261e', fg: '#fff', border: '#b3261e', onClick: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish')}] : []),
+    ...(revRows.length ? [{label: 'Change decision', count: revRows.length, bg: '#0D3B7A', fg: '#fff', border: '#0D3B7A', onClick: () => bulkReverse(h, revRows)}] : []),
+  ];
   const postSel = {show: selectable.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selectable.length, some: picked.length > 0 && picked.length < selectable.length,
-    label: picked.length + ' selected', busy: s.bulk,
-    noteShow: noAction > 0, note: noAction + ' can’t be changed by you: only a higher level can change a Super Admin’s decision.',
-    toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []}),
-    // A mixed pick (the All tab): each button acts on its own kind only and says how many.
-    canPublish: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('publish')), canDiscard: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('discard')),
-    canTakeDown: pubRows.length > 0, canChange: revRows.length > 0,
-    publishLabel: 'Publish ' + waitRows.length, discardLabel: 'Discard ' + waitRows.length, takeDownLabel: 'Take down ' + pubRows.length, changeLabel: 'Change decision (' + revRows.length + ')',
-    publish: () => bulkReview(h, waitRows.map((p) => p.id), 'publish'), discard: () => bulkReview(h, waitRows.map((p) => p.id), 'discard'), takeDown: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish'),
-    change: () => bulkReverse(h, revRows)};
+    label: picked.length + ' of ' + selectable.length + ' selected', busy: s.bulk, actions,
+    note: noAction ? (noAction === 1 ? '1 selected post has no action for you' : noAction + ' selected posts have no action for you') + ': only a higher level can change a Super Admin’s decision.' : '',
+    toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []})};
   const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: true, sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
   const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
   return {

@@ -348,6 +348,9 @@ export interface ImportProgress {
 export type SelKey = "numSel" | "adSel" | "postSel" | "userSel";
 export type SelId = string | number;
 
+/** One action of the ticked-rows bar (Posts, Users): its words, how many ticked rows it acts on, its colours. */
+export type BulkAction = {label: string; count: number; bg: string; fg: string; border: string; onClick: () => void};
+
 export interface BulkOptions {
   title: string;
   body: string;

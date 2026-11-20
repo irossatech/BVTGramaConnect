@@ -2,7 +2,7 @@
 import React from "react";
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
-import { Pager, DistrictOptions, EmptyState, StatusPills, SearchSelect, TickBox } from "../ui/parts";
+import { Pager, DistrictOptions, EmptyState, StatusPills, SearchSelect, TickBox, BulkBar } from "../ui/parts";
 
 export default function Users({ v }: { v: View }) {
   return (
@@ -30,14 +30,7 @@ export default function Users({ v }: { v: View }) {
         <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c", whiteSpace: "nowrap"}}>{I(v.userCount)}{v.userCount === 1 ? " user" : " users"}</span>
       </div>
       {/* Ticked users: Block / Unblock them at once (owner, 2026-11-20); same bar as the Posts page. */}
-      {v.userSel?.count ? <div role="region" aria-label="Selected users" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
-        <strong style={{fontWeight: "700"}}>{I(v.userSel?.label)}</strong>
-        {v.userSel?.busy ? <span aria-live="polite" style={{color: "#3b4a5c"}}>{I(v.userSel?.busy)}</span> : <>
-          {v.userSel?.canBlock ? <button onClick={v.userSel?.block} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.userSel?.blockLabel)}</button> : null}
-          {v.userSel?.canUnblock ? <button onClick={v.userSel?.unblock} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.userSel?.unblockLabel)}</button> : null}
-          <button onClick={v.userSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
-        </>}
-      </div> : null}
+      {v.userSel?.count ? <BulkBar region="Selected users" label={v.userSel.label} all={v.userSel.all} some={v.userSel.some} toggleAll={v.userSel.toggleAll} allLabel="Select all users on this page" busy={v.userSel.busy} actions={v.userSel.actions} note={v.userSel.note} clear={v.userSel.clear} /> : null}
       {v.userEmpty ? <EmptyState title={v.userEmptyText} hint={v.userEmptyHint} icon="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
         <table style={{width: "100%", fontSize: "13px", minWidth: "820px"}}>
           <thead>

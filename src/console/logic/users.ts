@@ -4,7 +4,7 @@
 // still built in Console.tsx, which calls the actions exported here. Calls /users/ (.claude/api.md).
 import type React from "react";
 import type { Area, AreaLevel, Paged, Post, RoleAssignment, TemporaryPassword, User, UserResponse } from "../types";
-import { EMPTY_NU, LEVEL_OF_ROLE, pageCount, pager, PAGE_SIZE, RK, ROLE, type AdminUser, type FieldChange, type NewUserForm, type Option } from "../model";
+import { EMPTY_NU, LEVEL_OF_ROLE, pageCount, pager, PAGE_SIZE, RK, ROLE, type AdminUser, type BulkAction, type FieldChange, type NewUserForm, type Option } from "../model";
 import { maskMobile } from "../mask";
 import type { ConsoleHost } from "./host";
 import { adaptPost, postRow } from "./posts";
@@ -351,11 +351,13 @@ export function usersView(h: ConsoleHost) {
   // Ticked users: Block acts on the active ones, Unblock on the blocked ones, each only where the server allows.
   const pickedUsers = s.users.filter((u) => picked.includes(u.id));
   const toBlock = pickedUsers.filter((u) => u.active && userCan(u, 'block')), toUnblock = pickedUsers.filter((u) => !u.active && userCan(u, 'unblock'));
+  const actions: BulkAction[] = [
+    ...(toBlock.length ? [{label: 'Block', count: toBlock.length, bg: '#b3261e', fg: '#fff', border: '#b3261e', onClick: () => bulkBlock(h, toBlock, true)}] : []),
+    ...(toUnblock.length ? [{label: 'Unblock', count: toUnblock.length, bg: '#1F8A3B', fg: '#fff', border: '#1F8A3B', onClick: () => bulkBlock(h, toUnblock, false)}] : []),
+  ];
   const userSel = {show: selIds.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selIds.length, some: picked.length > 0 && picked.length < selIds.length,
-    label: picked.length + ' selected', busy: s.bulk,
-    toggleAll: () => h.setState({userSel: picked.length === selIds.length ? [] : selIds}), clear: () => h.setState({userSel: []}),
-    canBlock: toBlock.length > 0, canUnblock: toUnblock.length > 0, blockLabel: 'Block ' + toBlock.length, unblockLabel: 'Unblock ' + toUnblock.length,
-    block: () => bulkBlock(h, toBlock, true), unblock: () => bulkBlock(h, toUnblock, false)};
+    label: picked.length + ' of ' + selIds.length + ' selected', busy: s.bulk, actions, note: '',
+    toggleAll: () => h.setState({userSel: picked.length === selIds.length ? [] : selIds}), clear: () => h.setState({userSel: []})};
   const nu = s.nu;
   const canNU = nuValid(nu);
   const nuRoles = roleChoices(h);

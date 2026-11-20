@@ -3,7 +3,7 @@ import React from "react";
 import { I, css, list, val } from "../../shared/dc";
 import * as ds from "../ds";
 import type { View } from "../Console";
-import { Pager, DistrictOptions, EmptyState, StatusPills, TickBox, SearchSelect } from "../ui/parts";
+import { Pager, DistrictOptions, EmptyState, StatusPills, TickBox, SearchSelect, BulkBar } from "../ui/parts";
 
 export default function Posts({ v }: { v: View }) {
   return (
@@ -33,17 +33,7 @@ export default function Posts({ v }: { v: View }) {
         {v.filtersOn ? <button onClick={v.clearFilters} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", whiteSpace: "nowrap"}}>Clear filters</button> : null}
         <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c"}}>{I(v.postCount)}{v.postCount === 1 ? " post" : " posts"}{v.searchNote ? <>{" · "}{I(v.searchNote)}</> : null}</span>
       </div>
-      {v.postSel?.count ? <div role="region" aria-label="Selected posts" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
-        <strong style={{fontWeight: "700"}}>{I(v.postSel?.label)}</strong>
-        {v.postSel?.busy ? <span aria-live="polite" style={{color: "#3b4a5c"}}>{I(v.postSel?.busy)}</span> : <>
-          {v.postSel?.canPublish ? <button onClick={v.postSel?.publish} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.publishLabel)}</button> : null}
-          {v.postSel?.canDiscard ? <button onClick={v.postSel?.discard} style={{height: "32px", padding: "0 14px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.discardLabel)}</button> : null}
-          {v.postSel?.canTakeDown ? <button onClick={v.postSel?.takeDown} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.takeDownLabel)}</button> : null}
-          {v.postSel?.canChange ? <button onClick={v.postSel?.change} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.changeLabel)}</button> : null}
-          <button onClick={v.postSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
-          {v.postSel?.noteShow ? <span style={{flexBasis: "100%", color: "#3b4a5c"}}>{I(v.postSel?.note)}</span> : null}
-        </>}
-      </div> : null}
+      {v.postSel?.count ? <BulkBar region="Selected posts" label={v.postSel.label} all={v.postSel.all} some={v.postSel.some} toggleAll={v.postSel.toggleAll} allLabel="Select all posts on this page" busy={v.postSel.busy} actions={v.postSel.actions} note={v.postSel.note} clear={v.postSel.clear} /> : null}
       {v.postEmpty ? <EmptyState title={v.postEmptyText} hint={v.postEmptyHint} icon="M4 5h12v14H6a2 2 0 0 1-2-2V5zM16 9h4v8a2 2 0 0 1-2 2M8 9h4M8 13h4" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
         {" "}
         <table style={{width: "100%", fontSize: "13px"}}>

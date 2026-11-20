@@ -2,11 +2,38 @@
 import React from "react";
 import { I, css, list, val } from "../../shared/dc";
 import type { SelView, View } from "../Console";
+import type { BulkAction } from "../model";
 
 // Select several rows and remove them at once: a tick box (with the "some" dash) and the bar shown while rows are ticked.
 export const TickBox = ({on, some, onChange, label}: {on?: boolean; some?: boolean; onChange?: () => void; label: string}) => (
   <input type="checkbox" checked={!!on} onChange={onChange} aria-label={label} ref={el => { if (el) el.indeterminate = !!some; }} style={{width: "18px", height: "18px", accentColor: "#0D3B7A", cursor: "pointer", margin: "0", flexShrink: "0"}} />
 );
+/** Posts and Users with ticked rows (owner, 2026-11-20, laid out as the app's): select all and how many are
+ *  ticked with Clear; then one button per action, each with its own count; then why some ticked rows have none. */
+export const BulkBar = ({label, region, all, some, toggleAll, allLabel, busy, actions, note, clear}: {label: string; region: string; all: boolean; some: boolean; toggleAll: () => void; allLabel: string; busy: string; actions: BulkAction[]; note: string; clear: () => void}) => (
+  <div role="region" aria-label={region} style={{display: "flex", flexDirection: "column", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: "#e3f0fb", border: "1px solid #cfe0f3", fontSize: "13px", color: "#0A2550"}}>
+    <div style={{display: "flex", alignItems: "center", gap: "12px"}}>
+      <label style={{display: "flex", alignItems: "center", gap: "10px", cursor: "pointer"}}>
+        <TickBox on={all} some={some} onChange={toggleAll} label={allLabel} />
+        <strong style={{fontWeight: "700", fontSize: "14px"}}>{label}</strong>
+      </label>
+      {busy ? null : <button onClick={clear} style={{marginLeft: "auto", height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear selection</button>}
+    </div>
+    {busy ? <span aria-live="polite" style={{color: "#3b4a5c", fontWeight: "600"}}>{busy}</span> : actions.length ? <div style={{display: "flex", gap: "8px", flexWrap: "wrap"}}>
+      {actions.map((a) => (
+        <button key={a.label} onClick={a.onClick} style={{display: "inline-flex", alignItems: "center", gap: "8px", height: "36px", padding: "0 8px 0 16px", border: "1.5px solid " + a.border, borderRadius: "999px", background: a.bg, color: a.fg, fontWeight: "700", cursor: "pointer", fontSize: "13px"}}>
+          {a.label}
+          <span style={{minWidth: "22px", height: "22px", padding: "0 6px", boxSizing: "border-box", borderRadius: "999px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "12px", background: a.bg === "#fff" ? "#eef2f6" : "rgba(255,255,255,.22)"}}>{a.count}</span>
+        </button>
+      ))}
+    </div> : null}
+    {note && !busy ? <div style={{display: "flex", gap: "8px", alignItems: "flex-start", padding: "8px 12px", borderRadius: "10px", background: "#fff", border: "1px solid #f3d9b5", color: "#7a4a0e", lineHeight: "1.45"}}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{flexShrink: "0", marginTop: "1px"}}><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16.5v.5" /></svg>
+      <span>{note}</span>
+    </div> : null}
+  </div>
+);
+
 export const SelBar = ({sel, removeLabel}: {sel?: SelView; removeLabel: string}) => sel?.count ? (
   <div role="region" aria-label="Selected rows" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
     <strong style={{fontWeight: "700"}}>{sel.label}</strong>
