@@ -319,6 +319,7 @@
               "Contact form on this website: your name, mobile number, village or mandal, your message, and your internet (IP) address, which we use to stop spam.",
               "Posting from the app: when a phone first posts, it gets a private posting key; an app installed from Google Play is first checked with Google Play Integrity. We keep that key, the device ID and the IP address only in scrambled (hashed) form, together with your village, language, app version and the posts, photos and videos you send.",
               "Notifications: if you allow them, a notification token so we can tell you about your village's news and the result of your post or request.",
+              "Crash reports: if the app stops or fails, a technical report (the error, your phone model, Android version and app version) goes to Firebase Crashlytics so we can fix it. It never includes your name, phone number or posts.",
               "Officials (Panchayat members and admins): username, name, mobile number, optional email, role and area. These accounts are opened only by their admins. Passwords are stored only in hashed form. Every review action is recorded in an audit log."
             ]
           ]
@@ -342,7 +343,7 @@
               "Service requests: the officials of your village, and the admins above them who handle requests.",
               "Contact messages: our support team.",
               "Published posts are visible to everyone who picks that area. A shared post link opens a page with the post that anyone can open. Citizens' posts never show the writer's name or phone; they show only “Citizen”.",
-              "Service providers we rely on: our hosting provider, and Google (Firebase Cloud Messaging for notifications, Play Integrity checks, and app delivery on Google Play). They receive only what they need to provide that service.",
+              "Service providers we rely on: our hosting provider, and Google (Firebase Cloud Messaging for notifications, Firebase Crashlytics for crash reports, Play Integrity checks, and app delivery on Google Play). They receive only what they need to provide that service.",
               "Authorities, when the law requires it."
             ]
           ]
