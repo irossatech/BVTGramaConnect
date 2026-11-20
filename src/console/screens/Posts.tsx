@@ -36,8 +36,9 @@ export default function Posts({ v }: { v: View }) {
       {v.postSel?.count ? <div role="region" aria-label="Selected posts" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
         <strong style={{fontWeight: "700"}}>{I(v.postSel?.label)}</strong>
         {v.postSel?.busy ? <span aria-live="polite" style={{color: "#3b4a5c"}}>{I(v.postSel?.busy)}</span> : <>
-          {v.postSel?.canPublish ? <button onClick={v.postSel?.publish} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Publish selected</button> : null}
-          {v.postSel?.canDiscard ? <button onClick={v.postSel?.discard} style={{height: "32px", padding: "0 14px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Discard selected</button> : null}
+          {v.postSel?.canPublish ? <button onClick={v.postSel?.publish} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.publishLabel)}</button> : null}
+          {v.postSel?.canDiscard ? <button onClick={v.postSel?.discard} style={{height: "32px", padding: "0 14px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.discardLabel)}</button> : null}
+          {v.postSel?.canTakeDown ? <button onClick={v.postSel?.takeDown} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.takeDownLabel)}</button> : null}
           <button onClick={v.postSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
         </>}
       </div> : null}
@@ -46,7 +47,7 @@ export default function Posts({ v }: { v: View }) {
         <table style={{width: "100%", fontSize: "13px"}}>
           <thead>
             <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
-              <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.postSel?.show ? <TickBox on={v.postSel?.all} some={v.postSel?.some} onChange={v.postSel?.toggleAll} label="Select all waiting posts on this page" /> : null}</th>
+              <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.postSel?.show ? <TickBox on={v.postSel?.all} some={v.postSel?.some} onChange={v.postSel?.toggleAll} label="Select all posts on this page that you can act on" /> : null}</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Post</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Category</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Shown to</th>

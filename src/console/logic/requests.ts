@@ -14,15 +14,16 @@ const SVC_STATUS: Readonly<Record<string, Tone & {dot: string}>> = {NEW:{label:'
 const OFFICIAL_MOVES = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'];
 const SERVICES: Readonly<Record<string, string>> = {aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
 
-export function loadRequests(h: ConsoleHost, page: number) {
+// quiet: the once-a-minute refresh (Console.tsx): a failure keeps the list on screen and shows no toast.
+export function loadRequests(h: ConsoleHost, page: number, quiet = false) {
   const s = h.state;
   const latest = h.ticket('reqs');
-  h.setState({reqLoading: true});
+  if (!quiet) h.setState({reqLoading: true});
   // contact=0: the rows come without the citizen's phone, email and address (audit WEB-DP-001); openRequestRow reads them.
   h.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
     .catch((e: unknown) => {
-      if (!latest()) return;
+      if (!latest() || quiet) return;
       h.setState({reqLoading: false, reqs: [], reqCount: 0, reqCounts: {}, reqUnavailable: isStatus(e, 404)});
       if (!isStatus(e, 404)) h.fail(e);
     });

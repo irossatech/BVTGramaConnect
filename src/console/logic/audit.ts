@@ -149,6 +149,6 @@ export function auditView(h: ConsoleHost) {
     // Only the number: the default period's entries, or the chosen From / To's (with the search and type).
     auditInfo: s.auditCount === 1 ? '1 entry' : s.auditCount + ' entries',
     auditEmptyText: s.auditLoading ? 'Loading…' : s.auditQ.trim() ? 'No entries match “' + s.auditQ.trim() + '”' : 'No entries in this period',
-    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : s.auditFrom || s.auditTo ? 'Nothing was recorded on these days.' : 'Pick From and To dates to see older entries.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
+    auditEmptyHint: s.auditLoading ? '' : s.auditQ.trim() ? 'Try another search or type.' : s.auditFrom || s.auditTo ? 'Nothing was recorded on these days.' : 'Nothing has been recorded yet.', auditPager: pager(s.auditPage, s.auditPages, (p) => loadAudit(h, p)), canExportAudit: h.can('audit.export_audit_log'),
   };
 }

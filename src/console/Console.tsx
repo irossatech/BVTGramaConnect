@@ -481,6 +481,8 @@ export default class Component extends React.Component<Props, State> {
       if (this.checkIdle()) return;
       // Only while signed in, the tab is visible and the list is closed (an open list is not reshuffled under the cursor).
       if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') loadNotifs(this.host);
+      // Service requests: a citizen's new request shows up without reopening the page, while no request is open.
+      if (this.state.screen === 'app' && this.state.page === 'requests' && this.state.svcView === 'requests' && !this.state.rq && document.visibilityState === 'visible') loadRequests(this.host, this.state.reqPage, true);
     }, 60000);
   }
 

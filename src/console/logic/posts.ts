@@ -154,14 +154,15 @@ function hist(h: ConsoleHost, a: ReviewAction) {
     dot: /PUBLISH/.test(a.action) ? '#1F8A3B' : a.action === 'RECHECK' ? '#8f4bb4' : /DISCARD|UNPUBLISH/.test(a.action) ? '#b3261e' : a.action === 'REVERSE' ? '#0D3B7A' : '#E9791E'};
 }
 
-// ---- several waiting posts at once (the server reviews one post per request, so one by one with progress) ----
-function bulkReview(h: ConsoleHost, ids: SelId[], action: 'publish' | 'discard') {
+// ---- several posts at once: waiting ones published or discarded, published ones taken down (2026-11-20, tester's
+// item 6). The server reviews one post per request, so one by one with progress ----
+function bulkReview(h: ConsoleHost, ids: SelId[], action: 'publish' | 'discard' | 'unpublish') {
   if (!ids.length || h.state.bulk) return;
   const n = ids.length;
   const run = async (comment: string) => {
     let ok = 0, taken = 0, why = '';
     for (let i = 0; i < n; i++) {
-      h.setState({bulk: (action === 'publish' ? 'Publishing ' : 'Discarding ') + (i + 1) + ' of ' + n + '…'});
+      h.setState({bulk: (action === 'publish' ? 'Publishing ' : action === 'unpublish' ? 'Taking down ' : 'Discarding ') + (i + 1) + ' of ' + n + '…'});
       try {
         await h.api.post('/posts/' + ids[i] + '/review/', action === 'publish' ? {action} : {action, comment});
         ok++;
@@ -180,15 +181,17 @@ function bulkReview(h: ConsoleHost, ids: SelId[], action: 'publish' | 'discard')
         why = why || (e instanceof Error && e.message) || 'the server did not answer';
       }
     }
-    h.setState({bulk: '', postSel: []});
+    // A mixed pick keeps the other kind selected for its own button.
+    h.setState({bulk: '', postSel: h.state.postSel.filter((id) => !ids.includes(id))});
     loadPosts(h, h.state.postPage);
-    const done = ok + (action === 'publish' ? ' published' : ' discarded');
+    const done = ok + (action === 'publish' ? ' published' : action === 'unpublish' ? ' taken down' : ' discarded');
     const notes = [taken ? taken + ' already decided by another reviewer' : '', why ? (n - ok - taken) + ' failed: ' + why : ''].filter(Boolean);
     if (notes.length) h.ask({title: done, body: notes.join('. ') + '.', confirmLabel: 'Close', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
     else h.toast(done, action === 'publish' ? '#1F8A3B' : '#cfd8e3');
   };
   const what = n + (n === 1 ? ' post' : ' posts');
   if (action === 'publish') h.ask({title: 'Publish ' + what, body: "Citizens in each post's areas will see them straight away.", confirmLabel: 'Publish ' + n, bg: '#1F8A3B', onConfirm: () => { void run(''); }});
+  else if (action === 'unpublish') h.ask({title: 'Take down ' + what, body: 'Citizens no longer see them. Each author is told your reason.', needsText: true, textLabel: 'Reason for all (required)', confirmLabel: 'Take down ' + n, bg: '#b3261e', onConfirm: (t) => { void run(t); }});
   else h.ask({title: 'Discard ' + what, body: 'They will not be published. Each author is told your reason.', needsText: true, textLabel: 'Reason for all (required)', confirmLabel: 'Discard ' + n, bg: '#3b4a5c', onConfirm: (t) => { void run(t); }});
 }
 
@@ -252,15 +255,19 @@ export function postsView(h: ConsoleHost) {
   });
   const pf = s.pf;
   // Only waiting posts this admin may publish or discard can be ticked; a tick left from another page or tab is ignored.
-  const canBulk = (p: PostRow) => p.status === 'Pending' && (p.allowed.includes('publish') || p.allowed.includes('discard'));
+  const canBulk = (p: PostRow) => p.status === 'Pending' ? p.allowed.includes('publish') || p.allowed.includes('discard') : p.status === 'Published' && p.allowed.includes('unpublish');
   const selectable: SelId[] = s.posts.filter(canBulk).map((p) => p.id);
   const picked = s.postSel.filter((id) => selectable.includes(id));
   const pickedRows = s.posts.filter((p) => picked.includes(p.id));
+  const waitRows = pickedRows.filter((p) => p.status === 'Pending'), pubRows = pickedRows.filter((p) => p.status === 'Published');
   const postSel = {show: selectable.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selectable.length, some: picked.length > 0 && picked.length < selectable.length,
     label: picked.length + ' selected', busy: s.bulk,
     toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []}),
-    canPublish: pickedRows.every((p) => p.allowed.includes('publish')), canDiscard: pickedRows.every((p) => p.allowed.includes('discard')),
-    publish: () => bulkReview(h, picked, 'publish'), discard: () => bulkReview(h, picked, 'discard')};
+    // A mixed pick (the All tab): each button acts on its own kind only and says how many.
+    canPublish: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('publish')), canDiscard: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('discard')),
+    canTakeDown: pubRows.length > 0,
+    publishLabel: 'Publish ' + waitRows.length, discardLabel: 'Discard ' + waitRows.length, takeDownLabel: 'Take down ' + pubRows.length,
+    publish: () => bulkReview(h, waitRows.map((p) => p.id), 'publish'), discard: () => bulkReview(h, waitRows.map((p) => p.id), 'discard'), takeDown: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish')};
   const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: canBulk(p), sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
   const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
   return {
