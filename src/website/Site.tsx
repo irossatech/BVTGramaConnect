@@ -526,6 +526,8 @@ export default class Site extends React.Component<Props, State> {
       missing: s.missing,
       homeHref: pathOf("home"),
       homeLink: this.link("home"),
+      // …and the site's other main pages, as quick links (How it works, For officials, FAQ, Contact).
+      nfLinks: navItems.slice(1),
       // "Skip to main content", the first thing Tab reaches: focus goes to the page's content, past the header.
       skipToMain: (e: MouseEvent<HTMLAnchorElement>) => {
         const main = this.el?.querySelector<HTMLElement>("main");

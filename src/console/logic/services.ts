@@ -33,6 +33,14 @@ function catalogSet(b: boolean): CatalogSet {
     : {l: 'svcs', ld: 'svcsLoading', un: 'svcsUnavailable', path: '/admin/services/', seed: SVC_SEED, icon: 'services', icons: SVC_ICONS, one: 'service', what: 'services list'};
 }
 
+/** A service's or bill's English name from its key (the Audit log's "New order: …"): the loaded list first, then
+ *  the built-in one, else the key in words ("voter_id" → "Voter id"). */
+export function catalogName(h: ConsoleHost, key: string, b = false): string {
+  const c = catalogSet(b);
+  const hit = [...h.state[c.l], ...c.seed].find((g) => g.key === key);
+  return hit ? hit.name_en : key.replace(/_/g, ' ').replace(/^./, (x) => x.toUpperCase());
+}
+
 export function loadServices(h: ConsoleHost, b = false) {
   const c = catalogSet(b);
   h.setState(one(c.ld, true));

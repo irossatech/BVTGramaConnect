@@ -22,13 +22,26 @@ export default function UserDetail({ v }: { v: View }) {
         </span>
       </div>
 
+      {/* Blocked, or no role left: what it means for them, not only a tag. */}
+      {v.su?.note ? <div style={{padding: "10px 14px", borderRadius: "12px", fontSize: "13px", fontWeight: "600", lineHeight: "1.45", background: v.su?.noteBad ? "#fde7e5" : "#fff6ec", color: v.su?.noteBad ? "#b3261e" : "#9a4a08"}}>{I(v.su?.note)}</div> : null}
+
       <span style={heading}>Contact</span>
-      <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden", marginTop: "-6px"}}>
+      <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden", marginTop: "-6px", flexShrink: "0"}}>
         {list(v.su?.contact).map((_f, _i1) => (
           <div key={_i1} style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderTop: _i1 ? "1px solid #f3f5f8" : "0"}}>
             <span style={{width: "92px", flexShrink: "0", fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>{I(_f.k)}</span>
-            <span style={{flex: "1", minWidth: "0", fontSize: "14px", fontWeight: "600", color: "#17212e", overflowWrap: "anywhere"}}>{I(_f.v)}</span>
+            <span style={{flex: "1", minWidth: "0", fontSize: "14px", fontWeight: "600", color: _f.none ? "#9aa6b4" : "#17212e", overflowWrap: "anywhere"}}>{I(_f.v)}</span>
             {_f.href ? <a href={_f.href} style={{color: "#0D3B7A", fontWeight: "700", fontSize: "13px", textDecoration: "none", padding: "4px 6px"}}>{_f.href.startsWith("tel:") ? "Call" : "Email"}</a> : null}
+          </div>
+        ))}
+      </div>
+
+      <span style={heading}>Account</span>
+      <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden", marginTop: "-6px", flexShrink: "0"}}>
+        {list(v.su?.account).map((_f, _i1) => (
+          <div key={_i1} style={{display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 14px", borderTop: _i1 ? "1px solid #f3f5f8" : "0"}}>
+            <span style={{width: "92px", flexShrink: "0", fontSize: "12px", fontWeight: "600", color: "#6b7a8c", lineHeight: "20px"}}>{I(_f.k)}</span>
+            <span style={{flex: "1", minWidth: "0", fontSize: "14px", fontWeight: "600", lineHeight: "1.45", color: _f.warn ? "#b35a0e" : "#17212e", overflowWrap: "anywhere"}}>{I(_f.v)}</span>
           </div>
         ))}
       </div>
@@ -38,6 +51,7 @@ export default function UserDetail({ v }: { v: View }) {
         {v.su?.canAddRole ? <button onClick={v.su?.addRole} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add role</button> : null}
       </div>
       <div style={{display: "flex", flexDirection: "column", gap: "8px", marginTop: "-6px"}}>
+        {v.su?.noRoles ? <span style={{fontSize: "13px", color: "#6b7a8c", padding: "4px 2px"}}>No role yet.</span> : null}
         {list(v.su?.roles).map((_r, _i1) => (
           <React.Fragment key={_i1}>
             <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", border: "1px solid #eef2f6", borderRadius: "12px", background: "#fff"}}>

@@ -24,7 +24,7 @@ export default function AuditPanel({ v }: { v: View }) {
           </button>
         </div>
         <div style={{flex: "1", overflow: "auto", padding: "20px 24px"}}>
-          <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+          <div style={{border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden", flexShrink: "0"}}>
             {rows.map(([k, val], i) => (
               <div key={k} style={{display: "flex", gap: "12px", padding: "12px 14px", borderTop: i ? "1px solid #f3f5f8" : "0"}}>
                 <span style={label}>{k}</span>

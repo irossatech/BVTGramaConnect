@@ -148,7 +148,9 @@ function hist(h: ConsoleHost, a: ReviewAction) {
   const label = a.action === 'REVERSE'
     ? 'Decision changed: ' + (ST[SK[a.from_status ?? '']] || {label: a.from_status}).label + ' → ' + (ST[SK[a.to_status ?? '']] || {label: a.to_status}).label
     : (HIST[a.action] || a.action);
-  return {who: (a.actor && a.actor.name) || 'System', role: R[rk].label, action: label, note: a.comment || '', hasNote: !!a.comment, time: h.fmt(a.at),
+  // A citizen's own step (sending the post from the app): no account, role CITIZEN and an empty name.
+  const citizen = a.actor?.role === 'CITIZEN';
+  return {who: citizen ? 'A citizen' : (a.actor && a.actor.name) || 'System', role: citizen ? 'Citizen (app)' : rk === 'system' ? 'Automatic' : R[rk].label, action: label, note: a.comment || '', hasNote: !!a.comment, time: h.fmt(a.at),
     dot: /PUBLISH/.test(a.action) ? '#1F8A3B' : a.action === 'RECHECK' ? '#8f4bb4' : /DISCARD|UNPUBLISH/.test(a.action) ? '#b3261e' : a.action === 'REVERSE' ? '#0D3B7A' : '#E9791E'};
 }
 

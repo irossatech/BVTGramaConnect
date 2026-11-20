@@ -191,6 +191,13 @@ export interface AdminUser {
   locked: boolean;
   allowed: string[] | null;
   last: string;
+  /** No active role left (the role key then only decides colours; shown as "No role"). */
+  noRole: boolean;
+  /** For the user panel: on a temporary password, when and by whom added, the app language ('te' / 'en'). */
+  mustChange: boolean;
+  added: string;
+  addedBy: string;
+  lang: string;
 }
 
 /** Add User / Edit user drawer. nuD and nuM are the district and mandal steps of the area picker. */

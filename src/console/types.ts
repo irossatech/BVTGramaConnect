@@ -80,6 +80,11 @@ export interface User {
   last_login_at?: string | null;
   locked_out?: boolean;
   allowed_actions?: string[];
+  /** Still on a temporary password: must choose their own at the next sign-in. */
+  must_change_password?: boolean;
+  created_at?: string | null;
+  created_by?: { id?: string; name?: string } | null;
+  preferred_language?: string;
 }
 
 /** POST /users/{id}/block/ and /unblock/: the user, or {user}. */

@@ -41,6 +41,8 @@ function adaptUser(h: ConsoleHost, u: User): AdminUser {
     district: parts.district, mandal: parts.mandal, village: parts.village, area: ra ? ra.area : null, raId: ra ? ra.id : null, ras,
     active: u.is_active !== undefined ? !!u.is_active : u.status === 'ACTIVE', locked: !!u.locked_out,
     allowed: Array.isArray(u.allowed_actions) ? u.allowed_actions : null, last: h.fmtLast(u.last_login_at),
+    noRole: !ras.length, mustChange: !!u.must_change_password, added: u.created_at ? h.fmt(u.created_at, true) : '',
+    addedBy: (u.created_by && u.created_by.name) || '', lang: u.preferred_language || '',
   };
 }
 
@@ -283,7 +285,17 @@ export function userPanelView(h: ConsoleHost) {
   // Header: name, role and status; Contact: how to reach them and when they last signed in; areas are in Roles.
   const su = pu ? {name: pu.name, te: pu.te !== pu.name ? pu.te : '', initial: pu.name[0], bg: R[pu.role].bg, roleLabel: R[pu.role].label, rbg: R[pu.role].tbg, rcolor: R[pu.role].tc,
     active: pu.active, locked: pu.locked,
-    contact: [{k: 'Username', v: pu.username, href: ''}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : '', href: pu.mobile ? 'tel:+91' + pu.mobile : ''}, {k: 'Email', v: pu.email, href: pu.email ? 'mailto:' + pu.email : ''}, {k: 'Last login', v: pu.last || 'Never', href: ''}].filter((f) => f.v),
+    // Every row always shows: an empty one says "Not given" (greyed), so nothing seems to be missing.
+    contact: [{k: 'Username', v: pu.username || 'Not given', href: '', none: !pu.username}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : 'Not given', href: pu.mobile ? 'tel:+91' + pu.mobile : '', none: !pu.mobile}, {k: 'Email', v: pu.email || 'Not given', href: pu.email ? 'mailto:' + pu.email : '', none: !pu.email}],
+    // The account: password state, sign-ins, when and by whom it was added, the app language.
+    account: [
+      {k: 'Password', v: pu.mustChange ? 'Temporary: must choose their own at the next sign-in' : 'Their own', warn: pu.mustChange},
+      {k: 'Last sign-in', v: pu.last || 'Never signed in', warn: false},
+      {k: 'Added', v: pu.added ? pu.added + (pu.addedBy ? ' · by ' + pu.addedBy : '') : '—', warn: false},
+      {k: 'App language', v: pu.lang === 'en' ? 'English' : pu.lang === 'te' ? 'Telugu' : '—', warn: false},
+    ],
+    note: !pu.active ? 'Blocked: they cannot sign in or post until unblocked.' : pu.noRole ? 'No role: they can sign in but cannot do anything until a role is added.' : '',
+    noteBad: !pu.active, noRoles: !(pu.ras || []).length,
     posts: s.panelUserPosts.map((p) => postRow(h, p)), noPosts: !s.panelUserPosts.length,
     roles: (pu.ras || []).map((ra) => {
       const k = RK[ra.role] || 'panchayat';
@@ -302,7 +314,7 @@ export function usersView(h: ConsoleHost) {
   const uf = s.uf;
   // Second line under the name: the Telugu name, else the login username (never the English name twice).
   // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
-  const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: R[u.role].label, rbg: R[u.role].tbg, rcolor: R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
+  const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: u.noRole ? 'No role' : R[u.role].label, rbg: u.noRole ? R.system.tbg : R[u.role].tbg, rcolor: u.noRole ? R.system.tc : R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
     blocked: !u.active, lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
     // Reassign area is in the user panel (View); the table keeps View and Block / Unblock.
     canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), toggle: () => toggleUser(h, u)}));
