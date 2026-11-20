@@ -14,7 +14,7 @@ export type Screen = "checking" | "login" | "change_password" | "app";
 export type PageKey = "dashboard" | "geography" | "users" | "posts" | "requests" | "bills" | "ads" | "reports" | "audit" | "contact" | "numbers" | "settings";
 /** A page, or the services list (a view of the requests page with its own permissions). */
 export type NavKey = PageKey | "services";
-export type StatusTab = "All" | "Pending" | "Escalated" | "Published" | "Recheck" | "Rejected";
+export type StatusTab = "All" | "Pending" | "Escalated" | "Published" | "Recheck" | "Rejected" | "Blocked";
 export type NumTab = "AREA" | "HELPLINE" | "TYPES";
 export type SvcView = "requests" | "catalog";
 export type GeoKind = "district" | "mandal" | "village";
