@@ -345,7 +345,8 @@ export default class Site extends React.Component<Props, State> {
         if (this.dead) return;
         this.setState({ sending: false });
         if (err.status !== 400) {
-          this.toast(err.status === 429 ? t.toastBusy : t.toastFail);
+          // The server has no limit on contact messages (removed 2026-11-20), so every failure is "try again".
+          this.toast(t.toastFail);
           return;
         }
         // The server names the fields it refused: mark those (the page's own messages) and go to the first one.
