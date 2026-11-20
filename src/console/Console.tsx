@@ -86,7 +86,7 @@ export default class Component extends React.Component<Props, State> {
     numSel: [], adSel: [], adTab: 'all', postSel: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
     audit: [], auditCount: 0, auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', auditFrom: '', auditTo: '', distQ: '', auditLoading: false,
-    contacts: [], contactCount: 0, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
+    contacts: [], contactCount: 0, contactCounts: {}, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
     settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},

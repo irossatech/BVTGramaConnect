@@ -2,7 +2,7 @@
 // Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls GET/PATCH /admin/contact-messages/ (.claude/api.md).
 import type { ContactMessage, Paged } from "../types";
 import { maskMobile, mobileDigits } from "../mask";
-import { orEmpty, pageCount, pager, PAGE_SIZE, type FieldChange } from "../model";
+import { orEmpty, pageCount, pager, PAGE_SIZE, type FieldChange, type State } from "../model";
 import type { ConsoleHost } from "./host";
 
 export function loadContacts(h: ConsoleHost, page: number) {
@@ -11,11 +11,11 @@ export function loadContacts(h: ConsoleHost, page: number) {
   h.setState({contactLoading: true});
   // Full rows: the table shows each message (owner, 2026-11-17, reverses the "no message" part of audit WEB-DP-001);
   // the mobile stays masked on screen and is shown in full only in View.
-  h.api.get<Paged<ContactMessage>>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, page, page_size: PAGE_SIZE})
-    .then((d) => latest() && h.setState({contacts: d.results || [], contactCount: d.count || 0, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
+  h.api.get<Paged<ContactMessage> & {status_counts?: State['contactCounts']}>('/admin/contact-messages/', {status: s.contactFilter === 'all' ? '' : s.contactFilter, q: s.contactQ, page, page_size: PAGE_SIZE})
+    .then((d) => latest() && h.setState({contacts: d.results || [], contactCount: d.count || 0, contactCounts: d.status_counts || {}, contactPage: page, contactPages: pageCount(d.count), contactLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
-      h.setState({contactLoading: false, contacts: [], contactCount: 0});
+      h.setState({contactLoading: false, contacts: [], contactCount: 0, contactCounts: {}});
       h.fail(e);
     });
 }
@@ -48,8 +48,8 @@ export function contactsView(h: ConsoleHost) {
       h.setState({contactQ: e.target.value});
       h.later('contacts', () => loadContacts(h, 1), 300);
     },
-    // The server sends no counts per status, so the pills show labels only.
-    contactTabs: [{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}].map((t) => ({label: t.label, on: s.contactFilter === t.id, go: () => h.setState({contactFilter: t.id}, () => loadContacts(h, 1))})),
+    // Each pill's number from status_counts (2026-11-20); none shows while the server sends no counts.
+    contactTabs: ([{id: 'new', label: 'New'}, {id: 'handled', label: 'Handled'}, {id: 'all', label: 'All'}] as const).map((t) => ({label: t.label, count: s.contactCounts[t.id], on: s.contactFilter === t.id, go: () => h.setState({contactFilter: t.id}, () => loadContacts(h, 1))})),
     contactRows: s.contacts.map((c) => {
       const done = isHandled(c);
       // Mobile masked in the table (audit WEB-DP-001); View shows it in full. The message is shown whole.
