@@ -123,6 +123,32 @@ export function toggleUser(h: ConsoleHost, u: AdminUser) {
     }).catch((e: unknown) => h.fail(e))});
 }
 
+// Block or unblock the ticked users at once (owner, 2026-11-20): one request each, with progress; the ones the
+// server refuses (a higher role, yourself) are counted with its reason.
+function bulkBlock(h: ConsoleHost, list: AdminUser[], block: boolean) {
+  if (!list.length || h.state.bulk) return;
+  const n = list.length, what = n + (n === 1 ? ' user' : ' users');
+  h.ask({title: (block ? 'Block ' : 'Unblock ') + what, body: block ? 'They are signed out at once and cannot post or review until unblocked.' : 'They can sign in again straight away.', confirmLabel: (block ? 'Block ' : 'Unblock ') + n, bg: block ? '#b3261e' : '#1d7a33',
+    onConfirm: () => { void (async () => {
+      let ok = 0, why = '';
+      for (let i = 0; i < n; i++) {
+        h.setState({bulk: (block ? 'Blocking ' : 'Unblocking ') + (i + 1) + ' of ' + n + '…'});
+        try {
+          await h.api.post('/users/' + list[i].id + '/' + (block ? 'block' : 'unblock') + '/', {});
+          ok++;
+        } catch (e) {
+          why = why || (e instanceof Error && e.message) || 'the server did not answer';
+        }
+      }
+      const done = list.map((u) => u.id);
+      h.setState({bulk: '', userSel: h.state.userSel.filter((id) => !done.includes(id as string))});
+      loadUsers(h, h.state.userPage);
+      const msg = ok + (block ? ' blocked' : ' unblocked');
+      if (why) h.ask({title: msg, body: (n - ok) + ' failed: ' + why + '.', confirmLabel: 'Close', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+      else h.toast(msg, block ? '#E9791E' : '#6cc04a');
+    })(); }});
+}
+
 // A village role's dialog lists every village: load them all first (once), then open it.
 function withAllVillagesFor(h: ConsoleHost, role: string, open: () => void) {
   if (LEVEL_OF_ROLE[role] === 'VILLAGE' && !h.state.geoAll) {
@@ -312,12 +338,24 @@ export function userPanelView(h: ConsoleHost) {
 export function usersView(h: ConsoleHost) {
   const s = h.state, R = ROLE;
   const uf = s.uf;
+  // Users this admin may block or unblock can be ticked, on every status (owner, 2026-11-20).
+  const selIds: string[] = s.users.filter((u) => userCan(u, 'block') || userCan(u, 'unblock')).map((u) => u.id);
+  const picked = s.userSel.filter((id): id is string => selIds.includes(id as string));
   // Second line under the name: the Telugu name, else the login username (never the English name twice).
   // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
   const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: u.noRole ? 'No role' : R[u.role].label, rbg: u.noRole ? R.system.tbg : R[u.role].tbg, rcolor: u.noRole ? R.system.tc : R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
     blocked: !u.active, lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
     // Reassign area is in the user panel (View); the table keeps View and Block / Unblock.
-    canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), toggle: () => toggleUser(h, u)}));
+    canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), toggle: () => toggleUser(h, u),
+    selectable: selIds.includes(u.id), sel: picked.includes(u.id), toggleSel: () => h.toggleSel('userSel', u.id)}));
+  // Ticked users: Block acts on the active ones, Unblock on the blocked ones, each only where the server allows.
+  const pickedUsers = s.users.filter((u) => picked.includes(u.id));
+  const toBlock = pickedUsers.filter((u) => u.active && userCan(u, 'block')), toUnblock = pickedUsers.filter((u) => !u.active && userCan(u, 'unblock'));
+  const userSel = {show: selIds.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selIds.length, some: picked.length > 0 && picked.length < selIds.length,
+    label: picked.length + ' selected', busy: s.bulk,
+    toggleAll: () => h.setState({userSel: picked.length === selIds.length ? [] : selIds}), clear: () => h.setState({userSel: []}),
+    canBlock: toBlock.length > 0, canUnblock: toUnblock.length > 0, blockLabel: 'Block ' + toBlock.length, unblockLabel: 'Unblock ' + toUnblock.length,
+    block: () => bulkBlock(h, toBlock, true), unblock: () => bulkBlock(h, toUnblock, false)};
   const nu = s.nu;
   const canNU = nuValid(nu);
   const nuRoles = roleChoices(h);
@@ -337,7 +375,7 @@ export function usersView(h: ConsoleHost) {
       return {label, on: uf.status === id, count: c ? (id === 'active' ? c.active : id === 'blocked' ? c.blocked : c.active + c.blocked) : undefined,
         go: () => h.setState((st) => ({uf: {...st.uf, status: id}}), () => loadUsers(h, 1))};
     }),
-    userRows, userCount: s.userCount, userEmpty: !userRows.length,
+    userRows, userSel, userCount: s.userCount, userEmpty: !userRows.length,
     userEmptyText: s.usersLoading ? 'Loading…' : uf.q.trim() || uf.role || uf.district ? 'No users match these filters' : uf.status === 'blocked' ? 'No blocked users' : 'No users yet',
     userEmptyHint: s.usersLoading ? '' : uf.q.trim() || uf.role || uf.district ? 'Try another search or filter.' : uf.status === 'blocked' ? '' : 'Add District, Mandal and Village Admins and Panchayat members with Add user.', usersPager: pager(s.userPage, s.userPages, (p) => loadUsers(h, p)),
     nuEdit: !!nu.id, nuTitle: nu.id ? 'Edit user' : 'Add User', nuSaveLabel: nu.id ? 'Save changes' : 'Create user',

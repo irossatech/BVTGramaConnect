@@ -2,7 +2,7 @@
 import React from "react";
 import { I, css, list, val } from "../../shared/dc";
 import type { View } from "../Console";
-import { Pager, DistrictOptions, EmptyState, StatusPills, SearchSelect } from "../ui/parts";
+import { Pager, DistrictOptions, EmptyState, StatusPills, SearchSelect, TickBox } from "../ui/parts";
 
 export default function Users({ v }: { v: View }) {
   return (
@@ -29,10 +29,20 @@ export default function Users({ v }: { v: View }) {
         </SearchSelect>
         <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c", whiteSpace: "nowrap"}}>{I(v.userCount)}{v.userCount === 1 ? " user" : " users"}</span>
       </div>
+      {/* Ticked users: Block / Unblock them at once (owner, 2026-11-20); same bar as the Posts page. */}
+      {v.userSel?.count ? <div role="region" aria-label="Selected users" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", padding: "10px 14px", borderRadius: "12px", background: "#e3f0fb", fontSize: "13px", color: "#0A2550"}}>
+        <strong style={{fontWeight: "700"}}>{I(v.userSel?.label)}</strong>
+        {v.userSel?.busy ? <span aria-live="polite" style={{color: "#3b4a5c"}}>{I(v.userSel?.busy)}</span> : <>
+          {v.userSel?.canBlock ? <button onClick={v.userSel?.block} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.userSel?.blockLabel)}</button> : null}
+          {v.userSel?.canUnblock ? <button onClick={v.userSel?.unblock} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#1F8A3B", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.userSel?.unblockLabel)}</button> : null}
+          <button onClick={v.userSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
+        </>}
+      </div> : null}
       {v.userEmpty ? <EmptyState title={v.userEmptyText} hint={v.userEmptyHint} icon="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
         <table style={{width: "100%", fontSize: "13px", minWidth: "820px"}}>
           <thead>
             <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+              <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.userSel?.show ? <TickBox on={v.userSel?.all} some={v.userSel?.some} onChange={v.userSel?.toggleAll} label="Select all users on this page" /> : null}</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Name</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Role</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Area</th>
@@ -45,6 +55,7 @@ export default function Users({ v }: { v: View }) {
             {list(v.userRows).map((_u, _i1) => (
               <React.Fragment key={_u?.rowKey ?? _i1}>
                 <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                  <td style={{padding: "10px 0 10px 16px", width: "34px"}}>{_u?.selectable ? <TickBox on={_u?.sel} onChange={_u?.toggleSel} label={"Select " + (_u?.name || "user")} /> : null}</td>
                   <td style={{padding: "12px 16px"}}>
                     <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
                       <span style={css(`width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Rubik',sans-serif;font-size:13px;opacity:${_u?.blocked ? .5 : 1};background: ${_u?.bg ?? ""}`)}>{I(_u?.initial)}</span>

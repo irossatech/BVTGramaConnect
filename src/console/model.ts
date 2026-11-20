@@ -345,7 +345,7 @@ export interface ImportProgress {
   name: string;
 }
 
-export type SelKey = "numSel" | "adSel" | "postSel";
+export type SelKey = "numSel" | "adSel" | "postSel" | "userSel";
 export type SelId = string | number;
 
 export interface BulkOptions {
@@ -460,6 +460,8 @@ export interface State {
   adTab: string;
   /** Waiting posts ticked on the Posts page for Publish / Discard selected. */
   postSel: SelId[];
+  /** Users ticked on the Users page for Block / Unblock selected (owner, 2026-11-20). */
+  userSel: SelId[];
   bulk: string;
   panel: Panel | null;
   panelPost: PostRow | null;

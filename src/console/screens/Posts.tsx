@@ -41,6 +41,7 @@ export default function Posts({ v }: { v: View }) {
           {v.postSel?.canTakeDown ? <button onClick={v.postSel?.takeDown} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#b3261e", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.takeDownLabel)}</button> : null}
           {v.postSel?.canChange ? <button onClick={v.postSel?.change} style={{height: "32px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>{I(v.postSel?.changeLabel)}</button> : null}
           <button onClick={v.postSel?.clear} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12.5px"}}>Clear</button>
+          {v.postSel?.noteShow ? <span style={{flexBasis: "100%", color: "#3b4a5c"}}>{I(v.postSel?.note)}</span> : null}
         </>}
       </div> : null}
       {v.postEmpty ? <EmptyState title={v.postEmptyText} hint={v.postEmptyHint} icon="M4 5h12v14H6a2 2 0 0 1-2-2V5zM16 9h4v8a2 2 0 0 1-2 2M8 9h4M8 13h4" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
@@ -48,7 +49,7 @@ export default function Posts({ v }: { v: View }) {
         <table style={{width: "100%", fontSize: "13px"}}>
           <thead>
             <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
-              <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.postSel?.show ? <TickBox on={v.postSel?.all} some={v.postSel?.some} onChange={v.postSel?.toggleAll} label="Select all posts on this page that you can act on" /> : null}</th>
+              <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.postSel?.show ? <TickBox on={v.postSel?.all} some={v.postSel?.some} onChange={v.postSel?.toggleAll} label="Select all posts on this page" /> : null}</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Post</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Category</th>
               <th style={{padding: "12px 16px", fontWeight: "600"}}>Shown to</th>

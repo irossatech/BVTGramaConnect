@@ -294,13 +294,18 @@ export function postsView(h: ConsoleHost) {
   // page or tab is ignored.
   const canReverse = (p: PostRow) => ['Recheck', 'Discarded', 'TakenDown', 'Blocked'].includes(p.status) && p.allowed.includes('reverse');
   const canBulk = (p: PostRow) => p.status === 'Pending' ? p.allowed.includes('publish') || p.allowed.includes('discard') : p.status === 'Published' ? p.allowed.includes('unpublish') : canReverse(p);
-  const selectable: SelId[] = s.posts.filter(canBulk).map((p) => p.id);
+  // Every row can be ticked on every tab (owner, 2026-11-20); each button acts only on the rows the server allows,
+  // and the rest are counted with the reason (a Super Admin's decision is changed only by a higher level).
+  const selectable: SelId[] = s.posts.map((p) => p.id);
   const picked = s.postSel.filter((id) => selectable.includes(id));
   const pickedRows = s.posts.filter((p) => picked.includes(p.id));
-  const waitRows = pickedRows.filter((p) => p.status === 'Pending'), pubRows = pickedRows.filter((p) => p.status === 'Published');
-  const revRows = pickedRows.filter(canReverse);
+  const actRows = pickedRows.filter(canBulk);
+  const waitRows = actRows.filter((p) => p.status === 'Pending'), pubRows = actRows.filter((p) => p.status === 'Published');
+  const revRows = actRows.filter(canReverse);
+  const noAction = pickedRows.length - actRows.length;
   const postSel = {show: selectable.length > 0, count: picked.length, all: picked.length > 0 && picked.length === selectable.length, some: picked.length > 0 && picked.length < selectable.length,
     label: picked.length + ' selected', busy: s.bulk,
+    noteShow: noAction > 0, note: noAction + ' can’t be changed by you: only a higher level can change a Super Admin’s decision.',
     toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []}),
     // A mixed pick (the All tab): each button acts on its own kind only and says how many.
     canPublish: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('publish')), canDiscard: waitRows.length > 0 && waitRows.every((p) => p.allowed.includes('discard')),
@@ -308,7 +313,7 @@ export function postsView(h: ConsoleHost) {
     publishLabel: 'Publish ' + waitRows.length, discardLabel: 'Discard ' + waitRows.length, takeDownLabel: 'Take down ' + pubRows.length, changeLabel: 'Change decision (' + revRows.length + ')',
     publish: () => bulkReview(h, waitRows.map((p) => p.id), 'publish'), discard: () => bulkReview(h, waitRows.map((p) => p.id), 'discard'), takeDown: () => bulkReview(h, pubRows.map((p) => p.id), 'unpublish'),
     change: () => bulkReverse(h, revRows)};
-  const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: canBulk(p), sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
+  const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: true, sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
   const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
   return {
     gsearch: s.gsearch,
