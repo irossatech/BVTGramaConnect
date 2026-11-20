@@ -20,7 +20,7 @@ export default function Audit({ v }: { v: View }) {
         <select aria-label="Type of activity" value={val(v.auditType, "")} onChange={v.onAuditType} style={{height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "160px"}}>
           {list(v.auditTypes).map((_t, _i1) => <option key={_i1} value={_t.id}>{_t.label}</option>)}
         </select>
-        {/* The period (contract section 8): any past days, however old; none chosen = the last 180 days. */}
+        {/* The period (contract section 8): any past days, however old; none chosen = every entry. */}
         <div role="group" aria-label="Period" style={{display: "flex", alignItems: "center", gap: "6px", height: "38px", padding: "0 6px 0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", color: "#6b7a8c", whiteSpace: "nowrap"}}>
           <label style={{display: "flex", alignItems: "center", gap: "6px"}}>
             From

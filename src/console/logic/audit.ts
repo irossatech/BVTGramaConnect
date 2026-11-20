@@ -23,8 +23,8 @@ const KIND: Readonly<Record<string, readonly [string, string, string]>> = {post:
 export function loadAudit(h: ConsoleHost, page: number) {
   const latest = h.ticket('audit');
   h.setState({auditLoading: true});
-  // from / to only when chosen (empty values are not sent): with neither, the server lists its last 180 days;
-  // with them, those days however old (lead's decision of 2026-11-19).
+  // from / to only when chosen (empty values are not sent): with neither, the server lists every entry, however
+  // old; with them, exactly those days (decision of 2026-11-20).
   // `count` is the entries of exactly that period (with the search and type): the screen shows only that number.
   h.api.get<Paged<AuditEntry>>('/audit/', {q: h.state.auditQ, type: h.state.auditType, from: h.state.auditFrom, to: h.state.auditTo, page, page_size: PAGE_SIZE})
     // Each entry's `data` (the changed fields, with emails and mobiles) is never shown, so it is not kept.
