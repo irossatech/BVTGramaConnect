@@ -149,7 +149,6 @@
     "toastStore": "The app isn’t in the stores yet. It’s coming soon.",
     "toastApk": "Downloading the Android app…",
     "toastFail": "That didn’t go through. Please try again.",
-    "toastBusy": "We’re getting a lot of messages right now. Please try again in a few minutes.",
     "hwTitle": "How a post reaches your phone",
     "hwSub": "Every update is written by someone from your village, checked by an official, and sent only to the area it’s for.",
     "hw1": "Written by your village",
