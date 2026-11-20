@@ -51,9 +51,21 @@ export function loadPosts(h: ConsoleHost, page: number) {
   const latest = h.ticket('posts');
   h.setState({postsLoading: true});
   // status_counts has no escalated number, so the Escalated tab's count is one more small call with the same filters.
-  const escalated = h.api.get<PostsPage>('/posts/', {...postQuery(h, 1), status: 'PENDING', escalated: 'true', page_size: 1}).then((d) => d.count).catch(() => 0);
-  Promise.all([h.api.get<PostsPage>('/posts/', postQuery(h, page)), escalated])
-    .then(([d, esc]) => latest() && h.setState({posts: d.results.map((p) => adaptPost(h, p)), postCount: d.count, postPage: page, postPages: pageCount(d.count), statusCounts: {...(d.status_counts || {}), ESCALATED: esc}, pendingCount: (d.status_counts || {}).PENDING || 0, postsLoading: false}))
+  // On the Escalated tab it is the other way round: the server counts with every filter but `status`, escalated
+  // included, so the list's status_counts would cover escalated posts only (All 11, Published 0 …). The tab counts
+  // then come from one small call without `escalated`, and the escalated number is the list's own total.
+  const onEscalated = h.state.statusTab === 'Escalated';
+  // The side call only fills counts: if it fails, the list still shows (as before).
+  const side = h.api.get<PostsPage>('/posts/', onEscalated
+    ? {...postQuery(h, 1), status: '', escalated: '', page_size: 1}
+    : {...postQuery(h, 1), status: 'PENDING', escalated: 'true', page_size: 1}).catch(() => null);
+  Promise.all([h.api.get<PostsPage>('/posts/', postQuery(h, page)), side])
+    .then(([d, other]) => {
+      if (!latest()) return;
+      const counts = (onEscalated ? other?.status_counts ?? d.status_counts : d.status_counts) || {};
+      const esc = onEscalated ? d.count : other?.count ?? 0;
+      h.setState({posts: d.results.map((p) => adaptPost(h, p)), postCount: d.count, postPage: page, postPages: pageCount(d.count), statusCounts: {...counts, ESCALATED: esc}, pendingCount: counts.PENDING || 0, postsLoading: false});
+    })
     .catch((e: unknown) => {
       if (!latest()) return;
       h.setState({postsLoading: false});
