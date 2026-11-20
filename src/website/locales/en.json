@@ -99,6 +99,9 @@
     "nfTitle": "This page could not be found",
     "nfBody": "The address may be mistyped, or the page is no longer here. Find what you need from the home page or the menu above.",
     "nfHome": "Go to the home page",
+    "nfCode": "404",
+    "nfKicker": "Page not found",
+    "nfOr": "Or see one of these pages",
     "skipLink": "Skip to main content",
     "officeLabel": "Office",
     "phoneLabel": "Phone & email",
@@ -361,7 +364,7 @@
         {
           "h": "How long we keep it",
           "body": [
-            "We keep posts, service requests, contact messages, citizen phone records and the record of official actions; they are not deleted. Screens show only recent ones: handled contact messages for 90 days, finished service requests for 180 days. An official’s account is switched off when the person leaves the role. A block on a phone ends by itself."
+            "We keep posts, service requests, contact messages, citizen phone records and the record of official actions; they are not deleted. Officials’ screens show all of them, however old. An official’s account is switched off when the person leaves the role. A block on a phone ends by itself."
           ]
         },
         {
