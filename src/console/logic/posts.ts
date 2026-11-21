@@ -3,7 +3,7 @@
 // and the citizen phone's block, unblock and discard-all). postRow() is also how a post shows in the user panel
 // (logic/users.ts). Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls /posts/ (.claude/api.md).
 import { ApiError, type Query } from "../api";
-import type { DiscardCitizenResult, Post, PostsPage, ReviewAction } from "../types";
+import type { BlockedCitizenRow, CitizenBlock, DiscardCitizenResult, Paged, Post, PostsPage, ReviewAction } from "../types";
 import { isActor, isStatus, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange, type BulkAction, type PostRow, type SelId, type Tone } from "../model";
 import type { ConsoleHost } from "./host";
 
@@ -13,10 +13,14 @@ const STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b3
 const SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',BLOCKED:'Blocked',DRAFT:'Draft'};
 // The console's status key -> API status.
 // "Rejected" is the one tab for discarded and taken-down posts (the server takes several statuses, comma-separated).
-// "Blocked" has a citizen's posts closed when the Super Admin blocked the phone (BLOCKED, owner's decision of 2026-11-20).
+// Tabs since 2026-11-21 (owner): All, Waiting (with an "Escalated only" filter), Published, Recheck, Rejected
+// (discarded or taken down) and Blocked, which lists citizens: one row per blocked phone, its closed posts inside.
 const SAPI: Readonly<Record<string, string>> = {Rejected:'DISCARDED,UNPUBLISHED',Blocked:'BLOCKED',Pending:'PENDING',Escalated:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
 // What each review action says in the post panel's history.
-const HIST: Readonly<Record<string, string>> = {SUBMIT:'Sent in for review',RESUBMIT:'Sent in again after fixing',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',BLOCK:'Blocked: the citizen was blocked',ESCALATE:'Escalated: waited past the time limit, sent up a level'};
+const HIST: Readonly<Record<string, string>> = {SUBMIT:'Sent in for review',RESUBMIT:'Sent in again after fixing',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',BLOCK:'Blocked: the citizen was blocked',UNBLOCK:'Unblocked: the citizen can post again',BLOCK_ENDED:'Block ended: the time was up',ESCALATE:'Escalated: waited past the time limit, sent up a level'};
+// History dots by exact action (a pattern would colour UNPUBLISH like PUBLISH). UNBLOCK and BLOCK_ENDED are written by the
+// server once the backend plan of 2026-11-21 (part 6) is live.
+const HIST_DOT: Readonly<Record<string, string>> = {PUBLISH:'#1F8A3B',AUTO_PUBLISH:'#1F8A3B',RECHECK:'#8f4bb4',DISCARD:'#3b4a5c',UNPUBLISH:'#b3261e',REVERSE:'#0D3B7A',BLOCK:'#7a1f17',UNBLOCK:'#1d7a33',BLOCK_ENDED:'#6b7a8c'};
 // Event kinds on a post: label, background, colour.
 const EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
 
@@ -59,6 +63,8 @@ export function loadPosts(h: ConsoleHost, page: number) {
   const side = h.api.get<PostsPage>('/posts/', onEscalated
     ? {...postQuery(h, 1), status: '', escalated: '', page_size: 1}
     : {...postQuery(h, 1), status: 'PENDING', escalated: 'true', page_size: 1}).catch(() => null);
+  // Blocked posts with their phone: Posts › Blocked lists one citizen per phone, and its number is theirs. Few, one page.
+  loadBlockedCitizens(h);
   Promise.all([h.api.get<PostsPage>('/posts/', postQuery(h, page)), side])
     .then(([d, other]) => {
       if (!latest()) return;
@@ -136,14 +142,14 @@ function postAction(h: ConsoleHost, kind: string, p: PostRow) {
     h.setState({panel: null});
     loadPosts(h, h.state.postPage);
   };
-  if (kind === 'blockCitizen') h.ask({title: 'Block this citizen', body: 'The phone cannot post until the block ends. Its posts waiting for review in your area move to Blocked. Its published posts stay. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => h.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => h.fail(e))});
+  if (kind === 'blockCitizen') h.ask({title: 'Block this citizen', body: 'This phone can’t send new posts until the block ends. You can unblock it any time. You find the phone under Posts › Blocked. Its published posts stay. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => h.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => h.fail(e))});
   if (kind === 'unblockCitizen') h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33', onConfirm: () => h.api.post('/posts/' + p.id + '/unblock-citizen/', {comment: ''}).then(after('Citizen unblocked')).catch((e: unknown) => h.fail(e))});
   if (kind === 'discardCitizen') h.ask({title: 'Discard all their waiting posts', body: 'Every post from this phone that is waiting for review is discarded (for spam). The phone is not blocked.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard all', bg: '#3b4a5c', onConfirm: (t) => h.api.post<DiscardCitizenResult | null>('/posts/' + p.id + '/discard-citizen-posts/', {comment: t}).then((d) => after('Discarded ' + ((d && d.discarded) || 0) + ' posts')()).catch((e: unknown) => h.fail(e))});
   if (kind === 'publish') h.ask({title: 'Publish post', body: 'Publish "' + title + '"? Citizens in ' + (p.area || area) + ' will see it straight away.', confirmLabel: 'Publish', bg: '#1F8A3B', onConfirm: () => review(h, p, {action: 'publish'}, (n) => h.toast('Post published' + n), true)});
-  if (kind === 'recheck') h.ask({title: 'Send for recheck', body: 'The author sees your comment, can edit the post and send it again.', needsText: true, textLabel: 'What should the author fix? (required)', confirmLabel: 'Send for recheck', bg: '#E9791E', onConfirm: (t) => review(h, p, {action: 'recheck', comment: t}, (n) => h.toast('Sent for recheck' + n, '#E9791E'), true)});
+  if (kind === 'recheck') h.ask({title: 'Send for recheck', body: 'The writer sees your comment, fixes the post and sends it again.', needsText: true, textLabel: 'What should the writer fix? (required)', confirmLabel: 'Send for recheck', bg: '#E9791E', onConfirm: (t) => review(h, p, {action: 'recheck', comment: t}, (n) => h.toast('Sent for recheck' + n, '#E9791E'), true)});
   if (kind === 'discard') h.ask({title: 'Discard post', body: 'The post will not be published. The author is told your reason.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard', bg: '#3b4a5c', onConfirm: (t) => review(h, p, {action: 'discard', comment: t}, (n) => h.toast('Post discarded' + n, '#cfd8e3'), true)});
   if (kind === 'takedown') h.ask({title: 'Take down post', body: 'Remove "' + title + '" from every citizen\'s feed now.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Take down', bg: '#b3261e', onConfirm: (t) => review(h, p, {action: 'unpublish', comment: t}, () => h.toast('Post taken down', '#E9791E'))});
-  if (kind === 'override') h.ask({title: 'Change decision', body: 'Now: ' + STATUS[p.status].label + '. Choose the new status and say why you are changing the earlier reviewer\'s decision.', hasSelect: true, selectLabel: 'New status', options: [{id: 'Published', label: 'Published'}, {id: 'Pending', label: 'Waiting (back to review)'}, {id: 'Recheck', label: 'Recheck'}, {id: 'Discarded', label: 'Discarded'}].filter((o) => o.id !== p.status), needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Change decision', bg: '#0D3B7A', onConfirm: (t, sel) => review(h, p, {action: 'reverse', to_status: SAPI[sel], comment: t}, () => h.toast('Decision changed → ' + STATUS[sel].label))});
+  if (kind === 'override') h.ask({title: 'Change decision', body: 'Now: ' + STATUS[p.status].label + '. Choose the new status and say why you are changing the earlier reviewer\'s decision.', hasSelect: true, selectLabel: 'New status', options: changeOptions(p), sel: changeOptions(p)[0]?.id, needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Change decision', bg: '#0D3B7A', onConfirm: (t, sel) => review(h, p, {action: 'reverse', to_status: SAPI[sel], comment: t}, () => h.toast('Decision changed → ' + STATUS[sel].label))});
 }
 
 function urgentPost(h: ConsoleHost, p: PostRow) {
@@ -164,7 +170,7 @@ function hist(h: ConsoleHost, a: ReviewAction) {
   // A citizen's own step (sending the post from the app): no account, role CITIZEN and an empty name.
   const citizen = a.actor?.role === 'CITIZEN';
   return {who: citizen ? 'A citizen' : (a.actor && a.actor.name) || 'System', role: citizen ? 'Citizen (app)' : rk === 'system' ? 'Automatic' : R[rk].label, action: label, note: a.comment || '', hasNote: !!a.comment, time: h.fmt(a.at),
-    dot: /PUBLISH/.test(a.action) ? '#1F8A3B' : a.action === 'RECHECK' ? '#8f4bb4' : /DISCARD|UNPUBLISH/.test(a.action) ? '#b3261e' : a.action === 'REVERSE' ? '#0D3B7A' : '#E9791E'};
+    dot: HIST_DOT[a.action] || '#E9791E'};
 }
 
 // ---- several posts at once: waiting ones published or discarded, published ones taken down (2026-11-20, tester's
@@ -240,6 +246,18 @@ function copyLink(h: ConsoleHost, url: string) {
 // [label, action, border, background, colour]
 type Act = [string, string, string, string, string];
 
+// Change decision: the statuses a decided post can move to, in action words. A citizen post never goes back to
+// Recheck (a citizen cannot edit it; the server refuses).
+function changeOptions(p: PostRow) {
+  return [{id: 'Published', label: 'Publish'}, {id: 'Pending', label: 'Back to waiting'}, {id: 'Recheck', label: 'Recheck'}, {id: 'Discarded', label: 'Discard'}]
+    .filter((o) => o.id !== p.status && !(o.id === 'Recheck' && p.citizen));
+}
+
+// What each status means, at the top of the post panel (owner, 2026-11-21).
+const STATUS_WHY: Readonly<Record<string, string>> = {Pending: 'Not public yet. An admin of its area decides.', Published: 'Citizens of its areas can see it.',
+  Recheck: 'Sent back to the writer. They fix it and send it again.', Discarded: 'Not published. The writer sees the reason.',
+  TakenDown: 'Was public, now hidden from citizens.', Blocked: 'Closed when the citizen’s phone was blocked.', Draft: 'Not sent for review yet.'};
+
 /** A post as its row and panel show it (the list, the post panel, the user panel's recent posts). */
 export function postRow(h: ConsoleHost, p: PostRow, withHistory?: boolean) {
   const s = h.state, ST = STATUS, R = ROLE;
@@ -250,44 +268,70 @@ export function postRow(h: ConsoleHost, p: PostRow, withHistory?: boolean) {
   const stTip = esc ? 'Waiting longer than the review time limit' + (lvl ? '; sent up to the ' + (lvl === 'state' ? 'Super Admins' : lvl + ' admins') : '') : '';
   const rr = R[p.role] || R.panchayat;
   const al = p.allowed;
+  // What this admin can do in this status (owner, 2026-11-21): the main action filled, the others outlined.
+  // Published: Take down only (Change decision on a public post is a take-down by another route).
   const acts: Act[] = [];
   if (p.status === 'Pending') {
     if (al.includes('publish')) acts.push(['Publish', 'publish', '#1F8A3B', '#1F8A3B', '#fff']);
-    if (al.includes('recheck')) acts.push(['Recheck', 'recheck', '#E9791E', '#fff0dc', '#b35a0e']);
+    if (al.includes('recheck')) acts.push(['Recheck', 'recheck', '#E9791E', '#fff', '#b35a0e']);
     if (al.includes('discard')) acts.push(['Discard', 'discard', '#cfd8e3', '#fff', '#3b4a5c']);
   } else if (p.status === 'Published') {
     if (al.includes('unpublish')) acts.push(['Take down', 'takedown', '#b3261e', '#fff', '#b3261e']);
-    if (al.includes('reverse')) acts.push(['Change decision', 'override', '#0D3B7A', '#fff', '#0D3B7A']);
   } else if (al.includes('reverse')) acts.push(['Change decision', 'override', '#0D3B7A', '#0D3B7A', '#fff']);
-  if (al.includes('set_urgent')) acts.push([p.urgent ? 'Remove urgent' : 'Mark urgent', 'urgent', '#E9791E', '#fff', '#b35a0e']);
-  if (al.includes('block_citizen')) acts.push(['Block this citizen', 'blockCitizen', '#b3261e', '#fff', '#b3261e']);
-  if (al.includes('unblock_citizen')) acts.push(['Unblock this citizen', 'unblockCitizen', '#1d7a33', '#fff', '#1d7a33']);
-  if (al.includes('discard_citizen_posts')) acts.push(['Discard all their waiting posts', 'discardCitizen', '#cfd8e3', '#fff', '#3b4a5c']);
+  // Who decided, when and why; and, with no button, why not (the server's rule in words).
+  const dec = p.raw?.decided_by, lr = p.raw?.last_review;
+  const byRole = RK[dec?.role ?? ''] || '';
+  const decAt = p.raw?.decided_at || lr?.at || '';
+  const who = p.status === 'Pending' ? '' : [dec?.name || lr?.actor?.name || '', byRole && R[byRole] ? R[byRole].label : '', decAt ? h.fmt(decAt) : ''].filter(Boolean).join(' · ');
+  // A blocked post's reason comes from its citizen's block when the server leaves it out (BLOCK in last_review).
+  const reason = p.status === 'Pending' ? '' : lr?.comment || (p.status === 'Blocked' ? blockedCitizens(h).find((c) => c.posts.some((x) => x.id === p.id))?.reason || '' : '');
+  const noWhy = p.status === 'Published' ? 'Only a higher level can take this down.' : p.status === 'Pending' || !byRole ? 'No actions available for this post.'
+    : byRole === 'super' ? 'A Super Admin decided this. It is final.' : 'Only a level above ' + (R[byRole] ? R[byRole].label : byRole) + ' can change this.';
+  const hint = p.status === 'Pending' ? 'Publish it, send it for Recheck (the writer fixes it and sends it again), or discard it.' : p.status === 'Published' ? 'Take it down to hide it from citizens. The writer sees your reason.' : 'Move it to another status. A reason is needed.';
+  // Urgent only means something while a post waits or is public.
+  const urgentOk = al.includes('set_urgent') && (p.status === 'Pending' || p.status === 'Published');
+  const phoneActs: Act[] = [];
+  if (al.includes('block_citizen')) phoneActs.push(['Block this phone', 'blockCitizen', '#b3261e', '#fff', '#b3261e']);
+  if (al.includes('unblock_citizen')) phoneActs.push(['Unblock this phone', 'unblockCitizen', '#1d7a33', '#fff', '#1d7a33']);
+  if (al.includes('discard_citizen_posts')) phoneActs.push(['Discard all their waiting posts', 'discardCitizen', '#cfd8e3', '#fff', '#3b4a5c']);
   const cz = p.citizen;
-  const czLine = cz ? [(cz.posts_total || 0) + ' posts from this phone', (cz.posts_discarded || 0) + ' discarded', cz.blocked ? (cz.blocked_until ? 'Blocked till ' + h.fmt(cz.blocked_until, true).slice(0, 11) : 'Blocked') : ''].filter(Boolean).join(' · ') : '';
+  const czLine = cz ? [(cz.posts_total || 0) + ' posts from this phone', (cz.posts_discarded || 0) + ' discarded', cz.blocked ? (cz.blocked_until ? 'Blocked until ' + h.fmt(cz.blocked_until, true).slice(0, 11) : 'Blocked') : 'Can post'].filter(Boolean).join(' · ') : '';
   const ev = p.event;
   const evs = ev ? (EVENT[ev.kind] || [ev.kind, '#e3f0fb', '#0D3B7A']) : null;
   const evDates = ev ? (h.fmt(ev.start_date + 'T00:00:00+05:30', true).slice(0, 11) + (ev.end_date ? ' – ' + h.fmt(ev.end_date + 'T00:00:00+05:30', true).slice(0, 11) : '')) : '';
   // The post's own language and its translation's, so screen readers and fonts treat Telugu text as Telugu.
-  return {rowKey: p.id, cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, lang: p.raw?.language || undefined, langEn: p.raw?.translation?.language || undefined, area: p.area, date: p.date, author: p.author, authorRole: czLine || rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
+  return {rowKey: p.id, cat: p.cat, catLabel: p.catLabel, titleTe: p.titleTe, titleEn: p.titleEn, bodyTe: p.bodyTe, bodyEn: p.bodyEn, lang: p.raw?.language || undefined, langEn: p.raw?.translation?.language || undefined, area: p.area, date: p.date, author: p.author, authorRole: cz ? 'Citizen (app)' : rr.label, amobile: '', abg: rr.bg, ainitial: (p.author || '?')[0],
     st: {bg: st.bg, color: st.color, label: st.label, tip: stTip}, hasPhoto: p.media.length > 0, photos: p.media.map((m) => ({src: m.thumb_url || m.url, pos: 'center'})), urgent: !!p.urgent,
     hasEvent: !!ev, eventLabel: evs ? evs[0] + ' · ' + evDates : '', eventBg: evs ? evs[1] : '', eventColor: evs ? evs[2] : '',
     hasVideo: (p.videos || []).length > 0, videos: (p.videos || []).map((v) => ({src: v.url, poster: v.poster_url || v.thumb_url || ''})), rowBg: s.panel && s.panel.type === 'post' && s.panel.id === p.id ? '#f0f6fd' : '#fff',
     history: withHistory ? s.panelHistory.map((a) => hist(h, a)) : [], open: () => openPost(h, p), noActions: !acts.length,
+    card: {label: st.label, bg: st.bg, color: st.color, reason,
+      why: esc ? stTip + '.' : p.status === 'Blocked' ? STATUS_WHY.Blocked + ' ' + (cz?.blocked ? 'The phone is blocked' + (cz.blocked_until ? ' until ' + h.fmt(cz.blocked_until, true).slice(0, 11) : '') + '.' : 'The phone can post again now, but this post stays closed.') : STATUS_WHY[p.status] || '',
+      who: p.status === 'Blocked' && who ? 'Blocked by ' + who : who}, actHint: hint, noWhy,
+    urgentOk, urgentOn: !!p.urgent, toggleUrgent: () => postAction(h, 'urgent', p),
+    phone: cz ? {line: czLine, actions: phoneActs.map(([label, k, border, bg, color]) => ({label, border, bg, color, go: () => postAction(h, k, p)}))} : null,
     shareUrl: p.status === 'Published' ? p.raw?.share_url || '' : '', copyLink: () => { if (p.raw?.share_url) copyLink(h, p.raw.share_url); }, actions: acts.map(([label, k, border, bg, color]) => ({label, border, bg, color, go: () => postAction(h, k, p)}))};
 }
 
 /** The page's renderVals() values (screens/Posts.tsx, and the top bar's search). */
 export function postsView(h: ConsoleHost) {
   const s = h.state, ST = STATUS;
-  const tabs = ['Pending', 'Escalated', 'Published', 'Recheck', 'Rejected', 'Blocked'] as const;
+  const tabs = ['Pending', 'Published', 'Recheck', 'Rejected', 'Blocked'] as const;
+  const citizens = blockedCitizens(h);
+  // Escalated is Waiting with a filter on, so the Waiting pill stays lit while it is.
+  const waiting = s.statusTab === 'Pending' || s.statusTab === 'Escalated';
   const sc = s.statusCounts;
   const tabLabel = (k: typeof tabs[number]) => k === 'Pending' ? 'Waiting for review' : k === 'Rejected' ? 'Rejected' : ST[k].label;
   const statusTabs = [{id: 'All' as const, label: 'All'}, ...tabs.map((k) => ({id: k, label: tabLabel(k)}))].map((t) => {
-    const on = s.statusTab === t.id;
-    const n = t.id === 'All' ? (sc.ALL || 0) : t.id === 'Escalated' ? (sc.ESCALATED || 0) : t.id === 'Rejected' ? (sc.DISCARDED || 0) + (sc.UNPUBLISHED || 0) : (sc[SAPI[t.id]] || 0);
+    const on = t.id === 'Pending' ? waiting : s.statusTab === t.id;
+    const n = t.id === 'All' ? (sc.ALL || 0) : t.id === 'Rejected' ? (sc.DISCARDED || 0) + (sc.UNPUBLISHED || 0)
+      : t.id === 'Blocked' ? citizens.length : (sc[SAPI[t.id]] || 0);
     return {label: t.label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => { h.setState({statusTab: t.id}, () => loadPosts(h, 1)); }};
   });
+  // Inside Waiting: "Escalated only (n)", the posts waiting past the time limit; they also come first in the list.
+  const escFilter = {show: waiting, on: s.statusTab === 'Escalated', count: sc.ESCALATED || 0,
+    go: () => { h.setState({statusTab: s.statusTab === 'Escalated' ? 'Pending' : 'Escalated'}, () => loadPosts(h, 1)); }};
+  const ordered = waiting ? [...s.posts].sort((a, b) => Number(!!b.escalated) - Number(!!a.escalated)) : s.posts;
   const pf = s.pf;
   // Only posts this admin can act on can be ticked: waiting ones to publish or discard, published ones to take down,
   // decided ones (Recheck, Rejected, Blocked) whose decision the server lets them change. A tick left from another
@@ -296,7 +340,7 @@ export function postsView(h: ConsoleHost) {
   const canBulk = (p: PostRow) => p.status === 'Pending' ? p.allowed.includes('publish') || p.allowed.includes('discard') : p.status === 'Published' ? p.allowed.includes('unpublish') : canReverse(p);
   // Every row can be ticked on every tab (owner, 2026-11-20); each button acts only on the rows the server allows,
   // and the rest are counted with the reason (a Super Admin's decision is changed only by a higher level).
-  const selectable: SelId[] = s.posts.map((p) => p.id);
+  const selectable: SelId[] = ordered.map((p) => p.id);
   const picked = s.postSel.filter((id) => selectable.includes(id));
   const pickedRows = s.posts.filter((p) => picked.includes(p.id));
   const actRows = pickedRows.filter(canBulk);
@@ -316,7 +360,7 @@ export function postsView(h: ConsoleHost) {
     label: picked.length + ' of ' + selectable.length + ' selected', busy: s.bulk, actions,
     note: noAction ? (noAction === 1 ? '1 selected post has no action for you' : noAction + ' selected posts have no action for you') + ': only a higher level can change a Super Admin’s decision.' : '',
     toggleAll: () => h.setState({postSel: picked.length === selectable.length ? [] : selectable}), clear: () => h.setState({postSel: []})};
-  const postRows = s.posts.map((p) => ({...postRow(h, p), selectable: true, sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
+  const postRows = ordered.map((p) => ({...postRow(h, p), selectable: true, sel: picked.includes(p.id), toggleSel: () => h.toggleSel('postSel', p.id)}));
   const catOpts = s.categories.map((c) => ({id: c.key, label: c.name_en || c.name || c.key}));
   return {
     gsearch: s.gsearch,
@@ -325,7 +369,11 @@ export function postsView(h: ConsoleHost) {
       h.setState({gsearch: v, page: v ? 'posts' : s.page, statusTab: v ? 'All' : s.statusTab});
       h.later('search', () => loadPosts(h, 1), 300);
     },
-    statusTabs, pf, postSel,
+    statusTabs, escFilter, pf, postSel,
+    // Posts › Blocked: the citizens, not posts.
+    blockedTab: s.statusTab === 'Blocked', citizenRows: citizens.map((c) => ({key: c.id, title: 'Citizen of ' + c.village, state: c.state, blocked: c.blocked,
+      closed: c.fromServer ? c.total + (c.total === 1 ? ' post' : ' posts') : c.posts.length + (c.posts.length === 1 ? ' post closed' : ' posts closed'), reason: c.reason, by: c.by, view: () => openCitizen(h, c.id, c.fromServer)})),
+    citizenCount: citizens.filter((c) => c.blocked).length, citizenTotal: citizens.length,
     onPF: (e: FieldChange) => {
       const {name, value} = e.target;
       h.setState((st) => ({pf: {...st.pf, [name]: value}}), () => loadPosts(h, 1));
@@ -340,14 +388,125 @@ export function postsView(h: ConsoleHost) {
   };
 }
 
+/** The block's reason for each citizen's latest blocked post, from its history, once each. The server's last_review
+ *  leaves BLOCK out (backend plan of 2026-11-21, part 5); when it is fixed, last_review.comment is used first. */
+// Whether the server has the blocked citizens list (backend plan of 2026-11-21, part 2): null not asked yet, false it
+// answered 404 (the list is built from the blocked posts instead).
+let citizenApi: boolean | null = null;
+
+/** Posts › Blocked: the server's list of blocked phones (blocked now and ended), or, before it exists, the blocked posts
+ *  grouped by phone. A failed call keeps what was shown. */
+function loadBlockedCitizens(h: ConsoleHost) {
+  const district = h.state.pf.district;
+  const fallback = () => h.api.get<PostsPage>('/posts/', {...postQuery(h, 1), status: 'BLOCKED', escalated: '', page: 1, page_size: 100})
+    .then((bl) => { h.setState({blockedPosts: bl.results.map((p) => adaptPost(h, p)), citizensServer: null}); fillBlockReasons(h); })
+    .catch(() => {});
+  if (citizenApi === false) { void fallback(); return; }
+  Promise.all([1, 0].map((active) => h.api.get<Paged<BlockedCitizenRow>>('/admin/citizens/blocked/', {active, district, page_size: 100})))
+    .then((pages) => { citizenApi = true; h.setState({citizensServer: pages.flatMap((pg) => pg.results || [])}); })
+    .catch((e: unknown) => { if (isStatus(e, 404)) { citizenApi = false; void fallback(); } });
+}
+
+/** The block's reason for each citizen's latest blocked post, from its history, once each. The server's last_review
+ *  leaves BLOCK out (backend plan of 2026-11-21, part 5); when it is fixed, last_review.comment is used first. */
+function fillBlockReasons(h: ConsoleHost) {
+  for (const c of blockedCitizens(h)) {
+    const p = c.latest;
+    if (!p || p.raw?.last_review?.comment || h.state.blockReasons[p.id] !== undefined) continue;
+    h.api.get<ReviewAction[]>('/posts/' + p.id + '/history/').then((hi) => {
+      const block = (hi || []).filter((a) => a.action === 'BLOCK').sort((a, b) => b.at.localeCompare(a.at))[0];
+      h.setState((s) => ({blockReasons: {...s.blockReasons, [p.id]: block?.comment || ''}}));
+    }).catch(() => {});
+  }
+}
+
+/** A citizen opened from the server's list: every post of the phone, and its blocks (when the server has them). */
+function openCitizen(h: ConsoleHost, id: string, fromServer: boolean) {
+  h.setState({panel: {type: 'citizen', id}, citizenPosts: [], citizenBlocks: []});
+  if (!fromServer) return;
+  h.api.get<PostsPage>('/posts/', {citizen: id, page_size: 50})
+    .then((d) => h.setState({citizenPosts: d.results.map((p) => adaptPost(h, p))})).catch(() => {});
+  h.api.get<CitizenBlock[] | Paged<CitizenBlock>>('/admin/citizens/' + id + '/blocks/')
+    .then((d) => h.setState({citizenBlocks: Array.isArray(d) ? d : d.results || []})).catch(() => {});
+}
+
+/** The blocked posts grouped by phone, blocked-now first: who, where, until when, why, and the posts closed. */
+function blockedCitizens(h: ConsoleHost) {
+  const day = (v?: string | null) => v ? h.fmt(v, true).slice(0, 11) : '';
+  const byLine = (name: string, role: string, at: string) => {
+    const rk = RK[role] || '';
+    const who = [name, rk && ROLE[rk] ? ROLE[rk].label : '', at ? h.fmt(at) : ''].filter(Boolean).join(' · ');
+    return who ? 'Blocked by ' + who : '';
+  };
+  const state = (blocked: boolean, until: string) => blocked ? (until ? 'Blocked until ' + until : 'Blocked') : 'Can post again';
+  // From the server's list (backend plan, part 2): its own fields; the phone's posts load when it is opened.
+  if (h.state.citizensServer) {
+    return h.state.citizensServer.map((r) => ({id: r.id, posts: [] as PostRow[], latest: undefined as PostRow | undefined, fromServer: true,
+      village: r.village?.name || '', blocked: r.blocked, until: day(r.blocked_until), state: state(r.blocked, day(r.blocked_until)),
+      reason: r.reason || '', at: r.blocked_at || '', total: r.posts_total || 0, discarded: r.posts_discarded || 0,
+      by: byLine(r.blocked_by?.name || '', r.blocked_by?.role || '', r.blocked_at || '')}))
+      .sort((a, b) => a.blocked !== b.blocked ? (a.blocked ? -1 : 1) : b.at.localeCompare(a.at));
+  }
+  // Before it: the blocked posts grouped by phone, newest first.
+  const byPhone = new Map<string, PostRow[]>();
+  for (const p of h.state.blockedPosts) {
+    const id = p.citizen?.device_id;
+    if (id) byPhone.set(id, [...(byPhone.get(id) || []), p]);
+  }
+  const at = (p: PostRow) => p.raw?.decided_at || p.raw?.last_review?.at || '';
+  return [...byPhone.entries()].map(([id, posts]) => {
+    posts.sort((a, b) => at(b).localeCompare(at(a)));
+    const p = posts[0], cz = p.citizen || {}, until = day(cz.blocked_until);
+    return {id, posts, latest: p as PostRow | undefined, fromServer: false, village: p.areaName || p.area, blocked: !!cz.blocked, until,
+      state: state(!!cz.blocked, until),
+      reason: p.raw?.last_review?.comment || h.state.blockReasons[p.id] || '', at: at(p), total: cz.posts_total || 0, discarded: cz.posts_discarded || 0,
+      by: byLine(p.raw?.decided_by?.name || p.raw?.last_review?.actor?.name || '', p.raw?.decided_by?.role || '', at(p))};
+  }).sort((a, b) => a.blocked !== b.blocked ? (a.blocked ? -1 : 1) : b.at.localeCompare(a.at));
+}
+
+/** The citizen panel (panels/CitizenDetail.tsx): a blocked phone, Unblock, and the posts the block closed. */
+function citizenPanelView(h: ConsoleHost) {
+  const s = h.state;
+  const c = s.panel && s.panel.type === 'citizen' ? blockedCitizens(h).find((x) => x.id === s.panel?.id) : undefined;
+  if (!c) return null;
+  const day = (v?: string | null) => v ? h.fmt(v, true).slice(0, 11) : '';
+  // From the server's list: every post of the phone (any status); before it: the posts the block closed.
+  const posts = c.fromServer ? s.citizenPosts : c.posts;
+  const closed = posts.filter((p) => p.status === 'Blocked' && p.allowed.includes('reverse'));
+  return {title: 'Citizen of ' + c.village, state: c.state, blocked: c.blocked, reason: c.reason, by: c.by,
+    why: c.blocked ? 'This phone can’t post until then. The block ends by itself on that day.' : 'The block has ended. This phone can post again.',
+    counts: c.total + ' posts from this phone · ' + c.discarded + ' discarded',
+    canUnblock: c.blocked && (c.fromServer || !!c.latest?.allowed.includes('unblock_citizen')),
+    unblock: () => {
+      if (!c.fromServer) { if (c.latest) postAction(h, 'unblockCitizen', c.latest); return; }
+      h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33',
+        onConfirm: () => h.api.post('/admin/citizens/' + c.id + '/unblock/', {comment: ''})
+          .then(() => { h.toast('Citizen unblocked'); h.setState({panel: null}); loadPosts(h, h.state.postPage); })
+          .catch((e: unknown) => h.fail(e))});
+    },
+    // Posts a block closed in the past (before blocks stopped closing posts): move them back, once the server lets
+    // Super Admins change any decision (backend plan of 2026-11-21, part 1).
+    canBringBack: closed.length > 0, bringBack: () => bulkReverse(h, closed),
+    // Every block of this phone and how it ended (backend plan, part 6 with part 7).
+    periods: s.citizenBlocks.map((b) => [
+      'Blocked ' + day(b.blocked_at) + (b.blocked_by?.name ? ' by ' + b.blocked_by.name : ''),
+      b.ended_at ? (b.ended_by?.name ? 'unblocked ' + day(b.ended_at) + ' by ' + b.ended_by.name : 'ended ' + day(b.ended_at) + ' (time up)') : b.until ? 'until ' + day(b.until) : '',
+      b.reason ? '“' + b.reason + '”' : '',
+    ].filter(Boolean).join(' · ')),
+    postsLabel: (c.fromServer ? 'Posts from this phone (' : 'Posts closed by the block (') + posts.length + ')',
+    posts: posts.map((p) => ({key: p.id, title: p.titleTe || p.titleEn, date: p.date, open: () => openPost(h, p),
+      status: (STATUS[p.status] || STATUS.Pending).label, sbg: (STATUS[p.status] || STATUS.Pending).bg, scolor: (STATUS[p.status] || STATUS.Pending).color}))};
+}
+
 /** The side panel's frame and the post panel's values (panels/DetailPanel.tsx, PostDetail.tsx). */
 export function postPanelView(h: ConsoleHost) {
   const s = h.state;
-  const panel = s.panel ? {show: true, isPost: s.panel.type === 'post', isUser: s.panel.type === 'user', title: s.panel.type === 'post' ? 'Post review' : 'User details'} : {show: false};
+  const panel = s.panel ? {show: true, isPost: s.panel.type === 'post', isUser: s.panel.type === 'user', isCitizen: s.panel.type === 'citizen',
+    title: s.panel.type === 'post' ? 'Post review' : s.panel.type === 'citizen' ? 'Citizen’s phone' : 'User details'} : {show: false};
   const empty: PostRow = {id: '', cat: 'updates', catLabel: '', titleTe: '', titleEn: '', bodyTe: '', bodyEn: '', area: '', areaName: '', date: '', author: '', role: 'panchayat', status: 'Pending', media: [], videos: [], urgent: false, event: null, allowed: [], citizen: null};
   const sp = postRow(h, s.panelPost || empty, true);
   // The panel names every area the post goes to (the list shows the first one and "+N").
   const spTargets = (s.panelPost && s.panelPost.raw && s.panelPost.raw.targets) || [];
   if (spTargets.length > 1 && spTargets[0].level !== 'STATE') sp.area = spTargets.map((t) => h.an(t)).join(', ');
-  return {panel, sp, closePanel: () => h.setState({panel: null})};
+  return {panel, sp, cz: citizenPanelView(h), closePanel: () => h.setState({panel: null})};
 }

@@ -83,7 +83,7 @@ export default class Component extends React.Component<Props, State> {
     svcs: [], svcsLoading: false, svcsUnavailable: false, bills: [], billsLoading: false, billsUnavailable: false, sf: null, reqQ: '', reqCounts: {}, reqUnavailable: false,
     rq: null, cm: null, rqAssignees: [], uf: {role: '', district: '', status: '', q: ''},
     posts: [], postCount: 0, postPage: 1, postPages: 1, postsLoading: false, statusCounts: {}, pendingCount: 0, pf: {district: '', cat: '', source: ''}, statusTab: 'Pending',
-    numSel: [], adSel: [], adTab: 'all', postSel: [], userSel: [], bulk: '', cf: null,
+    numSel: [], adSel: [], adTab: 'all', postSel: [], userSel: [], blockedPosts: [], blockReasons: {}, citizensServer: null, citizenPosts: [], citizenBlocks: [], bulk: '', cf: null,
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
     audit: [], auditCount: 0, auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', auditFrom: '', auditTo: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactCounts: {}, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,

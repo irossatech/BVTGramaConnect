@@ -165,6 +165,8 @@ export interface PostEvent {
 
 /** A citizen's phone behind a citizen post (contract section 15). */
 export interface PostCitizen {
+  /** The phone (every install of it): Posts › Blocked groups by it. */
+  device_id?: string;
   blocked?: boolean;
   blocked_until?: string | null;
   posts_total?: number;
@@ -196,6 +198,33 @@ export interface Post {
   published_at?: string | null;
   allowed_actions?: string[];
   citizen?: PostCitizen | null;
+  /** Who made the current decision and when; the last review with its comment (the reason). */
+  decided_by?: Actor | null;
+  decided_at?: string | null;
+  last_review?: { action: string; comment?: string; actor?: Actor | null; at: string } | null;
+}
+
+/** GET /admin/citizens/blocked/ (backend plan of 2026-11-21, part 2): one blocked phone. */
+export interface BlockedCitizenRow {
+  id: string;
+  village?: Area | null;
+  blocked: boolean;
+  blocked_until?: string | null;
+  blocked_at?: string | null;
+  blocked_by?: Actor | null;
+  reason?: string;
+  posts_total?: number;
+  posts_discarded?: number;
+}
+
+/** GET /admin/citizens/{id}/blocks/: one block of a phone and how it ended (ended_by null with ended_at: time up). */
+export interface CitizenBlock {
+  blocked_at?: string | null;
+  blocked_by?: Actor | null;
+  reason?: string;
+  until?: string | null;
+  ended_at?: string | null;
+  ended_by?: Actor | null;
 }
 
 export interface PostsPage extends Paged<Post> {

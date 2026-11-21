@@ -9,7 +9,6 @@ export default function PostDetail({ v }: { v: View }) {
     <>
       <div style={{display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"}}>
         <div className="sc-host-x" style={{display: "contents"}}><ds.Badge tone={v.sp?.cat}>{I(v.sp?.catLabel)}</ds.Badge></div>
-        <span title={v.sp?.st?.tip || undefined} style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${v.sp?.st?.bg ?? ""};color: ${v.sp?.st?.color ?? ""}`)}>{I(v.sp?.st?.label)}</span>
         {v.sp?.urgent ? <span style={{padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700", background: "#fde7e5", color: "#b3261e"}}>Urgent</span> : null}
         {v.sp?.hasEvent ? <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${v.sp?.eventBg ?? ""};color: ${v.sp?.eventColor ?? ""}`)}>{I(v.sp?.eventLabel)}</span> : null}
         <span style={{fontSize: "12px", color: "#6b7a8c"}}>{"Shown to "}{I(v.sp?.area)}{" · "}{I(v.sp?.date)}</span>
@@ -17,7 +16,15 @@ export default function PostDetail({ v }: { v: View }) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "5px"}}><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>Copy link
         </button> : null}
       </div>
-      {v.sp?.st?.tip ? <div role="note" style={{padding: "10px 12px", borderRadius: "10px", background: "#fde7e5", color: "#b3261e", fontSize: "13px", fontWeight: "700", lineHeight: "1.5"}}>{I(v.sp?.st?.tip)}.</div> : null}
+      {/* Where the post is now: its status, what that means, who decided and when, and the reason (owner, 2026-11-21). */}
+      <div role="status" style={css(`padding:14px 16px;border-radius:12px;background: ${v.sp?.card?.bg ?? ""}`)}>
+        <div style={css(`display:flex;align-items:center;gap:8px;font-family:'Rubik',sans-serif;font-size:16px;font-weight:700;color: ${v.sp?.card?.color ?? ""}`)}>
+          <span aria-hidden="true" style={css(`width:10px;height:10px;border-radius:50%;flex-shrink:0;background: ${v.sp?.card?.color ?? ""}`)} />{I(v.sp?.card?.label)}
+        </div>
+        <div style={css(`font-size:13.5px;line-height:1.5;margin-top:6px;color: ${v.sp?.card?.color ?? ""}`)}>{I(v.sp?.card?.why)}</div>
+        {v.sp?.card?.who ? <div style={css(`font-size:12.5px;font-weight:600;margin-top:6px;color: ${v.sp?.card?.color ?? ""}`)}>{I(v.sp?.card?.who)}</div> : null}
+        {v.sp?.card?.reason ? <div style={{marginTop: "10px", padding: "10px 12px", background: "#fff", borderRadius: "10px", fontSize: "13.5px", lineHeight: "1.5", color: "#3b4a5c"}}><b style={{color: "#0A2550"}}>Reason: </b>{I(v.sp?.card?.reason)}</div> : null}
+      </div>
       <div>
         <div lang={v.sp?.lang} style={{fontFamily: "'Rubik','Noto Sans Telugu',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(v.sp?.titleTe)}</div>
         <div lang={v.sp?.langEn} style={{fontSize: "14px", color: "#6b7a8c", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
@@ -48,6 +55,28 @@ export default function PostDetail({ v }: { v: View }) {
           <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(v.sp?.authorRole)}</span>
         </span>
       </div>
+      {/* Urgent: an on/off switch, only while the post waits or is public. */}
+      {v.sp?.urgentOk ? <div style={{display: "flex", alignItems: "center", gap: "12px", paddingTop: "14px", borderTop: "1px solid #eef2f6"}}>
+        <span style={{flex: "1"}}>
+          <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>Urgent</span>
+          <span style={{display: "block", fontSize: "12.5px", color: "#6b7a8c"}}>Shows first, with a red “Urgent” tag.</span>
+        </span>
+        <button role="switch" aria-checked={!!v.sp?.urgentOn} aria-label="Urgent" onClick={v.sp?.toggleUrgent} style={css(`position:relative;width:46px;height:28px;border:0;border-radius:999px;cursor:pointer;flex-shrink:0;background: ${v.sp?.urgentOn ? "#b3261e" : "#cfd8e3"}`)}>
+          <span aria-hidden="true" style={css(`position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s ease-out;left: ${v.sp?.urgentOn ? "21px" : "3px"}`)} />
+        </button>
+      </div> : null}
+      {/* The citizen's phone, apart from the review: its posts so far, block or unblock, discard all waiting. */}
+      {v.sp?.phone ? <div style={{display: "flex", flexDirection: "column", gap: "10px", paddingTop: "14px", borderTop: "1px solid #eef2f6"}}>
+        <span style={{fontWeight: "700", color: "#0A2550"}}>Citizen’s phone</span>
+        <span style={{fontSize: "13px", color: "#3b4a5c"}}>{I(v.sp?.phone?.line)}</span>
+        {v.sp?.phone?.actions?.length ? <div style={{display: "flex", flexWrap: "wrap", gap: "8px"}}>
+          {list(v.sp?.phone?.actions).map((_a, _i1) => (
+            <React.Fragment key={_i1}>
+              <button onClick={_a?.go} style={css(`height:36px;padding:0 14px;border-radius:999px;font-weight:700;cursor:pointer;font-size:12.5px;border:1.5px solid ${_a?.border ?? ""};background: ${_a?.bg ?? ""};color: ${_a?.color ?? ""}`)}>{I(_a?.label)}</button>
+            </React.Fragment>
+          ))}
+        </div> : null}
+      </div> : null}
       <div style={{display: "flex", flexDirection: "column", gap: "0"}}>
         <div style={{fontWeight: "700", color: "#0A2550", marginBottom: "8px"}}>Review history</div>
         {list(v.sp?.history).map((_h, _i1) => (

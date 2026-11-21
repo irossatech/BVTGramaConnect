@@ -5,8 +5,7 @@ import { ApiError } from "./api";
 import type {
   Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError, ContactMessage, ContactTypeRef, Dashboard, GeoState,
   ConsoleNotification, ListOrPage, Me, Media, NotificationTemplate, Post, PostCitizen, PostEvent,
-  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest,
-} from "./types";
+  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest, BlockedCitizenRow, CitizenBlock } from "./types";
 // ---- the console's own shapes (API data mapped for the markup) ----
 
 export type Props = Record<string, never>;
@@ -74,6 +73,10 @@ export interface ComposeForm {
   m: string;
   v: string;
   urgent: boolean;
+  /** Optional event (owner decision Q7): kind ('' for none), start and optional end as YYYY-MM-DD. */
+  evKind: string;
+  evStart: string;
+  evEnd: string;
   /** Photos and videos in the order picked; previews, kinds, durs and posters line up with them. */
   files: File[];
   previews: string[];
@@ -244,7 +247,8 @@ export interface PostRow {
 }
 
 export interface Panel {
-  type: "post" | "user";
+  /** citizen: a blocked phone (Posts › Blocked); id is its device_id. */
+  type: "post" | "user" | "citizen";
   id: string;
 }
 
@@ -463,6 +467,15 @@ export interface State {
   adTab: string;
   /** Waiting posts ticked on the Posts page for Publish / Discard selected. */
   postSel: SelId[];
+  /** Posts closed by a block, with their phone: Posts › Blocked lists one citizen per phone (owner, 2026-11-21). */
+  blockedPosts: PostRow[];
+  /** The block's reason by post id, read from the post's history (the server's last_review leaves BLOCK out). */
+  blockReasons: Record<string, string>;
+  /** The server's blocked citizens list once it has one (null: built from blockedPosts instead). */
+  citizensServer: BlockedCitizenRow[] | null;
+  /** The open citizen (server list): every post of the phone, and its blocks. */
+  citizenPosts: PostRow[];
+  citizenBlocks: CitizenBlock[];
   /** Users ticked on the Users page for Block / Unblock selected (owner, 2026-11-20). */
   userSel: SelId[];
   bulk: string;

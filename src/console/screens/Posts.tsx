@@ -14,6 +14,7 @@ export default function Posts({ v }: { v: View }) {
         {v.canCompose ? <button onClick={v.openCompose} style={{height: "40px", padding: "0 18px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px", whiteSpace: "nowrap"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>New post</button> : null}
       </div>
       <div className="sa-bar" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
+        {v.escFilter?.show ? <button onClick={v.escFilter?.go} aria-pressed={!!v.escFilter?.on} style={css(`height:38px;padding:0 14px;border-radius:999px;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap;border:1.5px solid ${v.escFilter?.on ? "#b3261e" : "#cfd8e3"};background: ${v.escFilter?.on ? "#fde7e5" : "#fff"};color: ${v.escFilter?.on ? "#b3261e" : "#3b4a5c"}`)}>Escalated only ({I(v.escFilter?.count)})</button> : null}
         <select name="source" value={val(v.pf?.source, "")} onChange={v.onPF} aria-label="Who posted" style={{height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "160px"}}>
           <option value="">Posted by anyone</option>
           <option value="official">Posted by officials</option>
@@ -31,10 +32,44 @@ export default function Posts({ v }: { v: View }) {
           ))}
         </select>
         {v.filtersOn ? <button onClick={v.clearFilters} style={{height: "32px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", whiteSpace: "nowrap"}}>Clear filters</button> : null}
-        <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c"}}>{I(v.postCount)}{v.postCount === 1 ? " post" : " posts"}{v.searchNote ? <>{" · "}{I(v.searchNote)}</> : null}</span>
+        <span style={{marginLeft: "auto", fontSize: "13px", color: "#6b7a8c"}}>{v.blockedTab ? <>{I(v.citizenTotal)}{v.citizenTotal === 1 ? " citizen · " : " citizens · "}{I(v.citizenCount)}{" blocked now"}</> : <>{I(v.postCount)}{v.postCount === 1 ? " post" : " posts"}</>}{v.searchNote ? <>{" · "}{I(v.searchNote)}</> : null}</span>
       </div>
       {v.postSel?.count ? <BulkBar region="Selected posts" label={v.postSel.label} all={v.postSel.all} some={v.postSel.some} toggleAll={v.postSel.toggleAll} allLabel="Select all posts on this page" busy={v.postSel.busy} actions={v.postSel.actions} note={v.postSel.note} clear={v.postSel.clear} /> : null}
-      {v.postEmpty ? <EmptyState title={v.postEmptyText} hint={v.postEmptyHint} icon="M4 5h12v14H6a2 2 0 0 1-2-2V5zM16 9h4v8a2 2 0 0 1-2 2M8 9h4M8 13h4" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
+      {/* Posts › Blocked lists citizens, one row per blocked phone (owner, 2026-11-21); View opens their phone. */}
+      {v.blockedTab ? (v.citizenRows?.length ? <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
+        <table style={{width: "100%", fontSize: "13px"}}>
+          <thead>
+            <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+              <th style={{padding: "12px 16px", fontWeight: "600"}}>Citizen</th>
+              <th style={{padding: "12px 16px", fontWeight: "600"}}>Phone</th>
+              <th style={{padding: "12px 16px", fontWeight: "600"}}>Reason</th>
+              <th style={{padding: "12px 16px", fontWeight: "600"}}>Posts closed</th>
+              <th style={{padding: "12px 16px", width: "90px"}}><span className="sa-sr" style={{position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)"}}>Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {list(v.citizenRows).map((_c, _i1) => (
+              <React.Fragment key={_c?.key ?? _i1}>
+                <tr style={{borderTop: "1px solid #f3f5f8"}}>
+                  <td style={{padding: "12px 16px"}}>
+                    <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_c?.title)}</span>
+                    <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_c?.by)}</span>
+                  </td>
+                  <td style={{padding: "12px 16px"}}>
+                    <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background: ${_c?.blocked ? "#f3e3e1" : "#eef2f6"};color: ${_c?.blocked ? "#7a1f17" : "#3b4a5c"}`)}>{I(_c?.state)}</span>
+                  </td>
+                  <td style={{padding: "12px 16px", color: "#3b4a5c", maxWidth: "320px"}}>{I(_c?.reason)}</td>
+                  <td style={{padding: "12px 16px", color: "#3b4a5c", whiteSpace: "nowrap"}}>{I(_c?.closed)}</td>
+                  <td style={{padding: "10px 16px"}}>
+                    <button onClick={_c?.view} aria-label={"View " + (_c?.title || "")} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", whiteSpace: "nowrap"}}>View</button>
+                  </td>
+                </tr>
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div> : <EmptyState title="No blocked citizens" hint="When you block a citizen, their phone shows here." icon="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />) : null}
+      {v.blockedTab ? null : v.postEmpty ? <EmptyState title={v.postEmptyText} hint={v.postEmptyHint} icon="M4 5h12v14H6a2 2 0 0 1-2-2V5zM16 9h4v8a2 2 0 0 1-2 2M8 9h4M8 13h4" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
         {" "}
         <table style={{width: "100%", fontSize: "13px"}}>
           <thead>
@@ -77,7 +112,7 @@ export default function Posts({ v }: { v: View }) {
         </table>
         {" "}
       </div>}
-      {v.postsPager?.show ? <Pager p={v.postsPager} /> : null}
+      {v.postsPager?.show && !v.blockedTab ? <Pager p={v.postsPager} /> : null}
     </>
   );
 }

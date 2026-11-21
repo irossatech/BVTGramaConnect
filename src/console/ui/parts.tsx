@@ -55,7 +55,7 @@ export function StatusPills({ items, label }: { items?: readonly {label: string;
       {list(items).map((t, i) => (
         <button key={i} onClick={t.go} aria-pressed={t.on} style={css(`flex-shrink:0;height:34px;padding:0 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid ${t.on ? "#0D3B7A" : "#cfd8e3"};background: ${t.on ? "#0D3B7A" : "#fff"};color: ${t.on ? "#fff" : "#3b4a5c"}`)}>
           {t.label}
-          {t.count === undefined ? null : <span style={css(`font-size:12px;font-family:'Rubik',sans-serif;opacity:${t.count ? 1 : .55}`)}>{t.count}</span>}
+          {t.count === undefined ? null : <span style={css(`font-size:12px;font-family:'Rubik',sans-serif;opacity:${t.on || t.count ? 1 : .55}`)}>{t.count}</span>}
         </button>
       ))}
     </div>

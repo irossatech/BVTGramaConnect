@@ -1,5 +1,6 @@
 // New post (Posts page, "New post"; the app's Compose): category, language, title, message, who sees it (district,
-// mandal or village, or everyone), urgent, and up to 3 photos or one video (its length and first frame read in the
+// mandal or village, or everyone), an optional event date (kind, start, optional end; owner decision Q7), urgent,
+// and up to 3 photos or one video (its length and first frame read in the
 // browser). Saving creates the post, uploads each file (a retry carries on after the last file that went up) and
 // submits it. Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls /posts/ (.claude/api.md).
 import type React from "react";
@@ -25,7 +26,7 @@ function openCompose(h: ConsoleHost) {
   // Fresh every time the form opens (a quick request), so a category switched on meanwhile is there; the list
   // already loaded shows at once, and if the sign-in load has not come back yet the form picks the first on arrival.
   loadCategories(h);
-  h.setState({cf: {cat: cats[0]?.key || '', title: '', body: '', d: '', m: '', v: '', urgent: false, files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', clientRef: newClientRef(), postId: '', uploaded: 0, photoErr: ''}});
+  h.setState({cf: {cat: cats[0]?.key || '', title: '', body: '', d: '', m: '', v: '', urgent: false, evKind: '', evStart: '', evEnd: '', files: [], previews: [], kinds: [], durs: [], posters: [], checking: 0, saving: false, tried: false, step: '', clientRef: newClientRef(), postId: '', uploaded: 0, photoErr: ''}});
 }
 
 function closeCompose(h: ConsoleHost) {
@@ -43,12 +44,28 @@ function cfLang(f: ComposeForm): 'te' | 'en' {
 // A counter only near the limit; until then it is noise.
 const nearLimit = (n: number, max: number) => n >= max * 0.8 ? n + ' / ' + max : '';
 
-function cfErrors(f: ComposeForm): Partial<Record<'cat' | 'title' | 'body', string>> {
-  const e: Partial<Record<'cat' | 'title' | 'body', string>> = {};
+// The optional event's kinds (backend EventKind, contract section 1), labelled as the post panel shows them.
+const EVENT_KINDS: readonly (readonly [string, string])[] = [['deadline', 'Deadline'], ['camp', 'Camp'], ['distribution', 'Distribution'], ['closure', 'Closure'], ['meeting', 'Meeting']];
+
+// Today in India (the server's dates are IST), as YYYY-MM-DD for the date fields' min.
+const todayIST = () => new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+
+type CFField = 'cat' | 'title' | 'body' | 'evStart' | 'evEnd';
+
+function cfErrors(f: ComposeForm): Partial<Record<CFField, string>> {
+  const e: Partial<Record<CFField, string>> = {};
   if (!f.cat) e.cat = 'Choose a category.';
   if (!f.title.trim()) e.title = 'Write a title.';
   if (!f.body.trim()) e.body = 'Write the message.';
+  if (f.evKind && !f.evStart) e.evStart = 'Choose the date.';
+  // YYYY-MM-DD strings compare as dates.
+  if (f.evKind && f.evStart && f.evEnd && f.evEnd < f.evStart) e.evEnd = 'The end date cannot be before the start date.';
   return e;
+}
+
+/** The post's `event`, or null when no kind is chosen (contract: `{kind, start_date, end_date}`). */
+function cfEvent(f: ComposeForm) {
+  return f.evKind && f.evStart ? {kind: f.evKind, start_date: f.evStart, end_date: f.evEnd || null} : null;
 }
 
 function onCF(h: ConsoleHost, e: FieldChange) {
@@ -181,7 +198,7 @@ function saveCompose(h: ConsoleHost) {
   setF({saving: true, step: 'Saving…'});
   const created: Promise<Post> = f.postId
     ? Promise.resolve({id: f.postId} as Post)
-    : h.api.post<Post>('/posts/', {category: f.cat, language: cfLang(f), title: f.title.trim(), body: f.body.trim(), targets: [target], is_urgent: f.urgent, submit: !count, client_ref: f.clientRef});
+    : h.api.post<Post>('/posts/', {category: f.cat, language: cfLang(f), title: f.title.trim(), body: f.body.trim(), targets: [target], event: cfEvent(f), is_urgent: f.urgent, submit: !count, client_ref: f.clientRef});
   created.then(async (p) => {
     if (!count) return p;
     setF({postId: p.id});
@@ -228,6 +245,9 @@ export function composeView(h: ConsoleHost) {
         cat: f.cat, lang: cfLang(f), title: f.title, body: f.body, d: f.d, m: f.m, v: f.v, urgent: f.urgent, saving: f.saving,
         catOpts: s.categories.filter((c) => c.is_active).map((c) => ({id: c.key, label: (c.name_en || c.key) + (c.name_te ? ' · ' + c.name_te : '')})),
         errCat: err.cat || '', errTitle: err.title || '', errBody: err.body || '',
+        evKind: f.evKind, evStart: f.evStart, evEnd: f.evEnd, evMin: todayIST(), evEndMin: f.evStart || todayIST(),
+        evOpts: EVENT_KINDS.map(([id, label]) => ({id, label})),
+        errEvStart: err.evStart || '', errEvEnd: err.evEnd || '',
         titleCount: nearLimit(f.title.length, 150), bodyCount: nearLimit(f.body.length, 5000),
         photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => removeCFPhoto(h, i)})),
         canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < CF_MAX_PHOTOS,

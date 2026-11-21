@@ -1,4 +1,5 @@
-// New post: the app's Compose in the console. Title, message, category, photos or one video, who sees it, urgent.
+// New post: the app's Compose in the console. Title, message, category, who sees it, an optional event date
+// (owner decision Q7), photos or one video, urgent.
 // The language is read from the text (logic/compose.ts). An admin's post is published at once (the server decides).
 import { I, css, list, val } from "../../shared/dc";
 import { SearchSelect } from "../ui/parts";
@@ -60,6 +61,25 @@ export default function ComposeForm({ v }: { v: View }) {
                 </SearchSelect> : null}
             </div>
             <span aria-live="polite" style={hint}>{I(f.where)}</span>
+          </div>
+          <div style={col}>
+            <span style={label}>Event date <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
+            <select name="evKind" aria-label="Event" value={val(f.evKind, "")} onChange={v.onCF} style={field(false)}>
+              <option value="">No date</option>
+              {list(f.evOpts).map((_o, _i1) => <option key={_i1} value={_o.id}>{_o.label}</option>)}
+            </select>
+            {f.evKind ? <div style={{display: "flex", gap: "8px", flexWrap: "wrap"}}>
+                <label style={{...col, flex: "1 1 140px"}}>
+                  <span style={hint}>Starts<Req /></span>
+                  <input type="date" name="evStart" value={val(f.evStart, "")} min={f.evMin} onChange={v.onCF} aria-required={true} aria-invalid={!!f.errEvStart} style={field(!!f.errEvStart)} />
+                  {f.errEvStart ? <span style={errText}>{I(f.errEvStart)}</span> : null}
+                </label>
+                <label style={{...col, flex: "1 1 140px"}}>
+                  <span style={hint}>Ends · optional</span>
+                  <input type="date" name="evEnd" value={val(f.evEnd, "")} min={f.evEndMin} onChange={v.onCF} aria-invalid={!!f.errEvEnd} style={field(!!f.errEvEnd)} />
+                  {f.errEvEnd ? <span style={errText}>{I(f.errEvEnd)}</span> : null}
+                </label>
+              </div> : <span style={hint}>Posts with a date show in the app's "Don't miss" list.</span>}
           </div>
           <div style={col}>
             <span style={label}>Photos or video <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
