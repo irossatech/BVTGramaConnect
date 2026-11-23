@@ -43,7 +43,6 @@ export interface RoleAssignment {
 export interface MeGroup {
   key?: string;
   name?: string;
-  label?: string;
 }
 
 /** GET /me/ (also inside the session login answer). */
@@ -61,10 +60,14 @@ export interface Me {
   /** The server's final word on what this person may do (e.g. a Super Admin may post only when
    *  SUPER_ADMIN_CAN_POST is on, although the role has posts.create_post). */
   capabilities?: { can_post?: boolean };
+  /** Platform limits the clients follow; max_photos_per_post is MAX_PHOTOS_PER_POST. */
+  rules?: { max_photos_per_post?: number };
 }
 
-/** POST /auth/session/login/: {user: Me}; older servers sent Me itself. */
-export type LoginResponse = Me & { user?: Me };
+/** POST /auth/session/login/: {user: Me}. */
+export interface LoginResponse {
+  user: Me;
+}
 
 /** User (admin view), GET /users/. */
 export interface User {
@@ -222,7 +225,9 @@ export interface CitizenBlock {
   blocked_at?: string | null;
   blocked_by?: Actor | null;
   reason?: string;
-  until?: string | null;
+  /** Still running: blocked; its end (null: no end date). Backend CitizenBlockSerializer. */
+  blocked?: boolean;
+  blocked_until?: string | null;
   ended_at?: string | null;
   ended_by?: Actor | null;
 }
@@ -347,7 +352,6 @@ export interface ContactMessage {
   village_text?: string;
   message?: string;
   created_at: string;
-  status?: string;
   handled?: boolean;
 }
 

@@ -6,8 +6,8 @@ import { isStatus, one, orEmpty, pickFile, rows, type CatalogSet, type FieldChan
 import type { ConsoleHost } from "./host";
 
 // ---- services citizens can request (mobile: Super Admin › Services; API: services-catalog-backend-plan.md) ----
-// Until the server has GET /admin/services/, the page shows the app's built-in list read-only and says so.
-const SVC_SEED: CatalogItem[] = [['aadhaar','Aadhaar Services','ఆధార్ సేవలు','aadhaar','orange'],['pan','PAN Services','పాన్ సేవలు','id_badge','blue'],['voter_id','Voter ID','ఓటర్ ఐడి','eci','green'],['certificates','Certificates','ధ్రువపత్రాలు','certificate','purple'],['loans_insurance','Loans & Insurance','రుణాలు & బీమా','loan','teal'],['govt_schemes','Govt Schemes','ప్రభుత్వ పథకాలు','scheme','orange'],['land_records','Land Records','భూ రికార్డులు','land','purple'],['farmer','Farmer Services','రైతు సేవలు','farmer','green']].map(([key,name_en,name_te,icon,color])=>({key,name_en,name_te,icon,color,is_active:true}));
+// A server without GET /admin/services/ (404) shows an empty, read-only page that says so; never a built-in list
+// (server data only, Jira BVTGC-52).
 const SVC_COLORS: Readonly<Record<string, readonly [string, string, string]>> = {orange:['#B35A0E','#FFF0DC','Orange'],blue:['#1A75C4','#E3F0FB','Blue'],green:['#1D7A33','#E4F4DF','Green'],purple:['#8F4BB4','#F1E6F7','Purple'],teal:['#07818E','#DFF3F5','Teal']};
 const SVC_ICONS: Readonly<Record<string, string>> = {aadhaar:'img:/assets/logo-aadhaar.svg',eci:'img:/assets/logo-eci.svg',id_badge:'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM9 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16.5c.6-1.8 2-2.7 3.5-2.7s2.9.9 3.5 2.7M14.5 9.5h4M14.5 13h3',
   card:'M3 6h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM2 10h20M6 15h4',certificate:'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.5 13 7 21l5-3 5 3-1.5-8',document:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4',
@@ -17,27 +17,25 @@ const SVC_ICONS: Readonly<Record<string, string>> = {aadhaar:'img:/assets/logo-a
   job:'M4 7h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18',water:'M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',power:'M13 2 4 14h7l-1 8 9-12h-7z',police:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9.5 11.5l1.8 1.8 3.4-3.6',
   help:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z',services:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
 // ---- bills & recharges on Home (mobile: Super Admin › More › Bills & Recharges; API: bills-catalog-backend-plan.md) ----
-// A separate list with its own endpoints; same fields, logo upload and screens as services. Until the server has
-// GET /admin/bills/, the page shows the app's built-in bills read-only.
-const BILL_SEED: CatalogItem[] = [['electricity','Electricity Bill','కరెంట్ బిల్లు','power','orange'],['water_bill','Water Bill','నీటి బిల్లు','water','blue'],['mobile_recharge','Mobile Recharge','మొబైల్ రీఛార్జ్','mobile','purple'],['dth_recharge','DTH Recharge','DTH రీఛార్జ్','dth','teal'],['broadband','Broadband','బ్రాడ్‌బ్యాండ్','broadband','green']].map(([key,name_en,name_te,icon,color])=>({key,name_en,name_te,icon,color,is_active:true}));
+// A separate list with its own endpoints; same fields, logo upload and screens as services.
 const BILL_ICONS: Readonly<Record<string, string>> = {power:'M13 2 4 14h7l-1 8 9-12h-7z',water:'M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',gas:'M10 2h4v3h-4zM8 5h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM6 11h12',
   mobile:'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01',landline:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',
   dth:'M4 10a7.3 7.3 0 0 0 10 10zM10.5 13.5l3-3M13 7a4 4 0 0 1 4 4M13 3a8 8 0 0 1 8 8',broadband:'M5 12.55a11 11 0 0 1 14 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.1a6 6 0 0 1 6.95 0M12 20h.01',
   fastag:'M3 7h18v10H3zM7 7v10M17 11h-6M17 14h-4',credit_card:'M3 6h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM2 10h20M6 15h4',
   bill:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11'};
 
-// Where a list lives: state keys, endpoint, built-in fallback, icon set and words.
+// Where a list lives: state keys, endpoint, icon set and words.
 function catalogSet(b: boolean): CatalogSet {
   return b
-    ? {l: 'bills', ld: 'billsLoading', un: 'billsUnavailable', path: '/admin/bills/', seed: BILL_SEED, icon: 'bill', icons: BILL_ICONS, one: 'bill', what: 'bills list'}
-    : {l: 'svcs', ld: 'svcsLoading', un: 'svcsUnavailable', path: '/admin/services/', seed: SVC_SEED, icon: 'services', icons: SVC_ICONS, one: 'service', what: 'services list'};
+    ? {l: 'bills', ld: 'billsLoading', un: 'billsUnavailable', path: '/admin/bills/', icon: 'bill', icons: BILL_ICONS, one: 'bill', what: 'bills list'}
+    : {l: 'svcs', ld: 'svcsLoading', un: 'svcsUnavailable', path: '/admin/services/', icon: 'services', icons: SVC_ICONS, one: 'service', what: 'services list'};
 }
 
-/** A service's or bill's English name from its key (the Audit log's "New order: …"): the loaded list first, then
- *  the built-in one, else the key in words ("voter_id" → "Voter id"). */
+/** A service's or bill's English name from its key (the Audit log's "New order: …"): the loaded list, else the key in
+ *  words ("voter_id" → "Voter id"). */
 export function catalogName(h: ConsoleHost, key: string, b = false): string {
   const c = catalogSet(b);
-  const hit = [...h.state[c.l], ...c.seed].find((g) => g.key === key);
+  const hit = h.state[c.l].find((g) => g.key === key);
   return hit ? hit.name_en : key.replace(/_/g, ' ').replace(/^./, (x) => x.toUpperCase());
 }
 
@@ -48,7 +46,7 @@ export function loadServices(h: ConsoleHost, b = false) {
     .then((d) => h.setState({...one(c.l, rows(d)), ...one(c.ld, false), ...one(c.un, false)}))
     .catch((e: unknown) => {
       const nf = isStatus(e, 404);
-      h.setState({...one(c.ld, false), ...one(c.un, nf), ...one(c.l, nf ? c.seed : [])});
+      h.setState({...one(c.ld, false), ...one(c.un, nf), ...one(c.l, [])});
       if (!nf) h.fail(e);
     });
 }
@@ -97,11 +95,9 @@ function saveService(h: ConsoleHost) {
     fd.append('logo', f.file);
     req = h.api.upload(path, fd, undefined, f.key ? 'PATCH' : 'POST');
   } else req = f.key ? h.api.patch(path, {...body, ...(f.had && !f.image ? {logo: null} : {})}) : h.api.post(path, body);
-  req.then((x) => {
+  req.then(() => {
     h.setState({sf: null});
-    // A server without the example yet drops it: say so rather than lose it quietly.
-    if (!f.bill && (f.hintEn + f.hintTe).trim() && !(x && typeof x === 'object' && 'hint_en' in x)) h.toast('Saved. The request example needs a server update before citizens see it.', '#E9791E');
-    else h.toast(f.key ? 'Changes saved' : (f.bill ? 'Bill added · ' : 'Service added · ') + body.name_en);
+    h.toast(f.key ? 'Changes saved' : (f.bill ? 'Bill added · ' : 'Service added · ') + body.name_en);
     loadServices(h, f.bill);
   }).catch((e: unknown) => {
     h.setState((x) => ({sf: x.sf && {...x.sf, saving: false}}));

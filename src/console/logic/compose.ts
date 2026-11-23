@@ -16,7 +16,8 @@ import { loadCategories } from "./settings";
 // the video at most 60 MB and 60 seconds (lead's decision of 2026-11-14; banner videos have no
 // time limit, logic/ads.ts). The same numbers as the server: MAX_PHOTOS_PER_POST, MAX_IMAGE_UPLOAD_MB,
 // MAX_VIDEO_UPLOAD_MB and VIDEO_MAX_SECONDS. Change them together.
-const CF_MAX_PHOTOS = 3;
+// Photos per post: the server's rule from /me (rules.max_photos_per_post, MAX_PHOTOS_PER_POST), 3 if absent (BVTGC-58).
+const maxPhotos = (h: ConsoleHost) => h.state.me?.rules?.max_photos_per_post || 3;
 const CF_MAX_MB = 10;
 const CF_VIDEO_MAX_MB = 60;
 const CF_VIDEO_MAX_S = 60;
@@ -134,7 +135,7 @@ function pickCFMedia(h: ConsoleHost, e: React.ChangeEvent<HTMLInputElement>) {
   const setErr = (photoErr: string) => h.setState((st) => st.cf ? {cf: {...st.cf, photoErr}} : null);
   const isPhoto = (x: File) => /^image\/(jpeg|png|webp)$/.test(x.type);
   const isVideo = (x: File) => /^video\/(mp4|quicktime)$/.test(x.type);
-  const both = 'A post has up to ' + CF_MAX_PHOTOS + ' photos or one video, not both.';
+  const both = 'A post has up to ' + maxPhotos(h) + ' photos or one video, not both.';
   if (f.kinds.includes('video') || f.checking) return setErr(both + ' Remove the video first.');
   if (picked.some((x) => !isPhoto(x) && !isVideo(x))) return setErr('Choose JPG, PNG or WebP photos, or an MP4 or MOV video.');
   const videos = picked.filter(isVideo), photos = picked.filter(isPhoto);
@@ -159,11 +160,11 @@ function pickCFMedia(h: ConsoleHost, e: React.ChangeEvent<HTMLInputElement>) {
     });
     return;
   }
-  const room = Math.max(0, CF_MAX_PHOTOS - f.files.length);
+  const room = Math.max(0, maxPhotos(h) - f.files.length);
   const small = photos.filter((x) => x.size <= CF_MAX_MB * 1024 * 1024);
   const added = small.slice(0, room);
   const err = small.length < photos.length ? 'Photos larger than ' + CF_MAX_MB + ' MB were not added.'
-    : added.length < small.length ? 'Up to ' + CF_MAX_PHOTOS + ' photos per post.' : '';
+    : added.length < small.length ? 'Up to ' + maxPhotos(h) + ' photos per post.' : '';
   h.setState({cf: {...f, photoErr: err}});
   added.forEach((x) => addCFItem(h, x, 'image', URL.createObjectURL(x), 0, null));
 }
@@ -250,12 +251,12 @@ export function composeView(h: ConsoleHost) {
         errEvStart: err.evStart || '', errEvEnd: err.evEnd || '',
         titleCount: nearLimit(f.title.length, 150), bodyCount: nearLimit(f.body.length, 5000),
         photos: f.previews.map((src, i) => ({src, isVideo: f.kinds[i] === 'video', dur: f.durs[i] ? f.durs[i] + ' s' : '', remove: () => removeCFPhoto(h, i)})),
-        canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < CF_MAX_PHOTOS,
+        canAddPhoto: !f.saving && !f.checking && !f.kinds.includes('video') && f.files.length < maxPhotos(h),
         photoErr: f.photoErr,
         // With photos already there only photos can be added; an empty form takes either.
         accept: f.files.length ? 'image/jpeg,image/png,image/webp' : 'image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
         addLabel: f.files.length ? 'Add photo' : 'Add photo or video',
-        mediaHelp: f.checking ? 'Checking the video…' : 'Up to ' + CF_MAX_PHOTOS + ' photos, or 1 video up to ' + CF_VIDEO_MAX_S + ' seconds.',
+        mediaHelp: f.checking ? 'Checking the video…' : 'Up to ' + maxPhotos(h) + ' photos, or 1 video up to ' + CF_VIDEO_MAX_S + ' seconds.',
         toggleUrgent: () => h.setState((x) => x.cf ? {cf: {...x.cf, urgent: !x.cf.urgent}} : null),
         showM: !!d, showV: !!m,
         where: vl ? 'Only ' + vl.name + ' village' : m ? 'All villages in ' + m.name + ' mandal' : d ? 'All villages in ' + d.name + ' district' : 'Every village',

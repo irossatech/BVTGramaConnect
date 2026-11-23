@@ -50,7 +50,7 @@ export function loadUsers(h: ConsoleHost, page: number) {
   const uf = h.state.uf;
   const latest = h.ticket('users');
   h.setState({usersLoading: true});
-  h.api.get<Paged<User> & {counts?: {active: number; blocked: number}}>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', is_active: uf.status ? String(uf.status === 'active') : '', q: uf.q, page, page_size: PAGE_SIZE})
+  h.api.get<Paged<User> & {counts?: {active: number; blocked: number}}>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', q: uf.q, page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({users: d.results.map((u) => adaptUser(h, u)), userCount: d.count, userCounts: d.counts ? {active: d.counts.active, blocked: d.counts.blocked} : null, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
@@ -205,10 +205,18 @@ export function addRole(h: ConsoleHost, u: AdminUser) {
     }
     setTimeout(() => h.ask({title: 'Add role · ' + R[role].label, body: 'Choose the area for this role.', hasSelect: true, selectLabel: 'Area', options: opts, confirmLabel: 'Add role', bg: '#0D3B7A', onConfirm: (_t2, areaId) => {
       const o = opts.find((x) => x.id === areaId) || opts[0];
-      h.api.post('/users/' + u.id + '/role-assignments/', {role: RAPI[role], area: {level: o.level, id: Number(o.id)}}).then(() => {
+      const send = (currentPassword?: string) => h.api.post('/users/' + u.id + '/role-assignments/', {role: RAPI[role], area: {level: o.level, id: Number(o.id)}, ...(currentPassword ? {current_password: currentPassword} : {})}).then(() => {
         h.toast('Role added · ' + R[role].label + ' · ' + o.label);
         refreshUser(h, u.id);
       }).catch((e: unknown) => h.fail(e));
+      if (role !== 'super') {
+        send();
+        return;
+      }
+      // Making someone a Super Admin needs the actor's own password, as in Add User (backend check_giving_peer_role).
+      setTimeout(() => h.ask({title: 'Make ' + u.name + ' a Super Admin', body: u.name + ' will be able to see and change everything, including other Super Admins. Enter your own password to confirm.', hasInput: true, noGen: true, password: true, inputLabel: 'Your password', inputPh: 'Your password', confirmLabel: 'Add Super Admin', bg: '#b3261e', onConfirm: (t) => {
+        if (t) send(t);
+      }}), 0);
     }}), 0);
   })});
 }

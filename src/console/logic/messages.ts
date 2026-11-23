@@ -21,7 +21,7 @@ export function loadContacts(h: ConsoleHost, page: number) {
 }
 
 export function isHandled(c: ContactMessage) {
-  return c.status ? String(c.status).toUpperCase() === 'HANDLED' : !!c.handled;
+  return !!c.handled;
 }
 
 // "View": the row has no full mobile or message, so the panel shows the message as the server sends it alone.

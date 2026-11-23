@@ -143,7 +143,7 @@ function postAction(h: ConsoleHost, kind: string, p: PostRow) {
     loadPosts(h, h.state.postPage);
   };
   if (kind === 'blockCitizen') h.ask({title: 'Block this citizen', body: 'This phone can’t send new posts until the block ends. You can unblock it any time. You find the phone under Posts › Blocked. Its published posts stay. The citizen sees your reason.', hasSelect: true, selectLabel: 'Block for', options: [{id: '1', label: '1 day'}, {id: '7', label: '7 days'}, {id: '30', label: '30 days'}, {id: '90', label: '90 days'}], sel: '7', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Block', bg: '#b3261e', onConfirm: (t, sel) => h.api.post('/posts/' + p.id + '/block-citizen/', {comment: t, days: Number(sel || 7)}).then(after('Citizen blocked')).catch((e: unknown) => h.fail(e))});
-  if (kind === 'unblockCitizen') h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33', onConfirm: () => h.api.post('/posts/' + p.id + '/unblock-citizen/', {comment: ''}).then(after('Citizen unblocked')).catch((e: unknown) => h.fail(e))});
+  if (kind === 'unblockCitizen') h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33', onConfirm: () => h.api.post('/posts/' + p.id + '/unblock-citizen/').then(after('Citizen unblocked')).catch((e: unknown) => h.fail(e))});
   if (kind === 'discardCitizen') h.ask({title: 'Discard all their waiting posts', body: 'Every post from this phone that is waiting for review is discarded (for spam). The phone is not blocked.', needsText: true, textLabel: 'Reason (required)', confirmLabel: 'Discard all', bg: '#3b4a5c', onConfirm: (t) => h.api.post<DiscardCitizenResult | null>('/posts/' + p.id + '/discard-citizen-posts/', {comment: t}).then((d) => after('Discarded ' + ((d && d.discarded) || 0) + ' posts')()).catch((e: unknown) => h.fail(e))});
   if (kind === 'publish') h.ask({title: 'Publish post', body: 'Publish "' + title + '"? Citizens in ' + (p.area || area) + ' will see it straight away.', confirmLabel: 'Publish', bg: '#1F8A3B', onConfirm: () => review(h, p, {action: 'publish'}, (n) => h.toast('Post published' + n), true)});
   if (kind === 'recheck') h.ask({title: 'Send for recheck', body: 'The writer sees your comment, fixes the post and sends it again.', needsText: true, textLabel: 'What should the writer fix? (required)', confirmLabel: 'Send for recheck', bg: '#E9791E', onConfirm: (t) => review(h, p, {action: 'recheck', comment: t}, (n) => h.toast('Sent for recheck' + n, '#E9791E'), true)});
@@ -480,7 +480,7 @@ function citizenPanelView(h: ConsoleHost) {
     unblock: () => {
       if (!c.fromServer) { if (c.latest) postAction(h, 'unblockCitizen', c.latest); return; }
       h.ask({title: 'Unblock this citizen', body: 'The phone can post again.', confirmLabel: 'Unblock', bg: '#1d7a33',
-        onConfirm: () => h.api.post('/admin/citizens/' + c.id + '/unblock/', {comment: ''})
+        onConfirm: () => h.api.post('/admin/citizens/' + c.id + '/unblock/')
           .then(() => { h.toast('Citizen unblocked'); h.setState({panel: null}); loadPosts(h, h.state.postPage); })
           .catch((e: unknown) => h.fail(e))});
     },
@@ -490,7 +490,7 @@ function citizenPanelView(h: ConsoleHost) {
     // Every block of this phone and how it ended (backend plan, part 6 with part 7).
     periods: s.citizenBlocks.map((b) => [
       'Blocked ' + day(b.blocked_at) + (b.blocked_by?.name ? ' by ' + b.blocked_by.name : ''),
-      b.ended_at ? (b.ended_by?.name ? 'unblocked ' + day(b.ended_at) + ' by ' + b.ended_by.name : 'ended ' + day(b.ended_at) + ' (time up)') : b.until ? 'until ' + day(b.until) : '',
+      b.ended_at ? (b.ended_by?.name ? 'unblocked ' + day(b.ended_at) + ' by ' + b.ended_by.name : 'ended ' + day(b.ended_at) + ' (time up)') : b.blocked_until ? 'until ' + day(b.blocked_until) : '',
       b.reason ? '“' + b.reason + '”' : '',
     ].filter(Boolean).join(' · ')),
     postsLabel: (c.fromServer ? 'Posts from this phone (' : 'Posts closed by the block (') + posts.length + ')',

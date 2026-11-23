@@ -333,6 +333,14 @@ export default class Component extends React.Component<Props, State> {
       this.toast('Choose a new password first.', '#E9791E');
       return;
     }
+    // Console access taken away mid-session: every call now answers 403 not_console_user, so sign out with the same
+    // words as at login instead of a toast on each call (Jira BVTGC-55).
+    if (err?.code === 'not_console_user' && this.state.screen !== 'login') {
+      this.api.logout();
+      this.resetSession(true);
+      this.toast(Component.LOGIN_ERR.not_console_user, '#b3261e');
+      return;
+    }
     if (err?.status === 401 && this.state.screen !== 'login') {
       this.resetSession(true);
       this.toast('Your session has ended. Log in again.', '#E9791E');
@@ -505,7 +513,7 @@ export default class Component extends React.Component<Props, State> {
     const s = this.state;
     if (!s.username.trim() || !s.password) return;
     this.api.login<LoginResponse>(s.username.trim(), s.password).then((d) => {
-      const me = (d && d.user) || d;
+      const me = d.user;
       if (this.afterLogin(me)) this.toast('Welcome, ' + me.name);
     }).catch((e: unknown) => {
       this.setState({password: ''});
@@ -515,11 +523,11 @@ export default class Component extends React.Component<Props, State> {
 
   private loginFail(e: unknown) {
     const c = e instanceof ApiError ? e.code : undefined, L = Component.LOGIN_ERR;
-    if (e instanceof ApiError && (c === 'locked_out' || c === 'throttled')) {
-      const sec = Number(e.body.retry_after_s) || (c === 'throttled' ? 3600 : 900);
-      const min = Math.max(1, Math.ceil(sec / 60));
-      const what = c === 'throttled' ? 'Too many logins from this network.' : 'Too many failed attempts.';
-      this.toast(what + ' Try again in ' + min + ' minute' + (min === 1 ? '' : 's') + '.', '#b3261e');
+    // The login's only limit is the username + network lockout (429 locked_out); the old login throttle is gone.
+    // retry_after_s is missing on one server path, so 15 minutes, the lockout's length, stands in (Jira BVTGC-54).
+    if (e instanceof ApiError && c === 'locked_out') {
+      const min = Math.max(1, Math.ceil((Number(e.body.retry_after_s) || 900) / 60));
+      this.toast('Too many failed attempts. Try again in ' + min + ' minute' + (min === 1 ? '' : 's') + '.', '#b3261e');
       return;
     }
     if (c && L[c]) {
@@ -761,7 +769,7 @@ export default class Component extends React.Component<Props, State> {
 
   private editProfile() {
     const me = this.state.me;
-    const g = (me?.groups || []).map((x) => x.name || x.label || x.key || x).join(', ') || 'Super Admin';
+    const g = (me?.groups || []).map((x) => x.name || x.key).join(', ') || 'Super Admin';
     this.setState({menuOpen: false});
     // Name and Telugu name, as on the app's profile (PATCH /me/).
     this.ask({title: 'My profile', body: 'Signed in as ' + (me?.username || '') + ' · ' + g + '. Your name shows in the console, the app and the audit log.', hasInput: true, noGen: true, inputLabel: 'Name', inputPh: 'Your name', preset: me?.name || '', input2Label: 'Name in Telugu', input2Ph: 'తెలుగులో పేరు', preset2: me?.name_te || '', confirmLabel: 'Save', onConfirm: (t, _sel, _gen, t2) => {

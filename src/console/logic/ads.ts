@@ -14,11 +14,21 @@ const AD_MIN_WIDTH_PX = 800;
 // have the same number: change them together.
 const AD_VIDEO_MAX_MB = 60;
 
+// Every banner, page by page (100 per page, the server's most), so none past the first 100 is missing (Jira BVTGC-53).
+async function allAds(h: ConsoleHost): Promise<Ad[]> {
+  const out: Ad[] = [];
+  for (let page = 1; ; page++) {
+    const d = await h.api.get<ListOrPage<Ad>>('/admin/ads/', {page, page_size: 100});
+    out.push(...rows(d));
+    if (Array.isArray(d) || !d.next) return out;
+  }
+}
+
 export function loadAds(h: ConsoleHost) {
   h.setState({adsLoading: true});
   if (!h.state.geo.length) h.loadGeo();
-  h.api.get<ListOrPage<Ad>>('/admin/ads/', {page_size: 100})
-    .then((d) => h.setState({ads: rows(d), adsLoading: false, adsUnavailable: false}))
+  allAds(h)
+    .then((ads) => h.setState({ads, adsLoading: false, adsUnavailable: false}))
     .catch((e: unknown) => {
       h.setState({adsLoading: false, ads: [], adsUnavailable: isStatus(e, 404)});
       if (!isStatus(e, 404)) h.fail(e);

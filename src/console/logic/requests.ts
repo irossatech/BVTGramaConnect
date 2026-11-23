@@ -35,13 +35,14 @@ function openRequestRow(h: ConsoleHost, r: ServiceRequest) {
   h.api.get<ServiceRequest>('/service-requests/' + r.id + '/').then((full) => latest() && openRequest(h, full)).catch((e: unknown) => latest() && h.fail(e));
 }
 
-// One request in the side panel; the people it can be assigned to are the active officials this admin sees.
+// One request in the side panel; the people it can be assigned to are the active officials of its village (its
+// Village Admin and Panchayat members, as in the app), so no blocked official and no cut-off at 100 (Jira BVTGC-51).
 // Also opened from the bell (Console.tsx, openNotif).
 export function openRequest(h: ConsoleHost, r: ServiceRequest) {
   h.setState({rq: {r}, rqAssignees: []});
-  if ((r.allowed_actions || []).includes('assign')) {
+  if ((r.allowed_actions || []).includes('assign') && r.village) {
     const latest = h.ticket('rqAssignees');
-    h.api.get<Paged<User>>('/users/', {is_active: 'true', page: 1, page_size: 100}).then((d) => latest() && h.state.rq?.r.id === r.id && h.setState({rqAssignees: (d.results || []).map((u) => {
+    h.api.get<Paged<User>>('/users/', {status: 'ACTIVE', level: 'VILLAGE', area_id: r.village.id, page: 1, page_size: 100}).then((d) => latest() && h.state.rq?.r.id === r.id && h.setState({rqAssignees: (d.results || []).map((u) => {
       const ra = (u.role_assignments || [])[0];
       const role = (ROLE[RK[ra?.role ?? '']] || {label: ''}).label;
       return {id: String(u.id), label: !role || u.name.toLowerCase() === role.toLowerCase() ? u.name : u.name + ' · ' + role};

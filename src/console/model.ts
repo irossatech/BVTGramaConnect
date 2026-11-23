@@ -298,13 +298,12 @@ export interface ServiceForm {
   hintTe: string;
 }
 
-/** Where a list (services or bills) lives: state keys, endpoint, built-in fallback, icon set and words. */
+/** Where a list (services or bills) lives: state keys, endpoint, icon set and words. */
 export interface CatalogSet {
   l: "bills" | "svcs";
   ld: "billsLoading" | "svcsLoading";
   un: "billsUnavailable" | "svcsUnavailable";
   path: string;
-  seed: CatalogItem[];
   icon: string;
   icons: Readonly<Record<string, string>>;
   one: string;
