@@ -68,6 +68,8 @@ interface State {
   /** The address names no page (404): the header and footer show, with the not-found message between them. */
   missing: boolean;
   showcase: Partial<Record<Lang, Showcase>>;
+  /** Names of categories added after this page was built (key → name per language), from GET /categories/. */
+  catNames: Partial<Record<Lang, Record<string, string>>>;
   lang: Lang;
   menuOpen: boolean;
   w: number;
@@ -155,6 +157,7 @@ export default class Site extends React.Component<Props, State> {
     page: this.props.page,
     missing: !!this.props.notFound,
     showcase: {},
+    catNames: {},
     lang: "te",
     menuOpen: false,
     w: 1440,
@@ -307,7 +310,20 @@ export default class Site extends React.Component<Props, State> {
     if (this.state.showcase[L]) return;
     GCApi.get<Showcase | null>("/public/showcase/", { lang: L })
       .then((d) => {
-        if (!this.dead && d?.featured) this.setState((st) => ({ showcase: { ...st.showcase, [L]: d } }));
+        if (this.dead || !d?.featured) return;
+        this.setState((st) => ({ showcase: { ...st.showcase, [L]: d } }));
+        // A post in a category the Super Admin added later (say "Health"): its name from the server, asked only
+        // then, so the usual page makes no extra request (Jira BVTGC-49).
+        if ([d.featured, ...(d.items || [])].some((p) => !isCategory(p.category))) this.loadCatNames(L);
+      })
+      .catch(() => {});
+  }
+
+  private loadCatNames(L: Lang) {
+    if (this.state.catNames[L]) return;
+    GCApi.get<{ key: string; name: string }[]>("/categories/", { lang: L })
+      .then((cs) => {
+        if (!this.dead && cs) this.setState((st) => ({ catNames: { ...st.catNames, [L]: Object.fromEntries(cs.map((c) => [c.key, c.name])) } }));
       })
       .catch(() => {});
   }
@@ -480,7 +496,9 @@ export default class Site extends React.Component<Props, State> {
       // On the English page a Telugu post shows its English title when there is one.
       const tr = p.language && p.language !== L && p.translation?.language === L ? p.translation.title : "";
       const lang = !tr && p.language && p.language !== L ? p.language : undefined;
-      return { chip: loc.categories[k], title: tr || p.title, lang, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
+      // An added category keeps the Updates look, under its own name from the server.
+      const chip = isCategory(p.category) ? loc.categories[k] : s.catNames[L]?.[p.category] || loc.categories[k];
+      return { chip, title: tr || p.title, lang, meta: [day(p.published_at, L), p.area?.name].filter(Boolean).join(" · ") };
     };
     const sc = s.showcase[L];
     const feed = (sc?.featured ? [sc.featured, ...(sc.items || [])].slice(0, 3) : (loc.sample as ShowcasePost[])).map(card);

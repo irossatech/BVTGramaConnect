@@ -28,7 +28,10 @@ export default function Settings({ v }: { v: View }) {
           the grid stretches them, Languages fills the rest of the right one, the category rows share their card's height. */}
       <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "stretch"}}>
         <section style={card} aria-labelledby="set-cats">
-          <span id="set-cats" style={title}>Post categories</span>
+          <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px"}}>
+            <span id="set-cats" style={title}>Post categories</span>
+            {v.canAddCat ? <button onClick={v.addCat} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add category</button> : null}
+          </div>
           <span style={{fontSize: "12.5px", color: "#6b7a8c", marginTop: "-4px", marginBottom: "4px"}}>A switched-off category is hidden from citizens and from New post.</span>
           {/* The rows share the card's height evenly, so the card is filled without a gap at the bottom. */}
           {list(v.catRows).map((_c, _i1) => (

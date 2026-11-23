@@ -29,6 +29,25 @@ function loadAdminCategories(h: ConsoleHost) {
   return h.api.get<ListOrPage<Category>>('/admin/categories/').then((d) => setCategories(h, rows(d))).catch((e: unknown) => h.fail(e));
 }
 
+/** The category key from its English name: lower-case letters, digits and "_", at most 20 (the server's SlugField). */
+const catKey = (en: string) => en.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20).replace(/_+$/, '');
+
+// Add a post category (POST /admin/categories/, contract Q6 default: the Super Admin may add categories; Jira
+// BVTGC-49). It starts switched on; the app and the website list it from the server.
+function addCategory(h: ConsoleHost) {
+  h.ask({title: 'Add category', body: 'A new post category. It is on at once: officials can post in it, and citizens see it as its own News tab.',
+    hasInput: true, noGen: true, inputLabel: 'Name in English', inputPh: 'For example Health', input2Label: 'Name in Telugu', input2Ph: 'ఉదా: ఆరోగ్యం',
+    confirmLabel: 'Add category', bg: '#0D3B7A', onConfirm: (t, _sel, _gen, t2) => {
+      const en = t.trim(), te = t2.trim(), key = catKey(en);
+      if (!en || !te) return h.toast('Write the name in English and in Telugu.', '#b3261e');
+      if (!key) return h.toast('Write the English name in English letters.', '#b3261e');
+      h.api.post('/admin/categories/', {key, name_en: en, name_te: te}).then(() => {
+        h.toast('Category added · ' + en);
+        loadAdminCategories(h);
+      }).catch((e: unknown) => h.fail(e));
+    }});
+}
+
 export function loadSettings(h: ConsoleHost) {
   loadAdminCategories(h);
   h.api.get<Settings>('/admin/settings/').then((st) => h.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => h.fail(e));
@@ -77,6 +96,7 @@ export function settingsView(h: ConsoleHost) {
   }}));
   return {
     settings: s.settings, catRows, langRows, templates, badge36: {size: 36},
+    canAddCat: h.can('posts.manage_categories'), addCat: () => addCategory(h),
     onEscalation: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, escalation: Number(e.target.value) || 0}})), saveSettings: () => h.api.patch('/admin/settings/', {review_escalation_hours: s.settings.escalation}).then(() => h.toast('Settings saved · review time limit ' + s.settings.escalation + ' h')).catch((e: unknown) => h.fail(e)),
     onCitizenPerDay: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, citizenPerDay: e.target.value === '' ? '' : Math.max(0, Math.min(1000, Math.round(Number(e.target.value) || 0)))}})),
     saveCitizenPerDay: () => {

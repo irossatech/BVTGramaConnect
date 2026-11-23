@@ -12,7 +12,7 @@ const SVC_MOVE: Readonly<Record<string, string>> = {NEW:'The request goes back t
 const SVC_STATUS: Readonly<Record<string, Tone & {dot: string}>> = {NEW:{label:'New',bg:'#e3f0fb',color:'#0D3B7A',dot:'#0D3B7A'},APPROVED:{label:'Approved',bg:'#dff3f5',color:'#07818e',dot:'#07818e'},IN_PROGRESS:{label:'In progress',bg:'#fff0dc',color:'#b35a0e',dot:'#b35a0e'},COMPLETED:{label:'Completed',bg:'#e4f4df',color:'#1d7a33',dot:'#1d7a33'},REJECTED:{label:'Rejected',bg:'#fde7e5',color:'#b3261e',dot:'#b3261e'},CANCELLED:{label:'Cancelled',bg:'#eef2f6',color:'#5b6b7d',dot:'#5b6b7d'}};
 /** The statuses an official can move a request to. */
 const OFFICIAL_MOVES = ['NEW', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'];
-const SERVICES: Readonly<Record<string, string>> = {aadhaar:'Aadhaar Services',pan:'PAN Services',voter_id:'Voter ID',certificates:'Certificates',loans_insurance:'Loans & Insurance',govt_schemes:'Govt Schemes',land_records:'Land Records',farmer:'Farmer Services'};
+// The service's name comes with every request from the server (service_name, in the console's language); no built-in list.
 
 // quiet: the once-a-minute refresh (Console.tsx): a failure keeps the list on screen and shows no toast.
 export function loadRequests(h: ConsoleHost, page: number, quiet = false) {
@@ -96,7 +96,7 @@ export function requestsView(h: ConsoleHost) {
     reqRows: s.reqs.map((r) => {
       const st = SVC_STATUS[r.status] || SVC_STATUS.NEW;
       // Citizen column: the name only; phone and address are in the panel (the list is fetched without them).
-      return {rowKey: String(r.id), time: h.fmt(r.created_at, false), service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name,
+      return {rowKey: String(r.id), time: h.fmt(r.created_at, false), service: r.service_name || r.service, ref: String(r.id).slice(-6).toUpperCase(), name: r.name,
         place: [r.village && r.village.name, r.mandal && r.mandal.name].filter(Boolean).join(', ') || '—', status: st.label, sbg: st.bg, scolor: st.color, assignee: r.assigned_to ? r.assigned_to.name : 'Not assigned', assigned: !!r.assigned_to, open: () => openRequestRow(h, r)};
     }),
     reqEmpty: !s.reqs.length, reqEmptyText: s.reqLoading ? 'Loading…' : s.reqUnavailable ? 'Requests will show here once the server is updated.' : s.reqQ.trim() ? 'No requests match “' + s.reqQ.trim() + '”' : s.reqFilter === 'ALL' ? 'No requests yet' : 'No ' + SVC_STATUS[s.reqFilter].label.toLowerCase() + ' requests',
@@ -113,7 +113,7 @@ export function requestPanelView(h: ConsoleHost) {
     rqShow: !!rq, closeRQ: () => h.setState({rq: null}),
     rq: orEmpty(rq ? (() => {
       const r = rq.r, st = SVC_STATUS[r.status] || SVC_STATUS.NEW, al = r.allowed_actions || [];
-      return {service: r.service_name || SERVICES[r.service] || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: h.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: r.phone ? '+91 ' + r.phone : '', tel: r.phone ? 'tel:+91' + r.phone : '', email: r.email || '', mailto: 'mailto:' + (r.email || ''),
+      return {service: r.service_name || r.service, ref: String(r.id).slice(-6).toUpperCase(), time: h.fmt(r.created_at, true), statusLabel: st.label, sbg: st.bg, scolor: st.color, name: r.name, mobile: r.phone ? '+91 ' + r.phone : '', tel: r.phone ? 'tel:+91' + r.phone : '', email: r.email || '', mailto: 'mailto:' + (r.email || ''),
         place: [r.village && r.village.name, r.mandal && r.mandal.name, r.district && r.district.name].filter(Boolean).join(', '), details: r.details || '', address: r.address || '', canAssign: al.includes('assign'), assigned: r.assigned_to ? String(r.assigned_to.id) : ''};
     })() : null),
     rqView: orEmpty(rq ? (() => {

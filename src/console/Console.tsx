@@ -761,7 +761,8 @@ export default class Component extends React.Component<Props, State> {
     const lv = Component.LEVEL_OF_ROLE[role];
     const g = this.state.geo;
     const st = this.state.stateRow;
-    if (lv === 'STATE') return st ? [{id: String(st.id), label: st.name_en, level: lv}] : [];
+    // A Super Admin's area: "Whole state", the same words as the app (Jira BVTGC-47).
+    if (lv === 'STATE') return st ? [{id: String(st.id), label: 'Whole state', level: lv}] : [];
     if (lv === 'DISTRICT') return g.filter((d) => d.active).map((d) => ({id: String(d.id), label: this.nl(d), level: lv}));
     if (lv === 'MANDAL') return g.flatMap((d) => d.mandals.filter((m) => m.active && d.active).map((m) => ({id: String(m.id), label: this.nl(m), level: lv})));
     return g.flatMap((d) => d.mandals.flatMap((m) => m.villages.filter((v) => v.active && m.active && d.active).map((v) => ({id: String(v.id), label: this.nl(v), level: 'VILLAGE' as const}))));
