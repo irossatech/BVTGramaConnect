@@ -11,7 +11,7 @@ export default function PostDetail({ v }: { v: View }) {
         <div className="sc-host-x" style={{display: "contents"}}><ds.Badge tone={v.sp?.cat}>{I(v.sp?.catLabel)}</ds.Badge></div>
         {v.sp?.urgent ? <span style={{padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700", background: "#fde7e5", color: "#b3261e"}}>Urgent</span> : null}
         {v.sp?.hasEvent ? <span style={css(`padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background: ${v.sp?.eventBg ?? ""};color: ${v.sp?.eventColor ?? ""}`)}>{I(v.sp?.eventLabel)}</span> : null}
-        <span style={{fontSize: "12px", color: "#6b7a8c"}}>{"Shown to "}{I(v.sp?.area)}{" · "}{I(v.sp?.date)}</span>
+        <span style={{fontSize: "12px", color: "#647182"}}>{"Shown to "}{I(v.sp?.area)}{" · "}{I(v.sp?.date)}</span>
         {v.sp?.shareUrl ? <button onClick={v.sp?.copyLink} style={{marginLeft: "auto", height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", whiteSpace: "nowrap"}}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "5px"}}><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>Copy link
         </button> : null}
@@ -27,12 +27,12 @@ export default function PostDetail({ v }: { v: View }) {
       </div>
       <div>
         <div lang={v.sp?.lang} style={{fontFamily: "'Rubik','Noto Sans Telugu',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(v.sp?.titleTe)}</div>
-        <div lang={v.sp?.langEn} style={{fontSize: "14px", color: "#6b7a8c", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
+        <div lang={v.sp?.langEn} style={{fontSize: "14px", color: "#647182", marginTop: "2px"}}>{I(v.sp?.titleEn)}</div>
       </div>
       <p lang={v.sp?.lang} style={{margin: "0", fontSize: "15px", lineHeight: "1.65", color: "#3b4a5c"}}>{I(v.sp?.bodyTe)}</p>
       {v.sp?.bodyEn ? <div style={{background: "#f7f9fb", borderRadius: "10px", padding: "10px 12px"}}>
-        <div style={{fontSize: "11px", fontWeight: "700", color: "#6b7a8c", marginBottom: "4px"}}>Automatic translation</div>
-        <p lang={v.sp?.langEn} style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#6b7a8c"}}>{I(v.sp?.bodyEn)}</p>
+        <div style={{fontSize: "11px", fontWeight: "700", color: "#647182", marginBottom: "4px"}}>Automatic translation</div>
+        <p lang={v.sp?.langEn} style={{margin: "0", fontSize: "13px", lineHeight: "1.6", color: "#647182"}}>{I(v.sp?.bodyEn)}</p>
       </div> : null}
       {v.sp?.hasVideo ? <>
         {list(v.sp?.videos).map((_v, _i1) => (
@@ -52,14 +52,14 @@ export default function PostDetail({ v }: { v: View }) {
         <span style={css(`width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Rubik',sans-serif;background: ${v.sp?.abg ?? ""}`)}>{I(v.sp?.ainitial)}</span>
         <span style={{flex: "1"}}>
           <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(v.sp?.author)}</span>
-          <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(v.sp?.authorRole)}</span>
+          <span style={{display: "block", fontSize: "12px", color: "#647182"}}>{I(v.sp?.authorRole)}</span>
         </span>
       </div>
       {/* Urgent: an on/off switch, only while the post waits or is public. */}
       {v.sp?.urgentOk ? <div style={{display: "flex", alignItems: "center", gap: "12px", paddingTop: "14px", borderTop: "1px solid #eef2f6"}}>
         <span style={{flex: "1"}}>
           <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>Urgent</span>
-          <span style={{display: "block", fontSize: "12.5px", color: "#6b7a8c"}}>Shows first, with a red “Urgent” tag.</span>
+          <span style={{display: "block", fontSize: "12.5px", color: "#647182"}}>Shows first, with a red “Urgent” tag.</span>
         </span>
         <button role="switch" aria-checked={!!v.sp?.urgentOn} aria-label="Urgent" onClick={v.sp?.toggleUrgent} style={css(`position:relative;width:46px;height:28px;border:0;border-radius:999px;cursor:pointer;flex-shrink:0;background: ${v.sp?.urgentOn ? "#b3261e" : "#cfd8e3"}`)}>
           <span aria-hidden="true" style={css(`position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s ease-out;left: ${v.sp?.urgentOn ? "21px" : "3px"}`)} />
@@ -87,10 +87,10 @@ export default function PostDetail({ v }: { v: View }) {
                 <span style={{flex: "1", width: "2px", background: "#eef2f6", margin: "4px 0"}} />
               </div>
               <div style={{paddingBottom: "16px"}}>
-                <div style={{fontSize: "13px"}}><b style={{color: "#0A2550"}}>{I(_h?.who)}</b>{" "}<span style={{color: "#6b7a8c"}}>{"· "}{I(_h?.role)}</span></div>
+                <div style={{fontSize: "13px"}}><b style={{color: "#0A2550"}}>{I(_h?.who)}</b>{" "}<span style={{color: "#647182"}}>{"· "}{I(_h?.role)}</span></div>
                 <div style={{fontSize: "13px", color: "#3b4a5c", marginTop: "2px"}}>{I(_h?.action)}</div>
                 {_h?.hasNote ? <div style={{marginTop: "6px", padding: "8px 10px", background: "#f7f9fb", borderRadius: "8px", fontSize: "13px", color: "#3b4a5c", lineHeight: "1.5"}}>{I(_h?.note)}</div> : null}
-                <div style={{fontSize: "11px", color: "#6b7a8c", marginTop: "4px"}}>{I(_h?.time)}</div>
+                <div style={{fontSize: "11px", color: "#647182", marginTop: "4px"}}>{I(_h?.time)}</div>
               </div>
             </div>
           </React.Fragment>

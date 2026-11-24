@@ -7,7 +7,7 @@ import { imageWidth, isStatus, pickFile, rows, type AdErrors, type AdForm, type 
 import type { ConsoleHost } from "./host";
 
 // Home banner ads (docs/api-contract.md section 17): status worked out from the dates and the switch.
-const AD_STATUS: Readonly<Record<AdStatus, Tone>> = {live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#6b7a8c'}};
+const AD_STATUS: Readonly<Record<AdStatus, Tone>> = {live:{label:'Running',bg:'#e4f4df',color:'#1d7a33'},scheduled:{label:'Scheduled',bg:'#e6eef8',color:'#0D3B7A'},paused:{label:'Paused',bg:'#fff0dc',color:'#b35a0e'},ended:{label:'Ended',bg:'#f1f3f6',color:'#647182'}};
 // Smallest banner picture the server accepts (ADS_MIN_WIDTH_PX).
 const AD_MIN_WIDTH_PX = 800;
 // Banner videos: any length, at most this big. The server (ADS_VIDEO_MAX_MB) and the app (kAdVideoMaxMb)

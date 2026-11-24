@@ -72,11 +72,11 @@ export default function NumberForm({ v }: { v: View }) {
                 </SearchSelect>
               </label>
             ))}
-            <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nfPlace ? "#e4f4df" : "#f6f8f3", color: v.nfPlace ? "#1d7a33" : "#6b7a8c"}}>
+            <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nfPlace ? "#e4f4df" : "#f6f8f3", color: v.nfPlace ? "#1d7a33" : "#647182"}}>
               {v.nfPlace ? "✓ " + v.nfLevelLabel + " · " + v.nfPlace : "Choose the place"}
             </div>
           </> : null}
-          <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
+          <div style={{fontSize: "12px", color: "#647182", lineHeight: "1.5"}}>
             {v.nfIsArea ? "Citizens of the area and every village below it see this number in the app's Contacts tab." : "Helplines are statewide: every citizen sees them under Government helplines."}
           </div>
         </div>

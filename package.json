@@ -8,7 +8,16 @@
     "build": "next build --webpack && node scripts/seo-files.mjs && node scripts/defer-hydration.mjs && node scripts/build-stamp.mjs",
     "check-dist": "node scripts/check-dist.mjs",
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"tests/*.test.mjs\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:build": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs build",
+    "test:i18n": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs i18n",
+    "test:links": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs links",
+    "test:csp": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs csp",
+    "test:smoke": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs smoke",
+    "test:console": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs console",
+    "test:a11y": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs a11y",
+    "test:perf": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs perf",
+    "test:all": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/verify/run.mjs all"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -19,6 +28,8 @@
     "node": ">=20.9"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1",
     "@types/node": "22.20.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

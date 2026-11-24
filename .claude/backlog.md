@@ -25,7 +25,7 @@ Open work as of 2026-11-13, most urgent first. Items marked "sign-off" change wh
 
 ## Console (`src/console/Console.tsx`)
 
-25. **Load the console's login screen first (owner's choice of 14 Nov 2026, audit WEB-PERF-003).** Today the whole console (about 175 KB compressed) downloads before the login form. Show the login and change-password screens from a small first download and load the signed-in screens after login. The `Console.tsx` split it waited for (WEB-ARCH-001) was finished on 16 Nov 2026, so it can be built now.
+25. ~~**Load the console's login screen first (WEB-PERF-003).**~~ Done 2026-11-23 (Jira BVTGC-6): the signed-in screens are `src/console/AppShell.tsx`, loaded after sign-in; see `audit-status.md`, Fixed. Left: a browser check that signing in, the first screen and signing out look exactly as before.
 26. **Click through every console screen after the split (WEB-ARCH-001).** The split moved code only and was checked automatically (554 scenarios identical), but nobody has clicked through it in a browser yet. Log in as `super.admin` and open every screen and panel: Dashboard (cards, district search), Geography (add, edit, CSV import), Users (filters, Add User, user panel buttons), Posts (tabs, post panel decisions, New post with photos and with a video), Reports (each Export CSV), Audit log, Contact messages, Service requests, Services and bills, Ads, Important numbers, Settings, the bell. The browser console must show no errors.
 
 12. **Video playback.** The post panel's video player was checked with a poster only. Play a real MP4 once uploads work end to end.

@@ -14,7 +14,7 @@ export default function Ads({ v }: { v: View }) {
       </div>
       <SelBar sel={v.adSel} removeLabel="Delete selected" />
       {v.adsEmpty ? <EmptyState title={v.adsEmptyText} hint={v.adsEmptyHint} icon="M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6" /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "hidden"}}>
-        {v.adSel?.show ? <label style={{display: "flex", gap: "12px", alignItems: "center", padding: "10px 16px", background: "#f7f9fb", fontSize: "12.5px", fontWeight: "600", color: "#6b7a8c", cursor: "pointer"}}>
+        {v.adSel?.show ? <label style={{display: "flex", gap: "12px", alignItems: "center", padding: "10px 16px", background: "#f7f9fb", fontSize: "12.5px", fontWeight: "600", color: "#647182", cursor: "pointer"}}>
             <TickBox on={v.adSel?.all} some={v.adSel?.some} onChange={v.adSel?.toggleAll} label="Select all banners in this list" />Select all
           </label> : null}
         {list(v.adRows).map((_a, _i1) => (
@@ -32,7 +32,7 @@ export default function Ads({ v }: { v: View }) {
                   <span style={css(`padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;background: ${_a?.sbg ?? ""};color: ${_a?.scolor ?? ""}`)}>{I(_a?.status)}</span>
                 </span>
                 <span style={{fontSize: "13px", color: "#3b4a5c"}}>{I(_a?.area)}</span>
-                <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(_a?.dates)}</span>
+                <span style={{fontSize: "12px", color: "#647182"}}>{I(_a?.dates)}</span>
               </div>
               <div style={{display: "flex", gap: "12px", alignItems: "center"}}>
                 {_a?.canToggle ? <label style={{display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: "700", color: "#3b4a5c", cursor: "pointer"}}>

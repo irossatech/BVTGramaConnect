@@ -37,6 +37,19 @@ export default function ConfirmModal({ v }: { v: View }) {
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.input2Label)}</span>
               <input type="text" lang="te" value={val(v.modalText2, "")} onChange={v.onModalText2} placeholder={v.modal?.input2Ph} autoComplete="off" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px"}} />
             </label> : null}
+          {v.modal?.imageLabel ? <div style={{display: "flex", flexDirection: "column", gap: "6px"}}>
+              <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>{I(v.modal?.imageLabel)}</span>
+              <div style={{display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "12px", background: "#fff", border: v.modal?.image ? "2px solid #0D3B7A" : "1px solid #cfd8e3"}}>
+                <span style={{width: "48px", height: "48px", borderRadius: "50%", background: "#f7f9fb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0", overflow: "hidden"}}>
+                  {v.modal?.image ? <img src={v.modal.image} alt="" style={{width: "100%", height: "100%", objectFit: "cover"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D3B7A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" /></svg>}
+                </span>
+                <span style={{flex: "1", display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
+                  <span style={{fontWeight: "700", fontSize: "13.5px", color: "#0A2550"}}>{v.modal?.image ? "Your icon" : "Upload an icon"}</span>
+                  <span style={{fontSize: "12px", color: "#647182"}}>Square, at least 64 × 64, PNG, JPG or WebP up to 2 MB.</span>
+                </span>
+                <button type="button" onClick={v.modal?.pickImage} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}>{v.modal?.image ? "Change" : "Upload"}</button>
+              </div>
+            </div> : null}
           {v.modal?.hasSecret ? <span style={{display: "flex", gap: "10px"}}>
               <input type="text" aria-label="Temporary password" readOnly={true} value={val(v.modal?.secret, "")} onChange={v.noop} autoComplete="off" style={{flex: "1", height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A", letterSpacing: ".08em"}} />
               <button onClick={v.copySecret} style={{height: "44px", padding: "0 18px", border: "1.5px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#3b4a5c", fontWeight: "700", cursor: "pointer"}}>Copy</button>

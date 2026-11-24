@@ -38,7 +38,7 @@ export default function UserDrawer({ v }: { v: View }) {
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Mobile (optional)</span>
             <input name="mobile" value={val(v.nu?.mobile, "")} onChange={v.onNU} maxLength={10} placeholder="10 digits" style={{height: "44px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", outlineColor: "#0D3B7A"}} />
           </label>
-          {v.nuEdit ? <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
+          {v.nuEdit ? <div style={{fontSize: "12px", color: "#647182", lineHeight: "1.5"}}>
               A new username works from their next sign-in; tell them in person. Use Reassign area, Add role or Reset password in the user panel for the rest.
             </div> : <>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
@@ -74,10 +74,10 @@ export default function UserDrawer({ v }: { v: View }) {
           ))}
           {v.noDistricts ? <div role="alert" style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: "#fff0dc", color: "#b35a0e", lineHeight: "1.5"}}>
             No districts yet. Add districts, mandals and villages in Geography first, then add officials.
-          </div> : <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nuPlace ? "#e4f4df" : "#f6f8f3", color: v.nuPlace ? "#1d7a33" : "#6b7a8c"}}>
+          </div> : <div style={{padding: "10px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", background: v.nuPlace ? "#e4f4df" : "#f6f8f3", color: v.nuPlace ? "#1d7a33" : "#647182"}}>
             {v.nuPlace ? "✓ " + v.nuRoleLabel + " · " + v.nuPlace : "Choose the role and the place"}
           </div>}
-          <div style={{fontSize: "12px", color: "#6b7a8c", lineHeight: "1.5"}}>
+          <div style={{fontSize: "12px", color: "#647182", lineHeight: "1.5"}}>
             Leave the password empty to generate one. It is shown once after you save: give it to the person yourself. They choose their own password at first login. Panchayat members' posts go through the Village Admin review queue.
           </div>
           </>}

@@ -20,7 +20,8 @@ export function loadRequests(h: ConsoleHost, page: number, quiet = false) {
   const latest = h.ticket('reqs');
   if (!quiet) h.setState({reqLoading: true});
   // contact=0: the rows come without the citizen's phone, email and address (audit WEB-DP-001); openRequestRow reads them.
-  h.api.get<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: PAGE_SIZE})
+  // The once-a-minute refresh (quiet) is an automatic check: it must not keep the session alive (BVTGC-72).
+  (quiet ? h.api.getBackground : h.api.get)<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
     .catch((e: unknown) => {
       if (!latest() || quiet) return;
@@ -86,7 +87,7 @@ export function requestsView(h: ConsoleHost) {
       const on = s.reqFilter === k;
       const c = s.reqCounts || {};
       const n = k === 'ALL' ? Object.values(c).reduce((a, b) => a + (b || 0), 0) : (c[k] || 0);
-      return {label: k === 'ALL' ? 'All' : SVC_STATUS[k].label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => h.setState({reqFilter: k}, () => loadRequests(h, 1))};
+      return {label: k === 'ALL' ? 'All' : SVC_STATUS[k].label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#647182', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => h.setState({reqFilter: k}, () => loadRequests(h, 1))};
     }),
     reqQ: s.reqQ,
     onReqQ: (e: FieldChange) => {
@@ -128,7 +129,7 @@ export function requestPanelView(h: ConsoleHost) {
       const tone = (i: number) => i === crossAt ? crossColor : i <= at ? '#1F8A3B' : '#cfd8e3';
       return {steps: steps.map((k, i) => {
           const cross = i === crossAt, on = i <= at;
-          return {label: cross ? (rej ? 'Rejected' : 'Cancelled') : SVC_STATUS[k].label, bg: on ? tone(i) : '#fff', border: tone(i), bw: 2, mark: on ? (cross ? '✕' : '✓') : '', weight: i === at ? 800 : 600, color: cross ? crossColor : i === at ? '#0A2550' : '#6b7a8c', line: i === 0 ? '' : (on ? tone(i) : '#cfd8e3')};
+          return {label: cross ? (rej ? 'Rejected' : 'Cancelled') : SVC_STATUS[k].label, bg: on ? tone(i) : '#fff', border: tone(i), bw: 2, mark: on ? (cross ? '✕' : '✓') : '', weight: i === at ? 800 : 600, color: cross ? crossColor : i === at ? '#0A2550' : '#647182', line: i === 0 ? '' : (on ? tone(i) : '#cfd8e3')};
         }),
         curLabel: cur.label, curBg: cur.bg, curColor: cur.color, note: r.note || '',
         viewOnly: cancelled ? 'The citizen cancelled this request. It cannot be changed.'

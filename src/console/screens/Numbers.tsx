@@ -24,7 +24,7 @@ export default function Numbers({ v }: { v: View }) {
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
           <table style={{width: "100%", fontSize: "13px", minWidth: "620px"}}>
             <thead>
-              <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+              <tr style={{background: "#f7f9fb", color: "#647182", textAlign: "left", fontSize: "12px"}}>
                 <th style={th}>Type</th>
                 <th style={th}>Section</th>
                 <th style={{...th, textAlign: "right"}}>Numbers</th>
@@ -37,10 +37,10 @@ export default function Numbers({ v }: { v: View }) {
                   <tr style={{borderTop: "1px solid #f3f5f8"}}>
                     <td style={td}>
                       <span style={{display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"}}>
-                        <span style={{fontWeight: "700", color: _t?.on ? "#0A2550" : "#6b7a8c"}}>{I(_t?.en)}</span>
+                        <span style={{fontWeight: "700", color: _t?.on ? "#0A2550" : "#647182"}}>{I(_t?.en)}</span>
                         {_t?.on ? null : <span style={{padding: "1px 8px", borderRadius: "999px", fontSize: "11px", fontWeight: "700", background: "#eef2f6", color: "#3b4a5c"}}>Hidden</span>}
                       </span>
-                      {_t?.te && _t.te !== _t.en ? <span lang="te" style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_t?.te)}</span> : null}
+                      {_t?.te && _t.te !== _t.en ? <span lang="te" style={{display: "block", fontSize: "12px", color: "#647182"}}>{I(_t?.te)}</span> : null}
                     </td>
                     <td style={{...td, color: "#3b4a5c"}}>{I(_t?.section)}</td>
                     <td style={{...td, color: "#3b4a5c", textAlign: "right", fontVariantNumeric: "tabular-nums"}}>{I(_t?.count)}</td>
@@ -65,7 +65,7 @@ export default function Numbers({ v }: { v: View }) {
       </> : <>
         <div className="sa-bar" style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
           <label style={{position: "relative", flex: "0 1 280px", minWidth: "200px"}}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#647182" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <input type="search" aria-label="Search important numbers" value={val(v.numQ, "")} onChange={v.onNumQ} placeholder="Search name or phone" style={{width: "100%", boxSizing: "border-box", height: "38px", padding: "0 12px 0 34px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "13.5px", background: "#fff"}} />
           </label>
           {v.numAreaFilter ? <SearchSelect value={val(v.numDistrict, "")} onChange={v.onNumDistrict} aria-label="District" style={select}>
@@ -82,7 +82,7 @@ export default function Numbers({ v }: { v: View }) {
         {v.numEmpty ? <EmptyState title={v.numEmptyText} hint={v.numEmptyHint} icon={PHONE} /> : <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", overflow: "auto"}}>
           <table style={{width: "100%", fontSize: "13px", minWidth: "820px"}}>
             <thead>
-              <tr style={{background: "#f7f9fb", color: "#6b7a8c", textAlign: "left", fontSize: "12px"}}>
+              <tr style={{background: "#f7f9fb", color: "#647182", textAlign: "left", fontSize: "12px"}}>
                 <th style={{padding: "12px 0 12px 16px", width: "34px"}}>{v.numSel?.show ? <TickBox on={v.numSel?.all} some={v.numSel?.some} onChange={v.numSel?.toggleAll} label="Select all numbers on this page" /> : null}</th>
                 <th style={th}>Name</th>
                 <th style={th}>Phone</th>
@@ -99,11 +99,11 @@ export default function Numbers({ v }: { v: View }) {
                     <td style={{padding: "12px 0 12px 16px"}}>{_c?.canSel ? <TickBox on={_c?.sel} onChange={_c?.toggleSel} label={"Select " + (_c?.name || "")} /> : null}</td>
                     <td style={td}>
                       <span style={{display: "block", fontWeight: "700", color: "#0A2550"}}>{I(_c?.name)}</span>
-                      {_c?.te ? <span lang="te" style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_c?.te)}</span> : null}
+                      {_c?.te ? <span lang="te" style={{display: "block", fontSize: "12px", color: "#647182"}}>{I(_c?.te)}</span> : null}
                     </td>
                     <td style={{...td, color: "#17212e", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums"}}>
                       <span style={{display: "block", fontWeight: "600"}}>{I(_c?.phone)}</span>
-                      {_c?.email ? <span style={{display: "block", fontSize: "12px", color: "#6b7a8c"}}>{I(_c?.email)}</span> : null}
+                      {_c?.email ? <span style={{display: "block", fontSize: "12px", color: "#647182"}}>{I(_c?.email)}</span> : null}
                     </td>
                     <td style={{...td, color: "#3b4a5c"}}>{I(_c?.type)}</td>
                     <td style={{...td, color: "#3b4a5c"}}>{I(_c?.area)}</td>

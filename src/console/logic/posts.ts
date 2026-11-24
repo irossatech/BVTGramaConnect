@@ -8,19 +8,19 @@ import { isActor, isStatus, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldCha
 import type { ConsoleHost } from "./host";
 
 // Post status badges, by the console's status key (Pending, Published…, TakenDown for UNPUBLISHED).
-const STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Waiting'},Escalated:{bg:'#fde7e5',color:'#b3261e',label:'Escalated'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Blocked:{bg:'#f3e3e1',color:'#7a1f17',label:'Blocked'},Draft:{bg:'#eef2f6',color:'#6b7a8c',label:'Draft'}};
+const STATUS: Readonly<Record<string, Tone>> = {Pending:{bg:'#fff0dc',color:'#b35a0e',label:'Pending'},Escalated:{bg:'#fde7e5',color:'#b3261e',label:'Escalated'},Published:{bg:'#e4f4df',color:'#1d7a33',label:'Published'},Recheck:{bg:'#f1e6f7',color:'#8f4bb4',label:'Recheck'},Discarded:{bg:'#eef2f6',color:'#3b4a5c',label:'Discarded'},TakenDown:{bg:'#fde7e5',color:'#b3261e',label:'Taken down'},Blocked:{bg:'#f3e3e1',color:'#7a1f17',label:'Blocked'},Draft:{bg:'#eef2f6',color:'#647182',label:'Draft'}};
 // API status -> the console's status key.
 const SK: Readonly<Record<string, string>> = {PENDING:'Pending',PUBLISHED:'Published',RECHECK:'Recheck',DISCARDED:'Discarded',UNPUBLISHED:'TakenDown',BLOCKED:'Blocked',DRAFT:'Draft'};
 // The console's status key -> API status.
 // "Rejected" is the one tab for discarded and taken-down posts (the server takes several statuses, comma-separated).
-// Tabs since 2026-11-21 (owner): All, Waiting (with an "Escalated only" filter), Published, Recheck, Rejected
+// Tabs since 2026-11-21 (owner): All, Pending (with an "Escalated only" filter), Published, Recheck, Rejected; status words follow the contract's glossary (Jira BVTGC-67)
 // (discarded or taken down) and Blocked, which lists citizens: one row per blocked phone, its closed posts inside.
 const SAPI: Readonly<Record<string, string>> = {Rejected:'DISCARDED,UNPUBLISHED',Blocked:'BLOCKED',Pending:'PENDING',Escalated:'PENDING',Published:'PUBLISHED',Recheck:'RECHECK',Discarded:'DISCARDED',TakenDown:'UNPUBLISHED'};
 // What each review action says in the post panel's history.
 const HIST: Readonly<Record<string, string>> = {SUBMIT:'Sent in for review',RESUBMIT:'Sent in again after fixing',PUBLISH:'Published',AUTO_PUBLISH:'Published directly (admin post)',RECHECK:'Sent for recheck',DISCARD:'Discarded',UNPUBLISH:'Taken down',BLOCK:'Blocked: the citizen was blocked',UNBLOCK:'Unblocked: the citizen can post again',BLOCK_ENDED:'Block ended: the time was up',ESCALATE:'Escalated: waited past the time limit, sent up a level'};
 // History dots by exact action (a pattern would colour UNPUBLISH like PUBLISH). UNBLOCK and BLOCK_ENDED are written by the
 // server once the backend plan of 2026-11-21 (part 6) is live.
-const HIST_DOT: Readonly<Record<string, string>> = {PUBLISH:'#1F8A3B',AUTO_PUBLISH:'#1F8A3B',RECHECK:'#8f4bb4',DISCARD:'#3b4a5c',UNPUBLISH:'#b3261e',REVERSE:'#0D3B7A',BLOCK:'#7a1f17',UNBLOCK:'#1d7a33',BLOCK_ENDED:'#6b7a8c'};
+const HIST_DOT: Readonly<Record<string, string>> = {PUBLISH:'#1F8A3B',AUTO_PUBLISH:'#1F8A3B',RECHECK:'#8f4bb4',DISCARD:'#3b4a5c',UNPUBLISH:'#b3261e',REVERSE:'#0D3B7A',BLOCK:'#7a1f17',UNBLOCK:'#1d7a33',BLOCK_ENDED:'#647182'};
 // Event kinds on a post: label, background, colour.
 const EVENT: Readonly<Record<string, readonly [string, string, string]>> = {deadline:['Deadline','#fff0dc','#b35a0e'],camp:['Camp','#e4f4df','#1d7a33'],distribution:['Distribution','#e3f0fb','#0D3B7A'],closure:['Closure','#eef2f6','#3b4a5c'],meeting:['Meeting','#f1e6f7','#8f4bb4']};
 
@@ -321,12 +321,12 @@ export function postsView(h: ConsoleHost) {
   // Escalated is Waiting with a filter on, so the Waiting pill stays lit while it is.
   const waiting = s.statusTab === 'Pending' || s.statusTab === 'Escalated';
   const sc = s.statusCounts;
-  const tabLabel = (k: typeof tabs[number]) => k === 'Pending' ? 'Waiting for review' : k === 'Rejected' ? 'Rejected' : ST[k].label;
+  const tabLabel = (k: typeof tabs[number]) => k === 'Pending' ? 'Pending' : k === 'Rejected' ? 'Rejected' : ST[k].label;
   const statusTabs = [{id: 'All' as const, label: 'All'}, ...tabs.map((k) => ({id: k, label: tabLabel(k)}))].map((t) => {
     const on = t.id === 'Pending' ? waiting : s.statusTab === t.id;
     const n = t.id === 'All' ? (sc.ALL || 0) : t.id === 'Rejected' ? (sc.DISCARDED || 0) + (sc.UNPUBLISHED || 0)
       : t.id === 'Blocked' ? citizens.length : (sc[SAPI[t.id]] || 0);
-    return {label: t.label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#6b7a8c', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => { h.setState({statusTab: t.id}, () => loadPosts(h, 1)); }};
+    return {label: t.label, count: n, on, line: on ? '#0D3B7A' : 'transparent', color: on ? '#0A2550' : '#647182', cbg: on ? '#0D3B7A' : '#eef2f6', ccolor: on ? '#fff' : '#3b4a5c', go: () => { h.setState({statusTab: t.id}, () => loadPosts(h, 1)); }};
   });
   // Inside Waiting: "Escalated only (n)", the posts waiting past the time limit; they also come first in the list.
   const escFilter = {show: waiting, on: s.statusTab === 'Escalated', count: sc.ESCALATED || 0,

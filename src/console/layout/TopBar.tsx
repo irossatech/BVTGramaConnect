@@ -10,7 +10,7 @@ export default function TopBar({ v }: { v: View }) {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
       <div className="sa-title" style={{fontFamily: "'Rubik',sans-serif", fontSize: "20px", fontWeight: "700", color: "#0A2550", flex: "1", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(v.pageTitle)}</div>
-      <div className="sa-search" style={{display: "flex", alignItems: "center", gap: "10px", height: "40px", padding: "0 16px", boxSizing: "border-box", border: "1px solid #e3e8ef", borderRadius: "999px", background: "#f7f9fb", width: "300px", color: "#6b7a8c", marginRight: "4px"}}>
+      <div className="sa-search" style={{display: "flex", alignItems: "center", gap: "10px", height: "40px", padding: "0 16px", boxSizing: "border-box", border: "1px solid #e3e8ef", borderRadius: "999px", background: "#f7f9fb", width: "300px", color: "#647182", marginRight: "4px"}}>
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input value={val(v.gsearch, "")} onChange={v.onGSearch} placeholder="Search posts…" aria-label="Search posts" style={{flex: "1", minWidth: "0", border: "0", background: "transparent", outline: "none", fontSize: "14px", color: "#17212e"}} />
       </div>
@@ -25,9 +25,9 @@ export default function TopBar({ v }: { v: View }) {
         <span style={{width: "32px", height: "32px", borderRadius: "50%", background: "#0D3B7A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Rubik',sans-serif", fontWeight: "700", fontSize: "14px"}}>{I(v.meInitial)}</span>
         <span className="sa-me" style={{textAlign: "left", lineHeight: "1.2"}}>
           <span style={{display: "block", fontWeight: "700", fontSize: "13px", color: "#0A2550"}}>{I(v.meName)}</span>
-          <span style={{display: "block", fontSize: "11px", color: "#6b7a8c"}}>Super Admin</span>
+          <span style={{display: "block", fontSize: "11px", color: "#647182"}}>Super Admin</span>
         </span>
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#647182" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {/* Click anywhere outside the account menu closes it. */}
       {v.menuOpen ? <div aria-hidden="true" onClick={v.toggleMenu} style={{position: "fixed", inset: "0", zIndex: "38"}} /> : null}

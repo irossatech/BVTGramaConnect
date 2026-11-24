@@ -1,0 +1,215 @@
+{
+  "distDir": "dist",
+  "siteUrl": "https://www.gramaconnect.com",
+  "extraPages": [
+    "/console/",
+    "/404.html"
+  ],
+  "pageLang": {
+    "website": "te",
+    "/console/": "en"
+  },
+  "seoFiles": [
+    "robots.txt",
+    "sitemap.xml",
+    "llms.txt"
+  ],
+  "budgetsKbGzip": {
+    "website": 155,
+    "/console/": 160
+  },
+  "serverPaths": [
+    "/api/",
+    "/media/"
+  ],
+  "allowSourceMaps": false,
+  "securityHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' blob:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "same-origin",
+    "X-Frame-Options": "DENY"
+  },
+  "securityHeadersSource": "BVTGramaConnect_BackEnd deploy/templates/nginx-security.conf, with CSP_SCRIPT_EXTRA empty as in production",
+  "perf": {
+    "network": {
+      "latencyMs": 400,
+      "downloadKbps": 400,
+      "uploadKbps": 400
+    },
+    "cpuSlowdown": 4,
+    "runs": 3,
+    "pages": [
+      "/",
+      "/faq/",
+      "/contact/"
+    ],
+    "budgets": {
+      "lcpMs": 6000,
+      "cls": 0.1,
+      "tbtMs": 600
+    }
+  },
+  "a11yFailOn": [
+    "serious",
+    "critical"
+  ],
+  "fake": {
+    "lockoutAfter": 5,
+    "appConfig": {
+      "languages": {
+        "te": true,
+        "en": true
+      }
+    },
+    "showcase": {
+      "location": {
+        "level": "VILLAGE",
+        "id": 1,
+        "name": "Test village",
+        "path": "Test village · Test mandal · Test district"
+      },
+      "featured": {
+        "id": "p1",
+        "category": "news",
+        "title": "Test notice for the browser checks",
+        "area": {
+          "level": "VILLAGE",
+          "id": 1,
+          "name": "Test village"
+        },
+        "thumbnail_url": null,
+        "event": null,
+        "is_urgent": false,
+        "video": null
+      },
+      "items": [
+        {
+          "id": "p2",
+          "category": "health",
+          "title": "A post in a category added later",
+          "area": {
+            "level": "VILLAGE",
+            "id": 1,
+            "name": "Test village"
+          },
+          "published_at": "2026-11-20T10:00:00+05:30",
+          "thumbnail_url": null,
+          "event": null,
+          "is_urgent": false,
+          "video": null
+        }
+      ]
+    },
+    "categories": [
+      {
+        "key": "health",
+        "name": "Health"
+      }
+    ],
+    "emptyAnswers": {
+      "/notifications/": {
+        "results": [],
+        "next": null,
+        "unread_count": 0
+      },
+      "/geo/tree/": [],
+      "/admin/reports/summary/": {
+        "total": 0,
+        "published": 0,
+        "pending": 0,
+        "rejected": 0,
+        "days": 30
+      },
+      "/admin/reports/posts-by-area/": [],
+      "/admin/reports/review-time/": []
+    },
+    "users": {
+      "test.super": {
+        "password": "Fake#Super-pass-01",
+        "me": {
+          "id": "u1",
+          "username": "test.super",
+          "name": "Test Super Admin",
+          "email": null,
+          "must_change_password": false,
+          "permissions": [
+            "web_admin.access_web_console",
+            "web_admin.view_dashboard",
+            "geography.manage_master_data",
+            "accounts.manage_district_admin",
+            "posts.view_review_queue",
+            "web_admin.view_reports",
+            "audit.view_audit_log",
+            "web_public.manage_contact_messages",
+            "service_requests.view_service_requests",
+            "bills.manage_bills",
+            "ads.manage_ad",
+            "contacts.manage_contact",
+            "posts.manage_settings"
+          ],
+          "groups": [],
+          "capabilities": {
+            "can_post": false
+          },
+          "rules": {
+            "max_photos_per_post": 3
+          }
+        },
+        "nav": [
+          "Dashboard",
+          "Reports",
+          "Posts",
+          "Sponsored banners",
+          "Services",
+          "Bills & Recharges",
+          "Contact messages",
+          "Important numbers",
+          "Users",
+          "Geography",
+          "Audit Log",
+          "Settings"
+        ]
+      },
+      "test.limited": {
+        "password": "Fake#Limited-pass-02",
+        "me": {
+          "id": "u2",
+          "username": "test.limited",
+          "name": "Test Limited Admin",
+          "email": null,
+          "must_change_password": false,
+          "permissions": [
+            "web_admin.access_web_console",
+            "web_admin.view_dashboard",
+            "web_admin.view_reports"
+          ],
+          "groups": [],
+          "capabilities": {
+            "can_post": false
+          },
+          "rules": {}
+        },
+        "nav": [
+          "Dashboard",
+          "Reports"
+        ],
+        "forbiddenPage": "users"
+      },
+      "test.district": {
+        "password": "Fake#District-pass-03",
+        "me": {
+          "id": "u3",
+          "username": "test.district",
+          "name": "Test District Admin",
+          "email": null,
+          "must_change_password": false,
+          "permissions": [
+            "web_admin.view_dashboard",
+            "posts.view_review_queue"
+          ],
+          "groups": []
+        }
+      }
+    }
+  }
+}

@@ -7,8 +7,9 @@ import { I } from "../shared/dc";
 import config from "../shared/config";
 import GCApi, { type SiteApiError } from "./api";
 import LOCALES, { type Lang, type Strings } from "./i18n";
+import { istDayMonth } from "./dates";
 import { isPage, pageFromSlug, pathOf, type Page } from "./routes";
-import { cream, ui } from "./ui/theme";
+import { cream, greenText, ui } from "./ui/theme";
 import Header from "./sections/Header";
 import Home from "./sections/Home";
 import HowItWorks from "./sections/HowItWorks";
@@ -141,12 +142,8 @@ function pageFromUrl(): Page {
 
 /** "14 అక్టో" / "14 Oct" in India time; "" for a bad date. */
 function day(iso: string, L: Lang): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const parts = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "numeric", timeZone: "Asia/Kolkata" }).formatToParts(d);
-  const dd = parts.find((x) => x.type === "day")?.value ?? "";
-  const mm = Number(parts.find((x) => x.type === "month")?.value ?? 1) - 1;
-  return dd + " " + LOCALES[L].months[mm];
+  const dm = istDayMonth(iso);
+  return dm ? dm[0] + " " + LOCALES[L].months[dm[1]] : "";
 }
 
 /** Everything the sections render: texts, lists and handlers (Site.renderVals()). */
@@ -207,12 +204,17 @@ export default class Site extends React.Component<Props, State> {
     const L = savedLang() ?? this.state.lang;
     if (L !== this.state.lang) this.setState({ lang: L });
     document.documentElement.lang = L;
-    // Mark what is already on screen as revealed before the reveal effect switches on, so nothing blinks.
-    this.reveal();
-    document.documentElement.classList.add("gc-ready");
     this.loadSite();
     this.loadShowcase(L);
-    this.scrollFx();
+    // In a task of its own after React's start-up: measuring every section lays the whole page out, which made the
+    // start-up one long block on a slow phone (audit WEB-PERF-102, 2026-11-23). Until "gc-ready" nothing is hidden.
+    window.setTimeout(() => {
+      if (this.dead) return;
+      // Mark what is already on screen as revealed before the reveal effect switches on, so nothing blinks.
+      this.reveal();
+      document.documentElement.classList.add("gc-ready");
+      this.scrollFx();
+    }, 0);
     window.addEventListener("scroll", this.onScroll, { passive: true });
     window.addEventListener("hashchange", this.onNav);
     window.addEventListener("popstate", this.onNav);
@@ -228,6 +230,7 @@ export default class Site extends React.Component<Props, State> {
   // After each update: reveal new sections, and keep the tab title in step with the page.
   componentDidUpdate(_: Props, prev: State) {
     this.reveal();
+    if (prev.page !== this.state.page || prev.lang !== this.state.lang) this.loadShowcase(this.state.lang);
     if (prev.page !== this.state.page || prev.missing !== this.state.missing)
       document.title = this.state.missing ? (this.props.notFoundTitle ?? "") : this.props.titles[this.state.page];
     // The content changes without a new page load, so screen readers would say nothing and keyboard focus would stay
@@ -306,8 +309,13 @@ export default class Site extends React.Component<Props, State> {
       .catch(() => {});
   }
 
+  // The newest posts, for the home page's ticker only: other pages skip the download and the re-render it causes on a
+  // slow phone (audit WEB-PERF-102, 2026-11-23); opening the home page later loads them (componentDidUpdate).
+  // Asked once per language at a time: a failed answer may be asked again.
+  private showcaseAsked = new Set<Lang>();
   private loadShowcase(L: Lang) {
-    if (this.state.showcase[L]) return;
+    if (this.state.page !== "home" || this.state.missing || this.state.showcase[L] || this.showcaseAsked.has(L)) return;
+    this.showcaseAsked.add(L);
     GCApi.get<Showcase | null>("/public/showcase/", { lang: L })
       .then((d) => {
         if (this.dead || !d?.featured) return;
@@ -316,7 +324,7 @@ export default class Site extends React.Component<Props, State> {
         // then, so the usual page makes no extra request (Jira BVTGC-49).
         if ([d.featured, ...(d.items || [])].some((p) => !isCategory(p.category))) this.loadCatNames(L);
       })
-      .catch(() => {});
+      .catch(() => this.showcaseAsked.delete(L));
   }
 
   private loadCatNames(L: Lang) {
@@ -457,12 +465,14 @@ export default class Site extends React.Component<Props, State> {
     ].map((a) => ({ kicker: tx[a.k + "k"], title: tx[a.k + "t"], desc: tx[a.k + "d"], cta: tx[a.k + "c"], bg: a.bg, border: a.border, accent: a.accent, go: a.go }));
     const levels = (
       [
-        ["l1", "S", "#0A2550"],
-        ["l2", "D", "#0D3B7A"],
-        ["l3", "M", "#07818e"],
-        ["l4", "V", "#1F8A3B"],
+        // [key, letter, circle colour, name colour]: the name is small text on cream, so the teal and green are a
+        // shade darker there to reach WCAG AA's 4.5:1 (audit WEB-A11Y-101, 2026-11-23).
+        ["l1", "S", "#0A2550", "#0A2550"],
+        ["l2", "D", "#0D3B7A", "#0D3B7A"],
+        ["l3", "M", "#07818e", "#077c88"],
+        ["l4", "V", "#1F8A3B", greenText],
       ] as const
-    ).map(([k, short, bg], i) => ({ name: t[k], example: tx[k + "e"], role: tx[k + "r"], desc: tx[k + "d"], short, bg, indent: mobile ? "0" : i * 36 + "px" }));
+    ).map(([k, short, bg, text], i) => ({ name: t[k], example: tx[k + "e"], role: tx[k + "r"], desc: tx[k + "d"], short, bg, text, indent: mobile ? "0" : i * 36 + "px" }));
     // How it works and Contact: the explainer rows under each page's main content.
     const howDetails = [1, 2, 3, 4, 5].map((n) => ({ title: tx["hw" + n], desc: tx["hw" + n + "d"] }));
     const contactHelp = [1, 2, 3, 4, 5].map((n) => ({ title: tx["ct" + n], desc: tx["ct" + n + "d"] }));
@@ -645,7 +655,7 @@ export default class Site extends React.Component<Props, State> {
     const v = this.renderVals();
     const { ink, fs } = ui(v);
     return (
-      <div ref={v.rootRef} className="gc-site" data-screen-label={v.page} style={{width: "100%", maxWidth: "100%", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflowX: "clip", background: cream, color: "#17212e", fontFamily: "'Nunito Sans','Telugu UI','Noto Sans Telugu',sans-serif"}}>
+      <div ref={v.rootRef} className="gc-site" data-screen-label={v.page} style={{width: "100%", maxWidth: "100%", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflowX: "clip", background: cream, color: "#17212e", fontFamily: "'Nunito Sans','Telugu UI','Telugu UI Local',sans-serif"}}>
         <a className="gc-skip" href="#main" onClick={v.skipToMain}>{I(v.t?.skipLink)}</a>
         <Header v={v} />
         <main id="main" tabIndex={-1} style={{flex: "1", display: "flex", flexDirection: "column"}}>

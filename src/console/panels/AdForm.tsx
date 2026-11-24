@@ -5,10 +5,10 @@ import type { View } from "../Console";
 
 const field = (bad: boolean) => css(`width:100%;box-sizing:border-box;height:42px;padding:0 12px;border-radius:10px;font-size:14px;background:#fff;border:1px solid ${bad ? "#b3261e" : "#cfd8e3"}`);
 const label = {fontSize: "13px", fontWeight: "700", color: "#0A2550"} as const;
-const hint = {fontSize: "12px", color: "#6b7a8c"} as const;
+const hint = {fontSize: "12px", color: "#647182"} as const;
 const errText = {fontSize: "12px", fontWeight: "700", color: "#b3261e"} as const;
 const col = {display: "flex", flexDirection: "column", gap: "6px"} as const;
-const optional = <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span>;
+const optional = <span style={{fontWeight: "400", color: "#647182"}}>· optional</span>;
 const changeBtn = {height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"} as const;
 
 export default function AdForm({ v }: { v: View }) {

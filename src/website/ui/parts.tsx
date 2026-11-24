@@ -16,8 +16,12 @@ export function RotatingWord({ words }: { words: View["words"] }) {
     }, 3200);
     return () => clearInterval(iv);
   }, []);
-  const w = words[i % words.length];
-  return <span key={i} className="gc-word" style={{display: "inline-flex", alignItems: "center", gap: ".25em", color: w.color}}><img src={w.icon} alt="" style={{width: ".85em", height: ".85em", borderRadius: "50%", flexShrink: "0"}} />{I(w.text)}</span>;
+  return <Word key={i} w={words[i % words.length]} />;
+}
+
+/** One of the hero's words with its icon; also drawn, hidden, in the hero's height reserve (Hero.tsx). */
+export function Word({ w, className = "gc-word" }: { w: View["words"][number]; className?: string }) {
+  return <span className={className} style={{display: "inline-flex", alignItems: "center", gap: ".25em", color: w.color}}><img src={w.icon} alt="" style={{width: ".85em", height: ".85em", borderRadius: "50%", flexShrink: "0"}} />{I(w.text)}</span>;
 }
 
 /** The India tricolour as a small flag strip. */

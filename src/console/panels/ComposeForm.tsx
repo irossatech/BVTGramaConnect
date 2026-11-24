@@ -7,7 +7,7 @@ import type { View } from "../Console";
 
 const field = (bad: boolean) => css(`width:100%;box-sizing:border-box;height:42px;padding:0 12px;border-radius:10px;font-size:14px;background:#fff;border:1px solid ${bad ? "#b3261e" : "#cfd8e3"}`);
 const label = {fontSize: "13px", fontWeight: "700", color: "#0A2550"} as const;
-const hint = {fontSize: "12px", color: "#6b7a8c"} as const;
+const hint = {fontSize: "12px", color: "#647182"} as const;
 const errText = {fontSize: "12px", fontWeight: "700", color: "#b3261e"} as const;
 const col = {display: "flex", flexDirection: "column", gap: "6px"} as const;
 // A required field's mark: the red star the prototype's Compose uses. Screen readers get aria-required instead.
@@ -63,7 +63,7 @@ export default function ComposeForm({ v }: { v: View }) {
             <span aria-live="polite" style={hint}>{I(f.where)}</span>
           </div>
           <div style={col}>
-            <span style={label}>Event date <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
+            <span style={label}>Event date <span style={{fontWeight: "400", color: "#647182"}}>· optional</span></span>
             <select name="evKind" aria-label="Event" value={val(f.evKind, "")} onChange={v.onCF} style={field(false)}>
               <option value="">No date</option>
               {list(f.evOpts).map((_o, _i1) => <option key={_i1} value={_o.id}>{_o.label}</option>)}
@@ -82,7 +82,7 @@ export default function ComposeForm({ v }: { v: View }) {
               </div> : <span style={hint}>Posts with a date show in the app's "Don't miss" list.</span>}
           </div>
           <div style={col}>
-            <span style={label}>Photos or video <span style={{fontWeight: "400", color: "#6b7a8c"}}>· optional</span></span>
+            <span style={label}>Photos or video <span style={{fontWeight: "400", color: "#647182"}}>· optional</span></span>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
               {list(f.photos).map((_p, _i1) => (
                 <span key={_i1} style={{position: "relative", width: "80px", height: "80px", borderRadius: "10px", overflow: "hidden", background: _p.isVideo ? "#0A2550" : "#f7f9fb"}}>

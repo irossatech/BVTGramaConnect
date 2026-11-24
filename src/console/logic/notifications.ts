@@ -7,11 +7,12 @@ import { adaptPost, openPost } from "./posts";
 import { openRequest } from "./requests";
 
 // ---- notifications (the bell) ----
-export function loadNotifs(h: ConsoleHost, more?: boolean) {
+/** background: the once-a-minute refresh (Console.tsx), sent as an automatic check (BVTGC-72). */
+export function loadNotifs(h: ConsoleHost, more?: boolean, background = false) {
   const cursor = more ? h.state.notifNext : null;
   if (more && !cursor) return;
   h.setState({notifLoading: true, notifError: false});
-  h.api.get<NotificationPage>('/notifications/', cursor ? {cursor} : undefined).then((d) => {
+  (background ? h.api.getBackground : h.api.get)<NotificationPage>('/notifications/', cursor ? {cursor} : undefined).then((d) => {
     let next: string | null = null;
     try {
       next = d.next ? new URL(d.next, window.location.href).searchParams.get('cursor') : null;

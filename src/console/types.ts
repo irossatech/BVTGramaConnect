@@ -61,7 +61,7 @@ export interface Me {
    *  SUPER_ADMIN_CAN_POST is on, although the role has posts.create_post). */
   capabilities?: { can_post?: boolean };
   /** Platform limits the clients follow; max_photos_per_post is MAX_PHOTOS_PER_POST. */
-  rules?: { max_photos_per_post?: number };
+  rules?: { max_photos_per_post?: number; console_idle_minutes?: number };
 }
 
 /** POST /auth/session/login/: {user: Me}. */
@@ -75,8 +75,12 @@ export interface User {
   username?: string;
   name: string;
   name_te?: string;
+  /** mobile and email: absent from list rows with contact=0 (BVTGC-75); GET /users/{id}/ always has them. */
   mobile?: string | null;
   email?: string | null;
+  /** The last 4 digits of the mobile ("" without one) and the email as "r***@example.org" ("" without one). */
+  mobile_last4?: string;
+  email_masked?: string;
   is_active?: boolean;
   status?: string;
   role_assignments?: RoleAssignment[];
@@ -151,6 +155,9 @@ export interface Category {
   name_te: string;
   is_active: boolean;
   post_count?: number;
+  /** The icon uploaded when the category was added (backend plan: category icon upload); null or missing for the
+   *  built-in four (they keep the design system's icons) and on an older server. */
+  icon_url?: string | null;
 }
 
 export interface Media {

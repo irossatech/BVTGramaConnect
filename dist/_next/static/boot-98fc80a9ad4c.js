@@ -103,11 +103,22 @@
         if (waiting && !ready()) stopWaiting();
       }, GIVE_UP_MS);
   }
+  // One after another, each in a task of its own: added all at once, the downloaded scripts ran back to back in one
+  // long block (about 300 ms on a slow phone) during which a tap could not be answered (audit WEB-PERF-102,
+  // 2026-11-23). They are already downloading (<link rel=preload>), so waiting for each costs next to nothing.
+  var nextIdx = 0;
+  function next() {
+    if (nextIdx < list.length) add(list[nextIdx++], 0);
+  }
+  function done() {
+    settled();
+    setTimeout(next, 0);
+  }
   function add(src, attempt) {
     var s = document.createElement("script");
     s.src = src;
     s.async = false; // run in the listed order, like the defer tags did
-    s.onload = settled;
+    s.onload = done;
     s.onerror = function () {
       if (s.parentNode) s.parentNode.removeChild(s);
       // Next.js's chunks wait for the ones they need, so a chunk that arrives late still starts the page.
@@ -115,14 +126,12 @@
         setTimeout(function () {
           add(src, attempt + 1);
         }, RETRY_MS[attempt]);
-      else settled();
+      else done();
     };
     document.head.appendChild(s);
   }
   function load() {
-    list.forEach(function (src) {
-      add(src, 0);
-    });
+    next();
   }
   // Right after the browser reports its first contentful paint; after 3 s anyway (a background tab never paints,
   // and very old browsers have no paint timing).

@@ -2,7 +2,7 @@
 import { I, css } from "../../shared/dc";
 import type { View } from "../Console";
 
-const label = {width: "112px", flexShrink: "0", fontSize: "12px", fontWeight: "600", color: "#6b7a8c"} as const;
+const label = {width: "112px", flexShrink: "0", fontSize: "12px", fontWeight: "600", color: "#647182"} as const;
 const value = {flex: "1", minWidth: "0", fontSize: "14px", fontWeight: "600", color: "#17212e", lineHeight: "1.45", overflowWrap: "anywhere"} as const;
 
 export default function AuditPanel({ v }: { v: View }) {
@@ -17,7 +17,7 @@ export default function AuditPanel({ v }: { v: View }) {
           <div style={{flex: "1", minWidth: "0", display: "flex", flexDirection: "column", gap: "6px"}}>
             <span style={css(`align-self:flex-start;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700;background: ${a.kbg};color: ${a.kcolor}`)}>{I(a.kind)}</span>
             <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550", lineHeight: "1.3"}}>{I(a.actionCap)}</span>
-            <span style={{fontSize: "12px", color: "#6b7a8c"}}>{I(a.ago)}</span>
+            <span style={{fontSize: "12px", color: "#647182"}}>{I(a.ago)}</span>
           </div>
           <button onClick={v.closeAE} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>

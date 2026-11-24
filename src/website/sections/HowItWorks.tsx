@@ -32,7 +32,7 @@ export default function HowItWorks({ v }: { v: View }) {
                 <span style={{display: "block", marginTop: "2px", fontSize: fs.sm, lineHeight: "1.45", color: muted}}>{I(_l?.example)}</span>
               </span>
               <div style={{gridColumn: rsp("auto", "2"), minWidth: "0", paddingTop: rsp("2px", "0")}}>
-                <div style={{display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: "700", fontSize: fs.sm, color: _l?.bg, marginBottom: "6px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" /></svg>{I(_l?.role)}</div>
+                <div style={{display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: "700", fontSize: fs.sm, color: _l?.text, marginBottom: "6px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" /></svg>{I(_l?.role)}</div>
                 <div style={{fontSize: fs.base, lineHeight: v.te ? "1.75" : "1.6", color: muted, maxWidth: "62ch", textWrap: "pretty"}}>{I(_l?.desc)}</div>
               </div>
             </li>

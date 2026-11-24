@@ -36,12 +36,20 @@ const catKey = (en: string) => en.toLowerCase().replace(/[^a-z0-9]+/g, '_').repl
 // BVTGC-49). It starts switched on; the app and the website list it from the server.
 function addCategory(h: ConsoleHost) {
   h.ask({title: 'Add category', body: 'A new post category. It is on at once: officials can post in it, and citizens see it as its own News tab.',
-    hasInput: true, noGen: true, inputLabel: 'Name in English', inputPh: 'For example Health', input2Label: 'Name in Telugu', input2Ph: 'ఉదా: ఆరోగ్యం',
-    confirmLabel: 'Add category', bg: '#0D3B7A', onConfirm: (t, _sel, _gen, t2) => {
+    hasInput: true, noGen: true, inputLabel: 'Name in English', inputPh: 'For example Health', input2Label: 'Name in Telugu', input2Ph: 'ఉదా: ఆరోగ్యం', teFromEn: true,
+    imageLabel: 'Icon',
+    confirmLabel: 'Add category', bg: '#0D3B7A', onConfirm: (t, _sel, _gen, t2, icon) => {
       const en = t.trim(), te = t2.trim(), key = catKey(en);
       if (!en || !te) return h.toast('Write the name in English and in Telugu.', '#b3261e');
       if (!key) return h.toast('Write the English name in English letters.', '#b3261e');
-      h.api.post('/admin/categories/', {key, name_en: en, name_te: te}).then(() => {
+      if (!icon) return h.toast('Upload an icon for the category.', '#b3261e');
+      // Multipart with the icon (backend plan BE: category icon upload); the server answers with `icon_url`.
+      const fd = new FormData();
+      fd.append('key', key);
+      fd.append('name_en', en);
+      fd.append('name_te', te);
+      fd.append('icon', icon);
+      h.api.upload('/admin/categories/', fd).then(() => {
         h.toast('Category added · ' + en);
         loadAdminCategories(h);
       }).catch((e: unknown) => h.fail(e));
@@ -60,7 +68,7 @@ export function loadSettings(h: ConsoleHost) {
 /** The page's renderVals() values (screens/Settings.tsx). */
 export function settingsView(h: ConsoleHost) {
   const s = h.state;
-  const catRows = s.categories.map((c) => ({te: c.name_te, en: c.name_en, icon: CAT_ICONS.find((k) => k === c.key) ?? 'updates', count: c.post_count || 0, on: !!c.is_active, swBg: c.is_active ? '#1F8A3B' : '#cfd8e3', swLeft: c.is_active ? '21px' : '3px',
+  const catRows = s.categories.map((c) => ({te: c.name_te, en: c.name_en, icon: CAT_ICONS.find((k) => k === c.key) ?? 'updates', iconUrl: c.icon_url || '', count: c.post_count || 0, on: !!c.is_active, swBg: c.is_active ? '#1F8A3B' : '#cfd8e3', swLeft: c.is_active ? '21px' : '3px',
     toggle: () => h.api.patch('/admin/categories/' + c.id + '/', {is_active: !c.is_active}).then(() => {
       h.toast(c.name_en + (c.is_active ? ' disabled' : ' enabled'), c.is_active ? '#E9791E' : '#6cc04a');
       loadAdminCategories(h);
@@ -98,6 +106,13 @@ export function settingsView(h: ConsoleHost) {
     settings: s.settings, catRows, langRows, templates, badge36: {size: 36},
     canAddCat: h.can('posts.manage_categories'), addCat: () => addCategory(h),
     onEscalation: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, escalation: Number(e.target.value) || 0}})), saveSettings: () => h.api.patch('/admin/settings/', {review_escalation_hours: s.settings.escalation}).then(() => h.toast('Settings saved · review time limit ' + s.settings.escalation + ' h')).catch((e: unknown) => h.fail(e)),
+    // − and + beside the numbers, as the app's Settings: 6 hours a step (6 to 168), one post a step (0 to 1000).
+    escLess: () => h.setState((st) => ({settings: {...st.settings, escalation: Math.max(6, (Number(st.settings.escalation) || 6) - 6)}})),
+    escMore: () => h.setState((st) => ({settings: {...st.settings, escalation: Math.min(168, (Number(st.settings.escalation) || 0) + 6)}})),
+    canEscLess: (Number(s.settings.escalation) || 0) > 6, canEscMore: (Number(s.settings.escalation) || 0) < 168,
+    citLess: () => h.setState((st) => ({settings: {...st.settings, citizenPerDay: Math.max(0, (Number(st.settings.citizenPerDay) || 0) - 1)}})),
+    citMore: () => h.setState((st) => ({settings: {...st.settings, citizenPerDay: Math.min(1000, (Number(st.settings.citizenPerDay) || 0) + 1)}})),
+    canCitLess: (Number(s.settings.citizenPerDay) || 0) > 0, canCitMore: (Number(s.settings.citizenPerDay) || 0) < 1000,
     onCitizenPerDay: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, citizenPerDay: e.target.value === '' ? '' : Math.max(0, Math.min(1000, Math.round(Number(e.target.value) || 0)))}})),
     saveCitizenPerDay: () => {
       const n = Number(s.settings.citizenPerDay) || 0;

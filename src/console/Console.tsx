@@ -6,32 +6,6 @@ import { css } from "../shared/dc";
 import GC_API, { ApiError } from "./api";
 import Checking from "./screens/Checking";
 import AuthLayout from "./layout/AuthLayout";
-import Sidebar from "./layout/Sidebar";
-import TopBar from "./layout/TopBar";
-import DashboardScreen from "./screens/Dashboard";
-import Geography from "./screens/Geography";
-import Users from "./screens/Users";
-import Posts from "./screens/Posts";
-import Reports from "./screens/Reports";
-import Audit from "./screens/Audit";
-import Messages from "./screens/Messages";
-import ServiceTabs from "./screens/ServiceTabs";
-import Requests from "./screens/Requests";
-import Ads from "./screens/Ads";
-import Services from "./screens/Services";
-import Numbers from "./screens/Numbers";
-import SettingsScreen from "./screens/Settings";
-import DetailPanel from "./panels/DetailPanel";
-import UserDrawer from "./panels/UserDrawer";
-import RequestPanel from "./panels/RequestPanel";
-import ContactPanel from "./panels/ContactPanel";
-import AuditPanel from "./panels/AuditPanel";
-import ServiceFormPanel from "./panels/ServiceForm";
-import AdFormPanel from "./panels/AdForm";
-import ComposeFormPanel from "./panels/ComposeForm";
-import NumberFormPanel from "./panels/NumberForm";
-import TypeFormPanel from "./panels/TypeForm";
-import ConfirmModal from "./panels/ConfirmModal";
 import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import type { ConsoleHost } from "./logic/host";
@@ -53,9 +27,12 @@ import type { Area, GeoState, GeoVillage,
   LoginResponse, Me,
 } from "./types";
 
-import { FORMS, LEVEL_OF_ROLE, one, isStatus, blobPreviews, historyPage, EMPTY_NU } from "./model";
+import { FORMS, LEVEL_OF_ROLE, one, isStatus, blobPreviews, historyPage, EMPTY_NU, pickFile } from "./model";
 import type { Props, PageKey, NavKey, FieldChange, Timer, AreaOption, ModalSpec, GeoDistrictRow, GeoVillageRow, SelKey, SelId, BulkOptions, SelView, State, TeForm } from "./model";
 export type { SelView } from "./model";
+
+// The signed-in screens load after sign-in (WEB-PERF-003): see AppShell.tsx.
+const AppShell = React.lazy(() => import("./AppShell"));
 
 export type View = ReturnType<Component["renderVals"]>;
 
@@ -72,6 +49,11 @@ export default class Component extends React.Component<Props, State> {
   // 2026-10-21: 30-minute idle timeout). The bell's background poll does not count, though it keeps the server
   // session fresh, so the console itself ends an unattended session.
   private static readonly IDLE_MS = 30 * 60 * 1000;
+  /** The idle limit the server sets (/me rules.console_idle_minutes, Jira BVTGC-72), else the 30 minutes above. */
+  private idleMs(): number {
+    const m = Number(this.state.me?.rules?.console_idle_minutes);
+    return m > 0 ? m * 60 * 1000 : Component.IDLE_MS;
+  }
   private static readonly ACTIVITY: readonly string[] = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
 
   // Everything the console shows starts from here, and goes back here on sign-out (nothing of the last session stays).
@@ -90,7 +72,7 @@ export default class Component extends React.Component<Props, State> {
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
     settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},
-    modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', toasts: [], imp: null,
+    modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', modalFile: null, modalImg: '', toasts: [], imp: null,
   };
 
   state: State = {...Component.INITIAL};
@@ -313,7 +295,7 @@ export default class Component extends React.Component<Props, State> {
   private checkIdle() {
     const s = this.state;
     if (s.screen !== 'app' && s.screen !== 'change_password') return false;
-    if (Date.now() - this.lastActive < Component.IDLE_MS) return false;
+    if (Date.now() - this.lastActive < this.idleMs()) return false;
     this.api.logout();
     this.resetSession(true);
     this.toast('Your session has ended. Log in again.', '#E9791E');
@@ -366,11 +348,21 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private ask(m: ModalSpec) {
-    this.setState({modal: m, modalText: m.preset || '', modalText2: m.preset2 || '', modalSel: m.sel || (m.options && m.options.length ? m.options[0].id : ''), modalGen: ''});
+    this.setState({modal: m, modalText: m.preset || '', modalText2: m.preset2 || '', modalSel: m.sel || (m.options && m.options.length ? m.options[0].id : ''), modalGen: '', modalFile: null, modalImg: ''});
   }
 
   private closeModal() {
-    this.setState({modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: ''});
+    if (this.state.modalImg) URL.revokeObjectURL(this.state.modalImg);
+    this.setState({modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', modalFile: null, modalImg: ''});
+  }
+
+  /** The dialog's image (Add category icon): PNG, JPG or WebP up to 2 MB, as service logos. */
+  private pickModalImage() {
+    pickFile('image/png,image/jpeg,image/webp', (file) => {
+      if (file.size > 2 * 1024 * 1024) return this.toast('The icon is larger than 2 MB', '#E9791E');
+      if (this.state.modalImg) URL.revokeObjectURL(this.state.modalImg);
+      this.setState({modalFile: file, modalImg: URL.createObjectURL(file)});
+    });
   }
 
   // ---- permissions (from GET /me/; the server enforces every one) ----
@@ -488,7 +480,7 @@ export default class Component extends React.Component<Props, State> {
       // An unattended console signs out after IDLE_MS; the poll itself must not keep it signed in.
       if (this.checkIdle()) return;
       // Only while signed in, the tab is visible and the list is closed (an open list is not reshuffled under the cursor).
-      if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') loadNotifs(this.host);
+      if (this.state.screen === 'app' && !this.state.notifOpen && document.visibilityState === 'visible') loadNotifs(this.host, false, true);
       // Service requests: a citizen's new request shows up without reopening the page, while no request is open.
       if (this.state.screen === 'app' && this.state.page === 'requests' && this.state.svcView === 'requests' && !this.state.rq && document.visibilityState === 'visible') loadRequests(this.host, this.state.reqPage, true);
     }, 60000);
@@ -729,12 +721,15 @@ export default class Component extends React.Component<Props, State> {
   private suggestTe(form: TeForm, en: string) {
     clearTimeout(this.teTimer);
     const seq = (this.teSeq = this.teSeq + 1);
+    // The dialog keeps its Telugu box in modalText2; the forms in their own `te`.
+    const teOf = (st: State): string | null => form === 'modal' ? (st.modal ? st.modalText2 : null) : (st[form] ? st[form].te || '' : null);
     const mine = () => {
-      const f = this.state[form];
-      return !!f && seq === this.teSeq && (!(f.te || '').trim() || f.te === this.teAuto);
+      const te = teOf(this.state);
+      return te !== null && seq === this.teSeq && (!te.trim() || te === this.teAuto);
     };
     const put = (te: string) => {
       this.teAuto = te;
+      if (form === 'modal') return this.setState((st) => st.modal ? {modalText2: te} : null);
       this.setState((st) => {
         const f = st[form];
         return f ? one(form, {...f, te}) : null;
@@ -742,7 +737,7 @@ export default class Component extends React.Component<Props, State> {
     };
     if (!mine()) return;
     if (!en.trim()) {
-      if (this.state[form]?.te) put('');
+      if (teOf(this.state)) put('');
       return;
     }
     this.teTimer = setTimeout(() => this.api.get<{te: string}>('/admin/transliterate/', {text: en.trim().slice(0, 150)})
@@ -773,7 +768,7 @@ export default class Component extends React.Component<Props, State> {
     const g = (me?.groups || []).map((x) => x.name || x.key).join(', ') || 'Super Admin';
     this.setState({menuOpen: false});
     // Name and Telugu name, as on the app's profile (PATCH /me/).
-    this.ask({title: 'My profile', body: 'Signed in as ' + (me?.username || '') + ' · ' + g + '. Your name shows in the console, the app and the audit log.', hasInput: true, noGen: true, inputLabel: 'Name', inputPh: 'Your name', preset: me?.name || '', input2Label: 'Name in Telugu', input2Ph: 'తెలుగులో పేరు', preset2: me?.name_te || '', confirmLabel: 'Save', onConfirm: (t, _sel, _gen, t2) => {
+    this.ask({title: 'My profile', body: 'Signed in as ' + (me?.username || '') + ' · ' + g + '. Your name shows in the console, the app and the audit log.', hasInput: true, noGen: true, inputLabel: 'Name', inputPh: 'Your name', preset: me?.name || '', input2Label: 'Name in Telugu', input2Ph: 'తెలుగులో పేరు', preset2: me?.name_te || '', teFromEn: true, confirmLabel: 'Save', onConfirm: (t, _sel, _gen, t2) => {
       const name = (t || '').trim();
       const nameTe = (t2 || '').trim();
       if (!name || (name === me?.name && nameTe === (me?.name_te || ''))) return;
@@ -807,9 +802,10 @@ export default class Component extends React.Component<Props, State> {
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
     // modal
     const m = s.modal;
-    const cannot = !!(m && m.needsText && !s.modalText.trim());
+    const cannot = !!(m && ((m.needsText && !s.modalText.trim()) || (m.imageLabel && !s.modalFile)));
     const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, inputType: m.password ? 'password' : 'text', hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
-      hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [], confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
+      hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [],
+      imageLabel: m.imageLabel || '', image: s.modalImg, pickImage: () => this.pickModalImage(), confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
     const me = s.me || {name: '', username: '', email: ''};
     return {screen: s.screen, is, pg, pageTitle: titles[s.page], navGroups, navOpen: s.navOpen, toggleNav: () => this.setState((st) => ({navOpen: !st.navOpen})), ...notificationsView(this.host), menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen, notifOpen: false})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
       meName: me.name, meInitial: (me.name || '?')[0], stateName: s.stateRow ? s.stateRow.name_en : '', stateTe: s.stateRow ? s.stateRow.name_te : '',
@@ -852,12 +848,16 @@ export default class Component extends React.Component<Props, State> {
       ...numbersView(this.host),
       ...settingsView(this.host),
       ...postPanelView(this.host), ...userPanelView(this.host),
-      modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => this.setState({modalText: e.target.value}), modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
+      modal, modalText: s.modalText, modalSel: s.modalSel, onModalText: (e: FieldChange) => {
+        const t = e.target.value;
+        this.setState({modalText: t});
+        if (s.modal?.teFromEn) this.suggestTe('modal', t);
+      }, modalText2: s.modalText2, onModalText2: (e: FieldChange) => this.setState({modalText2: e.target.value}), onModalSel: (e: FieldChange) => this.setState({modalSel: e.target.value}), closeModal: () => this.closeModal(),
       confirmModal: () => {
         if (!m || cannot) return;
-        const t = s.modalText, sel = s.modalSel, gen = s.modalGen, t2 = s.modalText2;
+        const t = s.modalText, sel = s.modalSel, gen = s.modalGen, t2 = s.modalText2, file = s.modalFile;
         this.closeModal();
-        m.onConfirm(t, sel, gen, t2);
+        m.onConfirm(t, sel, gen, t2, file);
       },
       genModal: (e?: React.MouseEvent) => {
         e?.preventDefault();
@@ -881,68 +881,7 @@ export default class Component extends React.Component<Props, State> {
         {" "}
         {/* APP SHELL */}
         {" "}
-        {v.is?.app ? <>
-          {" "}
-          <div className={"sa-shell" + (v.navOpen ? " is-open" : "")} style={{display: "grid", gridTemplateColumns: "248px minmax(0, 1fr)", height: "100dvh", overflow: "hidden"}}>
-            <Sidebar v={v} />
-            <button className="sa-scrim" aria-label="Close menu" tabIndex={v.navOpen ? 0 : -1} onClick={v.toggleNav} />
-            <main style={{display: "flex", flexDirection: "column", minWidth: "0", minHeight: "0"}}>
-              <TopBar v={v} />
-              <div ref={v.scrollRef} style={{flex: "1", minHeight: "0", overflowY: "auto"}}>
-              <div className="sa-content" style={{padding: "24px 28px 40px", display: "flex", flexDirection: "column", gap: "20px", animation: "sa-fade .2s ease-out"}}>
-                {/* DASHBOARD */}
-                {v.pg?.dashboard ? <DashboardScreen v={v} /> : null}
-                {/* GEOGRAPHY */}
-                {v.pg?.geography ? <Geography v={v} /> : null}
-                {/* USERS */}
-                {v.pg?.users ? <Users v={v} /> : null}
-                {/* POSTS */}
-                {v.pg?.posts ? <Posts v={v} /> : null}
-                {/* REPORTS */}
-                {v.pg?.reports ? <Reports v={v} /> : null}
-                {/* AUDIT */}
-                {v.pg?.audit ? <Audit v={v} /> : null}
-                {/* CONTACT MESSAGES */}
-                {v.pg?.contact ? <Messages v={v} /> : null}
-                {/* SERVICE REQUESTS */}
-                {v.pg?.requests && v.canCatalog ? <ServiceTabs v={v} /> : null}
-                {v.pg?.requests && (v.svcView === "requests" || !v.canCatalog) ? <Requests v={v} /> : null}
-                {/* ADS */}
-                {v.pg?.ads ? <Ads v={v} /> : null}
-                {/* SERVICES / BILLS: the services citizens can request, or the bills & recharges, on the app's Home
-                    (same as the app's Super Admin › Services and › Bills & Recharges) */}
-                {(v.pg?.requests || v.pg?.bills) && v.catShow ? <Services v={v} /> : null}
-                {/* IMPORTANT NUMBERS */}
-                {v.pg?.numbers ? <Numbers v={v} /> : null}
-                {/* SETTINGS */}
-                {v.pg?.settings ? <SettingsScreen v={v} /> : null}
-              </div>
-              </div>
-            </main>
-          </div>
-          {" "}
-          {/* SIDE PANEL (post / user) */}
-          {" "}
-          {v.panel?.show ? <DetailPanel v={v} /> : null}
-          {" "}
-          {/* ADD USER DRAWER */}
-          {" "}
-          {v.drawerOpen ? <UserDrawer v={v} /> : null}
-          {/* IMPORTANT NUMBER DRAWER */}
-          {v.rqShow ? <RequestPanel v={v} /> : null}
-          {v.cmShow ? <ContactPanel v={v} /> : null}
-          {v.aeShow ? <AuditPanel v={v} /> : null}
-          {v.sfShow ? <ServiceFormPanel v={v} /> : null}
-          {v.afShow ? <AdFormPanel v={v} /> : null}
-          {v.cfShow ? <ComposeFormPanel v={v} /> : null}
-          {v.nfShow ? <NumberFormPanel v={v} /> : null}
-          {v.tfShow ? <TypeFormPanel v={v} /> : null}
-          {" "}
-          {/* MODAL */}
-          {" "}
-          {v.modal?.show ? <ConfirmModal v={v} /> : null}
-          {" "}
-        </> : null}
+        {v.is?.app ? <React.Suspense fallback={<Checking />}><AppShell v={v} /></React.Suspense> : null}
         {" "}
         {/* CSV import progress */}
         {v.imp ? <ImportProgressPanel imp={v.imp} /> : null}

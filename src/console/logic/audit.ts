@@ -18,7 +18,7 @@ const KIND: Readonly<Record<string, readonly [string, string, string]>> = {post:
   auth: ['Sign-in', '#eef2f6', '#3b4a5c'], area: ['Area', '#e4f4df', '#1d7a33'], setting: ['Setting', '#fff0dc', '#b35a0e'], category: ['Setting', '#fff0dc', '#b35a0e'], template: ['Setting', '#fff0dc', '#b35a0e'],
   service: ['Service', '#dff3f5', '#07818e'], bill: ['Bill', '#dff3f5', '#07818e'], service_request: ['Request', '#dff3f5', '#07818e'], ad: ['Banner', '#fde7e5', '#b3261e'],
   contact: ['Number', '#e4f4df', '#1d7a33'], contacts: ['Number', '#e4f4df', '#1d7a33'], contact_type: ['Number', '#e4f4df', '#1d7a33'], citizen: ['Citizen', '#fff0dc', '#b35a0e'],
-  report: ['Report', '#eef2f6', '#3b4a5c'], email: ['System', '#eef2f6', '#6b7a8c'], push: ['System', '#eef2f6', '#6b7a8c']};
+  report: ['Report', '#eef2f6', '#3b4a5c'], email: ['System', '#eef2f6', '#647182'], push: ['System', '#eef2f6', '#647182']};
 
 export function loadAudit(h: ConsoleHost, page: number) {
   const latest = h.ticket('audit');
@@ -104,7 +104,7 @@ export function auditRow(h: ConsoleHost, a: AuditEntry) {
   const stranger = anon && !citizen && FAILED_SIGN_IN.has(a.action);
   const name = citizen ? 'A citizen' : stranger ? 'Someone' : (a.actor && a.actor.name) || 'System';
   const prefix = String(a.action || '').split('.')[0];
-  const kind = a.action === 'contact.handled' || a.action === 'contact.reopened' ? (['Message', '#e3f0fb', '#0D3B7A'] as const) : KIND[prefix] || (['System', '#eef2f6', '#6b7a8c'] as const);
+  const kind = a.action === 'contact.handled' || a.action === 'contact.reopened' ? (['Message', '#e3f0fb', '#0D3B7A'] as const) : KIND[prefix] || (['System', '#eef2f6', '#647182'] as const);
   const action = ACT[a.action] || humanAction(a.action);
   return {time: h.fmt(a.at, false), ago: ago(h, a.at), at: h.fmt(a.at, true), user: name, role: citizen ? 'Citizen (app)' : stranger ? 'Not signed in' : rk === 'system' ? 'Automatic' : ROLE[rk].label, action, actionCap: action.charAt(0).toUpperCase() + action.slice(1), kind: kind[0], kbg: kind[1], kcolor: kind[2], target: onWhat(a), area: placeOf(a.area), bg: citizen ? '#b35a0e' : ROLE[rk].bg, initial: name[0], rbg: citizen ? '#fff0dc' : ROLE[rk].tbg, rcolor: citizen ? '#b35a0e' : ROLE[rk].tc};
 }

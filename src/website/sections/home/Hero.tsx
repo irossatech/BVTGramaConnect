@@ -2,22 +2,36 @@
 import { I, list } from "../../../shared/dc";
 import type { View } from "../../Site";
 import { ui } from "../../ui/theme";
-import { Tricolour, StoreButtons, RotatingWord } from "../../ui/parts";
+import { Tricolour, StoreButtons, RotatingWord, Word } from "../../ui/parts";
 
 export default function Hero({ v }: { v: View }) {
   const { ink, cream, display, fs, wrap, h2, lead, badgeLight } = ui(v);
+  const heading = {...h2, fontWeight: v.te ? "700" : "800", fontSize: v.te ? "clamp(28px,min(4vw,7vh),52px)" : "clamp(32px,min(4.8vw,8.5vh),64px)", lineHeight: v.headLh};
+  const wordBox = {display: "inline-block", verticalAlign: "bottom", overflow: "hidden", paddingBottom: ".06em"} as const;
   return (
     <section style={{position: "relative", overflow: "hidden", background: cream}}>
         <div style={{...wrap, padding: "clamp(24px,min(4vw,5vh),56px) clamp(16px,4vw,40px) clamp(32px,min(5vw,6vh),64px)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "clamp(32px,5vw,64px)"}}>
           <div style={{flex: "1 1 520px", minWidth: "0", display: "flex", flexDirection: "column", gap: "clamp(14px,2.4vh,20px)"}}>
             <span className="gc-in" style={{...badgeLight, "--d": "0ms"}}><Tricolour />{I(v.t?.heroBadge)}</span>
-            <h1 className="gc-in" style={{"--d": "90ms", ...h2, fontWeight: v.te ? "700" : "800", fontSize: v.te ? "clamp(28px,min(4vw,7vh),52px)" : "clamp(32px,min(4.8vw,8.5vh),64px)", lineHeight: v.headLh}}>
-              {I(v.t?.wordPre)}{" "}
-              <span style={{display: "inline-block", verticalAlign: "bottom", overflow: "hidden", paddingBottom: ".06em"}}>
-                <RotatingWord words={v.words} />
-              </span>
-              {v.t?.wordPost ? <>{" "}{I(v.t.wordPost)}</> : null}
-            </h1>
+            {/* The heading keeps the height of its longest word: hidden copies with each word share its grid cell, so a
+                word that needs one more line no longer pushes the page down every few seconds (layout shift,
+                audit WEB-PERF-101, 2026-11-23). Only the real heading is read out. */}
+            <div style={{display: "grid"}}>
+              <h1 className="gc-in" style={{"--d": "90ms", ...heading, gridArea: "1 / 1"}}>
+                {I(v.t?.wordPre)}{" "}
+                <span style={wordBox}>
+                  <RotatingWord words={v.words} />
+                </span>
+                {v.t?.wordPost ? <>{" "}{I(v.t.wordPost)}</> : null}
+              </h1>
+              {list(v.words).map((w, i) => (
+                <div key={i} aria-hidden="true" style={{...heading, gridArea: "1 / 1", visibility: "hidden"}}>
+                  {I(v.t?.wordPre)}{" "}
+                  <span style={wordBox}><Word w={w} className="" /></span>
+                  {v.t?.wordPost ? <>{" "}{I(v.t.wordPost)}</> : null}
+                </div>
+              ))}
+            </div>
             <p className="gc-in" style={{"--d": "180ms", ...lead}}>{I(v.t?.heroSub)}</p>
             <div className="gc-in" style={{"--d": "270ms"}}><StoreButtons v={v} /></div>
           </div>

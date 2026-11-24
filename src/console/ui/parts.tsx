@@ -67,7 +67,7 @@ export function SegmentTabs({ items, label }: { items?: readonly {label: string;
   return (
     <div role="tablist" aria-label={label} style={{display: "inline-flex", alignSelf: "flex-start", flexWrap: "wrap", gap: "4px", padding: "4px", borderRadius: "12px", background: "#eef2f6"}}>
       {list(items).map((t, i) => (
-        <button key={i} role="tab" aria-selected={t.on} onClick={t.go} style={css(`height:36px;padding:0 18px;border:0;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;background: ${t.on ? "#fff" : "transparent"};color: ${t.on ? "#0A2550" : "#6b7a8c"};box-shadow: ${t.on ? "0 1px 3px rgba(10,37,80,.12)" : "none"}`)}>
+        <button key={i} role="tab" aria-selected={t.on} onClick={t.go} style={css(`height:36px;padding:0 18px;border:0;border-radius:9px;font-weight:700;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;background: ${t.on ? "#fff" : "transparent"};color: ${t.on ? "#0A2550" : "#647182"};box-shadow: ${t.on ? "0 1px 3px rgba(10,37,80,.12)" : "none"}`)}>
           {t.label}
           {t.count ? <span aria-label={t.countLabel} style={{minWidth: "20px", height: "20px", padding: "0 6px", borderRadius: "999px", fontSize: "11px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#0D3B7A", color: "#fff", fontFamily: "'Rubik',sans-serif"}}>{t.count}</span> : null}
         </button>
@@ -84,7 +84,7 @@ export function EmptyState({ title, hint, icon }: { title?: string; hint?: strin
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
       </span>
       <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"}}>{I(title)}</span>
-      {hint ? <span style={{fontSize: "13px", color: "#6b7a8c", maxWidth: "420px", lineHeight: "1.5"}}>{I(hint)}</span> : null}
+      {hint ? <span style={{fontSize: "13px", color: "#647182", maxWidth: "420px", lineHeight: "1.5"}}>{I(hint)}</span> : null}
     </div>
   );
 }
@@ -92,7 +92,7 @@ export function EmptyState({ title, hint, icon }: { title?: string; hint?: strin
 /** Prev / Page n of m / Next under a paged table. */
 export function Pager({ p }: { p: View["usersPager"] }) {
   return (
-    <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#6b7a8c"}}>
+    <div style={{display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "10px", fontSize: "13px", color: "#647182"}}>
         <button onClick={p?.prev} disabled={p?.prevOpacity !== 1} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.prevOpacity ?? ""}`)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "2px"}}><path d="M15 6l-6 6 6 6" /></svg>Prev</button>
         <span>{"Page "}{I(p?.page)}{" of "}{I(p?.pages)}</span>
         <button onClick={p?.next} disabled={p?.nextOpacity !== 1} style={css(`height:30px;padding:0 12px;border:1px solid #cfd8e3;border-radius:999px;background:#fff;color:#0D3B7A;font-weight:700;cursor:pointer;font-size:12px;opacity: ${p?.nextOpacity ?? ""}`)}>Next<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{verticalAlign: "-2px", marginLeft: "2px"}}><path d="M9 6l6 6-6 6" /></svg></button>
@@ -157,7 +157,7 @@ export function SearchSelect(props: React.SelectHTMLAttributes<HTMLSelectElement
           {shown.map((o, i) => (
             <button key={i} type="button" role="option" aria-selected={o === cur} onClick={() => pick(o)} style={{display: "block", width: "100%", textAlign: "left", padding: "8px 10px", border: "0", borderRadius: "6px", background: o === cur ? "#e3f0fb" : "transparent", color: "#17212e", fontSize: "13px", fontWeight: o === cur ? "700" : "400", cursor: "pointer"}}>{o.label}</button>
           ))}
-          {shown.length ? null : <div style={{padding: "8px 10px", color: "#6b7a8c", fontSize: "13px"}}>No match</div>}
+          {shown.length ? null : <div style={{padding: "8px 10px", color: "#647182", fontSize: "13px"}}>No match</div>}
         </div>
       </div> : null}
     </div>

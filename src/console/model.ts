@@ -42,7 +42,7 @@ export interface ModalSpec {
   body: string;
   confirmLabel: string;
   bg?: string;
-  onConfirm: (text: string, sel: string, gen: string, text2: string) => void;
+  onConfirm: (text: string, sel: string, gen: string, text2: string, file: File | null) => void;
   noCancel?: boolean;
   secret?: string;
   preset?: string;
@@ -62,6 +62,10 @@ export interface ModalSpec {
   input2Label?: string;
   input2Ph?: string;
   preset2?: string;
+  /** The second field is the Telugu name: filled from the first as the admin types (suggestTe). */
+  teFromEn?: boolean;
+  /** An image the admin must upload (Add category: its icon); passed to onConfirm as `file`. */
+  imageLabel?: string;
 }
 
 /** The New post panel (same fields as the app's Compose). */
@@ -180,8 +184,12 @@ export interface AdminUser {
   name: string;
   te: string;
   nameTe: string;
+  /** Full mobile and email: only once `full` (GET /users/{id}/); list rows carry the masked values (BVTGC-75). */
   mobile: string;
   email: string;
+  mobileLast4: string;
+  emailMasked: string;
+  full: boolean;
   username: string;
   role: string;
   district: string | null;
@@ -534,6 +542,9 @@ export interface State {
   modalText2: string;
   modalSel: string;
   modalGen: string;
+  /** The image picked in the dialog (ModalSpec.imageLabel) and its preview URL. */
+  modalFile: File | null;
+  modalImg: string;
   toasts: Toast[];
   imp: ImportProgress | null;
 }
@@ -541,7 +552,7 @@ export interface State {
 /** The forms Escape closes, top first. */
 export const FORMS = ["tf", "nf", "sf", "af", "rq", "cm", "cf"] as const;
 /** The forms whose Telugu name is suggested from the English one. */
-export type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf";
+export type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf" | "modal";
 
 // setState for a key picked at runtime. TypeScript widens {[key]: value} to an index signature,
 // so the one assertion here names it back as the key it is.
@@ -637,7 +648,7 @@ export interface Tone {
 }
 
 /** Role badges, by role key (super, district…). */
-export const ROLE: Readonly<Record<string, RoleStyle>> = {super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#6b7a8c',tbg:'#eef2f6',tc:'#3b4a5c'}};
+export const ROLE: Readonly<Record<string, RoleStyle>> = {super:{label:'Super Admin',bg:'#0A2550',tbg:'#e3f0fb',tc:'#0D3B7A'},district:{label:'District Admin',bg:'#0D3B7A',tbg:'#e3f0fb',tc:'#0D3B7A'},mandal:{label:'Mandal Admin',bg:'#07818e',tbg:'#dff3f5',tc:'#07818e'},village:{label:'Village Admin',bg:'#1F8A3B',tbg:'#e4f4df',tc:'#1d7a33'},panchayat:{label:'Panchayat Member',bg:'#E9791E',tbg:'#fff0dc',tc:'#b35a0e'},system:{label:'System',bg:'#647182',tbg:'#eef2f6',tc:'#3b4a5c'}};
 /** API role key (SUPER_ADMIN…) to role key. */
 export const RK: Readonly<Record<string, string>> = {SUPER_ADMIN:'super',DISTRICT_ADMIN:'district',MANDAL_ADMIN:'mandal',VILLAGE_ADMIN:'village',PANCHAYAT_MEMBER:'panchayat',SYSTEM:'system'};
 

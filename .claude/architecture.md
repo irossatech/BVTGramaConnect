@@ -55,6 +55,8 @@ src/
       numbers.ts            Important numbers and contact types
       settings.ts           Settings
       notifications.ts      the bell (the once-a-minute refresh stays in Console.tsx with the idle sign-out)
+    AppShell.tsx            the signed-in console's markup (sidebar, top bar, screens, panels, dialogs): its own download,
+                            loaded with React.lazy after sign-in (WEB-PERF-003); Console.tsx keeps the logic and state
     ConsolePage.tsx         page <head> (noindex), page CSS; loads Console client-only
     layout/                 AuthLayout (sign-in frame), Sidebar, TopBar, Notifications (the bell's list)
     screens/                one file per screen: Login, ChangePassword, Dashboard, Geography, Users, Posts,

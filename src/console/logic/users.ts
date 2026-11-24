@@ -5,7 +5,7 @@
 import type React from "react";
 import type { Area, AreaLevel, Paged, Post, RoleAssignment, TemporaryPassword, User, UserResponse } from "../types";
 import { EMPTY_NU, LEVEL_OF_ROLE, pageCount, pager, PAGE_SIZE, RK, ROLE, type AdminUser, type BulkAction, type FieldChange, type NewUserForm, type Option } from "../model";
-import { maskMobile } from "../mask";
+import { mobileDigits } from "../mask";
 import type { ConsoleHost } from "./host";
 import { adaptPost, postRow } from "./posts";
 
@@ -36,8 +36,12 @@ function adaptUser(h: ConsoleHost, u: User): AdminUser {
   const ra = ras[0] || null;
   const role = ra ? (RK[ra.role] || 'panchayat') : 'panchayat';
   const parts = pathParts(ra && ra.area);
+  // A list row asked with contact=0 has no mobile or email keys, only the masked values (BVTGC-75); a server
+  // without that change still sends the full ones, so the masked values are made from them then.
+  const full = 'mobile' in u || 'email' in u;
   return {
-    id: u.id, name: u.name, te: u.name_te || u.name, nameTe: u.name_te || '', mobile: u.mobile || '', email: u.email || '', username: u.username || '', role,
+    id: u.id, name: u.name, te: u.name_te || u.name, nameTe: u.name_te || '', mobile: u.mobile || '', email: u.email || '',
+    mobileLast4: u.mobile_last4 ?? mobileDigits(u.mobile).slice(-4), emailMasked: u.email_masked ?? '', full, username: u.username || '', role,
     district: parts.district, mandal: parts.mandal, village: parts.village, area: ra ? ra.area : null, raId: ra ? ra.id : null, ras,
     active: u.is_active !== undefined ? !!u.is_active : u.status === 'ACTIVE', locked: !!u.locked_out,
     allowed: Array.isArray(u.allowed_actions) ? u.allowed_actions : null, last: h.fmtLast(u.last_login_at),
@@ -50,7 +54,7 @@ export function loadUsers(h: ConsoleHost, page: number) {
   const uf = h.state.uf;
   const latest = h.ticket('users');
   h.setState({usersLoading: true});
-  h.api.get<Paged<User> & {counts?: {active: number; blocked: number}}>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', q: uf.q, page, page_size: PAGE_SIZE})
+  h.api.get<Paged<User> & {counts?: {active: number; blocked: number}}>('/users/', {role: uf.role ? RAPI[uf.role] : '', district: uf.district, status: uf.status ? uf.status.toUpperCase() : '', q: uf.q, contact: '0', page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({users: d.results.map((u) => adaptUser(h, u)), userCount: d.count, userCounts: d.counts ? {active: d.counts.active, blocked: d.counts.blocked} : null, userPage: page, userPages: pageCount(d.count), usersLoading: false}))
     .catch((e: unknown) => {
       if (!latest()) return;
@@ -304,8 +308,13 @@ function saveNU(h: ConsoleHost) {
 }
 
 // The user's recent posts: dropped if another user's panel opened meanwhile (no one else's posts under this name).
+// The list row has no full mobile or email (contact=0, BVTGC-75): the panel reads them from GET /users/{id}/.
 function openUser(h: ConsoleHost, u: AdminUser) {
   h.setState({panel: {type: 'user', id: u.id}, panelUser: u, panelUserPosts: []});
+  const current = h.ticket('panelUser');
+  h.api.get<User>('/users/' + u.id + '/').then((x) => {
+    if (current()) h.setState((s) => ({panelUser: s.panel && s.panel.id === u.id ? adaptUser(h, x) : s.panelUser}));
+  }).catch((e: unknown) => current() && h.fail(e));
   const latest = h.ticket('panel');
   h.api.get<Paged<Post>>('/posts/', {author: u.id, page_size: 5}).then((d) => {
     if (latest()) h.setState({panelUserPosts: d.results.map((p) => adaptPost(h, p))});
@@ -320,7 +329,10 @@ export function userPanelView(h: ConsoleHost) {
   const su = pu ? {name: pu.name, te: pu.te !== pu.name ? pu.te : '', initial: pu.name[0], bg: R[pu.role].bg, roleLabel: R[pu.role].label, rbg: R[pu.role].tbg, rcolor: R[pu.role].tc,
     active: pu.active, locked: pu.locked,
     // Every row always shows: an empty one says "Not given" (greyed), so nothing seems to be missing.
-    contact: [{k: 'Username', v: pu.username || 'Not given', href: '', none: !pu.username}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : 'Not given', href: pu.mobile ? 'tel:+91' + pu.mobile : '', none: !pu.mobile}, {k: 'Email', v: pu.email || 'Not given', href: pu.email ? 'mailto:' + pu.email : '', none: !pu.email}],
+    // Until GET /users/{id}/ answers, the row's masked mobile and email show, without links (BVTGC-75).
+    contact: pu.full
+      ? [{k: 'Username', v: pu.username || 'Not given', href: '', none: !pu.username}, {k: 'Mobile', v: pu.mobile ? '+91 ' + pu.mobile : 'Not given', href: pu.mobile ? 'tel:+91' + pu.mobile : '', none: !pu.mobile}, {k: 'Email', v: pu.email || 'Not given', href: pu.email ? 'mailto:' + pu.email : '', none: !pu.email}]
+      : [{k: 'Username', v: pu.username || 'Not given', href: '', none: !pu.username}, {k: 'Mobile', v: pu.mobileLast4 ? '+91 ******' + pu.mobileLast4 : 'Not given', href: '', none: !pu.mobileLast4}, {k: 'Email', v: pu.emailMasked || 'Not given', href: '', none: !pu.emailMasked}],
     // The account: password state, sign-ins, when and by whom it was added, the app language.
     account: [
       {k: 'Password', v: pu.mustChange ? 'Temporary: must choose their own at the next sign-in' : 'Their own', warn: pu.mustChange},
@@ -337,7 +349,8 @@ export function userPanelView(h: ConsoleHost) {
       return {label: R[k].label, rbg: R[k].tbg, rcolor: R[k].tc, area: ra.area ? (ra.area.path || ra.area.name) : '—', canRemove: userCan(pu, 'remove_assignment'), remove: () => removeRole(h, pu, ra),
         canReassign: !!pu.raId && ra.id === pu.raId && userCan(pu, 'reassign'), reassign: () => reassignUser(h, pu)};
     }),
-    canEdit: userCan(pu, 'edit'), edit: () => editUser(h, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(h).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
+    // Edit details waits for the full mobile and email: the form sends them back, so masked values would erase them.
+    canEdit: pu.full && userCan(pu, 'edit'), edit: () => editUser(h, pu), canAddRole: userCan(pu, 'add_assignment') && roleChoices(h).length > 0, canReassign: !!pu.raId && userCan(pu, 'reassign'), canReset: userCan(pu, 'reset_password'), canUnlock: pu.locked && userCan(pu, 'unlock'), canToggle: userCan(pu, pu.active ? 'block' : 'unblock'),
     addRole: () => addRole(h, pu), reassign: () => reassignUser(h, pu), reset: () => resetPassword(h, pu), unlock: () => unlockUser(h, pu), toggle: () => toggleUser(h, pu), toggleLabel: pu.active ? 'Block user' : 'Unblock user', tbg: pu.active ? '#b3261e' : '#1d7a33'} : {fields: [], posts: [], roles: []};
   return {su};
 }
@@ -350,8 +363,9 @@ export function usersView(h: ConsoleHost) {
   const selIds: string[] = s.users.filter((u) => userCan(u, 'block') || userCan(u, 'unblock')).map((u) => u.id);
   const picked = s.userSel.filter((id): id is string => selIds.includes(id as string));
   // Second line under the name: the Telugu name, else the login username (never the English name twice).
-  // Mobile column: the mobile only, masked (audit WEB-DP-001); the user panel ("View") shows it, or the email, in full.
-  const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: maskMobile(u.mobile) || '—', roleLabel: u.noRole ? 'No role' : R[u.role].label, rbg: u.noRole ? R.system.tbg : R[u.role].tbg, rcolor: u.noRole ? R.system.tc : R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
+  // Mobile column: the last 4 digits only (audit WEB-DP-001; the server sends no more since BVTGC-75); the user panel
+  // ("View") shows it, or the email, in full.
+  const userRows = s.users.map((u) => ({rowKey: String(u.id), name: u.name, te: u.nameTe || u.username, mobile: u.mobileLast4 ? '+91 ******' + u.mobileLast4 : '—', roleLabel: u.noRole ? 'No role' : R[u.role].label, rbg: u.noRole ? R.system.tbg : R[u.role].tbg, rcolor: u.noRole ? R.system.tc : R[u.role].tc, bg: R[u.role].bg, initial: u.name[0], area: h.an(u.area),
     blocked: !u.active, lastLogin: u.last, toggleLabel: u.active ? 'Block' : 'Unblock', tcolor: u.active ? '#b3261e' : '#1d7a33',
     // Reassign area is in the user panel (View); the table keeps View and Block / Unblock.
     canToggle: userCan(u, u.active ? 'block' : 'unblock'), view: () => openUser(h, u), toggle: () => toggleUser(h, u),

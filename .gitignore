@@ -9,3 +9,6 @@ next-env.d.ts
 # The Android APK's source copy: the build copies it into dist/downloads/, which is committed.
 public/downloads/
 .DS_Store
+
+# Stage 6 verification reports (npm run test:all)
+test-reports/

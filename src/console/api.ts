@@ -83,11 +83,14 @@ interface RequestOptions {
   query?: Query;
   body?: unknown;
   form?: FormData;
+  /** An automatic check the user did not ask for (the bell's and the requests' once-a-minute refresh): sent with
+   *  X-Background-Request: 1, so the server does not count it as activity for the idle sign-out (Jira BVTGC-72). */
+  background?: boolean;
 }
 
 async function send(method: Method, path: string, opts: RequestOptions = {}): Promise<Response> {
   if (!SAFE.has(method)) await csrf();
-  const extra: Record<string, string> = {};
+  const extra: Record<string, string> = opts.background ? {'X-Background-Request': '1'} : {};
   let payload: BodyInit | undefined;
   if (opts.form) payload = opts.form;
   else if (opts.body !== undefined) {
@@ -129,6 +132,8 @@ async function download(path: string, query: Query, filename: string): Promise<v
 
 const GC_API = {
   get: <T>(path: string, query?: Query) => request<T>("GET", path, { query }),
+  /** The same GET as an automatic check (see RequestOptions.background). */
+  getBackground: <T>(path: string, query?: Query) => request<T>("GET", path, { query, background: true }),
   post: <T>(path: string, body?: unknown, query?: Query) => request<T>("POST", path, { body: body || {}, query }),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, { body: body || {} }),
   del: (path: string) => request<null>("DELETE", path),

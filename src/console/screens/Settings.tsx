@@ -8,8 +8,11 @@ const card = {background: "#fff", border: "1px solid #eef2f6", borderRadius: "14
 const title = {fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550", marginBottom: "6px"} as const;
 const rowLine = {display: "flex", alignItems: "center", gap: "12px", padding: "12px 0", borderTop: "1px solid #f3f5f8"} as const;
 const name = {display: "block", fontWeight: "700", color: "#0A2550"} as const;
-const help = {display: "block", fontSize: "12px", color: "#6b7a8c", marginTop: "2px", lineHeight: "1.45"} as const;
-const num = {width: "84px", height: "40px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "15px", fontWeight: "700", fontFamily: "'Rubik',sans-serif", textAlign: "center"} as const;
+const help = {display: "block", fontSize: "12px", color: "#647182", marginTop: "2px", lineHeight: "1.45"} as const;
+// − [number] + in one box, as the app's Settings steppers.
+const stepper = {display: "inline-flex", alignItems: "stretch", height: "40px", border: "1px solid #cfd8e3", borderRadius: "10px", overflow: "hidden", background: "#fff", flexShrink: "0"} as const;
+const stepBtn = {width: "36px", border: "0", background: "#f3f6fa", color: "#0D3B7A", fontSize: "18px", fontWeight: "700", lineHeight: "1", padding: "0"} as const;
+const num = {width: "56px", height: "100%", padding: "0 4px", border: "0", borderLeft: "1px solid #e3e9f0", borderRight: "1px solid #e3e9f0", fontSize: "15px", fontWeight: "700", fontFamily: "'Rubik',sans-serif", textAlign: "center", outlineColor: "#0D3B7A"} as const;
 const save = {height: "38px", padding: "0 16px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"} as const;
 
 /** An on/off switch that says what it does and whether it is on. */
@@ -28,19 +31,21 @@ export default function Settings({ v }: { v: View }) {
           the grid stretches them, Languages fills the rest of the right one, the category rows share their card's height. */}
       <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", alignItems: "stretch"}}>
         <section style={card} aria-labelledby="set-cats">
-          <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px"}}>
-            <span id="set-cats" style={title}>Post categories</span>
-            {v.canAddCat ? <button onClick={v.addCat} style={{height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", flexShrink: "0"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add category</button> : null}
+          <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "4px"}}>
+            <span style={{display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
+              <span id="set-cats" style={{...title, marginBottom: "0"}}>Post categories</span>
+              <span style={{fontSize: "12.5px", color: "#647182", lineHeight: "1.45"}}>A switched-off category is hidden from citizens and from New post.</span>
+            </span>
+            {v.canAddCat ? <button onClick={v.addCat} style={{...save, flexShrink: "0"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add category</button> : null}
           </div>
-          <span style={{fontSize: "12.5px", color: "#6b7a8c", marginTop: "-4px", marginBottom: "4px"}}>A switched-off category is hidden from citizens and from New post.</span>
           {/* The rows share the card's height evenly, so the card is filled without a gap at the bottom. */}
           {list(v.catRows).map((_c, _i1) => (
             <React.Fragment key={_i1}>
               <div style={{...rowLine, flex: "1"}}>
-                <div className="sc-host-x" style={{width: "36px", height: "36px", flexShrink: "0", opacity: _c?.on ? "1" : ".45"}}><ds.IconBadge category={_c?.icon} {...v.badge36} /></div>
+                <div className="sc-host-x" style={{width: "36px", height: "36px", flexShrink: "0", opacity: _c?.on ? "1" : ".45"}}><ds.IconBadge category={_c?.icon} {...v.badge36} icon={_c?.iconUrl ? <img alt="" src={_c.iconUrl} style={{width: "100%", height: "100%", objectFit: "cover"}} /> : undefined} /></div>
                 <span style={{flex: "1", minWidth: "0"}}>
                   <span style={{display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"}}>
-                    <span style={{fontWeight: "700", color: _c?.on ? "#0A2550" : "#6b7a8c"}}>{I(_c?.en)}</span>
+                    <span style={{fontWeight: "700", color: _c?.on ? "#0A2550" : "#647182"}}>{I(_c?.en)}</span>
                     {_c?.on ? null : <span style={{padding: "1px 8px", borderRadius: "999px", fontSize: "11px", fontWeight: "700", background: "#eef2f6", color: "#3b4a5c"}}>Hidden</span>}
                   </span>
                   <span style={help}><span lang="te">{I(_c?.te)}</span>{" · "}{I(_c?.count)}{_c?.count === 1 ? " post" : " posts"}</span>
@@ -58,7 +63,11 @@ export default function Settings({ v }: { v: View }) {
                 <span style={name}>Review time limit</span>
                 <span style={help}>A post waiting longer is sent up to the next level of admins (Escalated).</span>
               </label>
-              <input id="set-limit" type="number" min="6" max="168" value={val<number | "">(v.settings?.escalation, "")} onChange={v.onEscalation} style={num} />
+              <span style={stepper}>
+                <button type="button" onClick={v.escLess} disabled={!v.canEscLess} aria-label="6 hours less" style={{...stepBtn, opacity: v.canEscLess ? "1" : ".35", cursor: v.canEscLess ? "pointer" : "default"}}>−</button>
+                <input id="set-limit" type="text" inputMode="numeric" value={val<number | "">(v.settings?.escalation, "")} onChange={v.onEscalation} style={num} />
+                <button type="button" onClick={v.escMore} disabled={!v.canEscMore} aria-label="6 hours more" style={{...stepBtn, opacity: v.canEscMore ? "1" : ".35", cursor: v.canEscMore ? "pointer" : "default"}}>+</button>
+              </span>
               <span style={{color: "#3b4a5c", fontSize: "13px", width: "38px"}}>hours</span>
               <button onClick={v.saveSettings} aria-label="Save the review time limit" style={save}>Save</button>
             </div>
@@ -67,7 +76,11 @@ export default function Settings({ v }: { v: View }) {
                 <span style={name}>Citizen posts per day</span>
                 <span style={help}>Per phone, in 24 hours. 0 means no limit.</span>
               </label>
-              <input id="set-citizen" type="number" min="0" max="1000" value={val(v.settings?.citizenPerDay, "")} onChange={v.onCitizenPerDay} style={num} />
+              <span style={stepper}>
+                <button type="button" onClick={v.citLess} disabled={!v.canCitLess} aria-label="One post less" style={{...stepBtn, opacity: v.canCitLess ? "1" : ".35", cursor: v.canCitLess ? "pointer" : "default"}}>−</button>
+                <input id="set-citizen" type="text" inputMode="numeric" value={val(v.settings?.citizenPerDay, "")} onChange={v.onCitizenPerDay} style={num} />
+                <button type="button" onClick={v.citMore} disabled={!v.canCitMore} aria-label="One post more" style={{...stepBtn, opacity: v.canCitMore ? "1" : ".35", cursor: v.canCitMore ? "pointer" : "default"}}>+</button>
+              </span>
               <span style={{color: "#3b4a5c", fontSize: "13px", width: "38px"}}>{Number(v.settings?.citizenPerDay) === 0 ? "none" : "a day"}</span>
               <button onClick={v.saveCitizenPerDay} aria-label="Save citizen posts per day" style={save}>Save</button>
             </div>
@@ -92,9 +105,9 @@ export default function Settings({ v }: { v: View }) {
       </div>
       <section style={card} aria-labelledby="set-texts">
         <span id="set-texts" style={title}>Notification texts</span>
-        <span style={{fontSize: "12.5px", color: "#6b7a8c", marginTop: "-4px", marginBottom: "4px"}}>The text phones show for each notification. Each person gets it in their own language.</span>
-        {!list(v.templates).length ? <p style={{margin: "8px 0 0", fontSize: "13px", lineHeight: "1.5", color: "#6b7a8c"}}>No notification texts yet. They appear here once the server has them.</p> : <>
-          <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "200px 1fr 1fr 64px", gap: "16px", padding: "10px 0 6px", fontSize: "12px", fontWeight: "600", color: "#6b7a8c"}}>
+        <span style={{fontSize: "12.5px", color: "#647182", marginTop: "-4px", marginBottom: "4px"}}>The text phones show for each notification. Each person gets it in their own language.</span>
+        {!list(v.templates).length ? <p style={{margin: "8px 0 0", fontSize: "13px", lineHeight: "1.5", color: "#647182"}}>No notification texts yet. They appear here once the server has them.</p> : <>
+          <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "200px 1fr 1fr 64px", gap: "16px", padding: "10px 0 6px", fontSize: "12px", fontWeight: "600", color: "#647182"}}>
             <span>Notification</span><span>Telugu</span><span>English</span><span />
           </div>
           {list(v.templates).map((_tp, _i1) => (

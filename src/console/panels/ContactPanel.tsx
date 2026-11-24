@@ -2,7 +2,7 @@
 import { I, css } from "../../shared/dc";
 import type { View } from "../Console";
 
-const field = {fontSize: "12px", fontWeight: "600", color: "#6b7a8c"} as const;
+const field = {fontSize: "12px", fontWeight: "600", color: "#647182"} as const;
 const value = {fontSize: "14.5px", fontWeight: "600", color: "#17212e", lineHeight: "1.35"} as const;
 const heading = {fontFamily: "'Rubik',sans-serif", fontSize: "15px", fontWeight: "700", color: "#0A2550"} as const;
 
@@ -17,7 +17,7 @@ export default function ContactPanel({ v }: { v: View }) {
               <span style={{fontFamily: "'Rubik',sans-serif", fontSize: "17px", fontWeight: "700", color: "#0A2550"}}>{I(v.cm?.name)}</span>
               <span style={css(`padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background: ${v.cm?.sbg ?? ""};color: ${v.cm?.scolor ?? ""}`)}>{I(v.cm?.statusLabel)}</span>
             </div>
-            <div style={{fontSize: "12px", color: "#6b7a8c"}}>{"Received "}{I(v.cm?.time)}</div>
+            <div style={{fontSize: "12px", color: "#647182"}}>{"Received "}{I(v.cm?.time)}</div>
           </div>
           <button onClick={v.closeCM} aria-label="Close" style={{width: "36px", height: "36px", border: "0", borderRadius: "50%", background: "#f7f9fb", cursor: "pointer", color: "#3b4a5c", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>

@@ -16,7 +16,7 @@ export default function TypeForm({ v }: { v: View }) {
         <div style={{flex: "1", overflow: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px"}}>
           {v.tfEditing ? <div style={{display: "flex", flexDirection: "column", gap: "4px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Section</span>
-              <span style={{fontSize: "14px", color: "#3b4a5c"}}>{I(v.tfSectionLabel)} <span style={{color: "#6b7a8c", fontSize: "12.5px"}}>· cannot be changed</span></span>
+              <span style={{fontSize: "14px", color: "#3b4a5c"}}>{I(v.tfSectionLabel)} <span style={{color: "#647182", fontSize: "12.5px"}}>· cannot be changed</span></span>
             </div> : null}
           {v.tfEditing ? null : <div role="radiogroup" aria-label="Section" style={{display: "flex", flexDirection: "column", gap: "8px"}}>
             <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Section</span>
@@ -25,7 +25,7 @@ export default function TypeForm({ v }: { v: View }) {
                 <span aria-hidden="true" style={css(`flex-shrink:0;margin-top:2px;width:18px;height:18px;border-radius:50%;box-sizing:border-box;border: ${_o?.on ? "5px solid #0D3B7A" : "2px solid #cfd8e3"};background:#fff`)} />
                 <span style={{display: "flex", flexDirection: "column", gap: "2px"}}>
                   <span style={{fontSize: "14px", fontWeight: "700", color: "#0A2550"}}>{I(_o?.label)}</span>
-                  <span style={{fontSize: "12.5px", color: "#6b7a8c", lineHeight: "1.4"}}>{I(_o?.sub)}</span>
+                  <span style={{fontSize: "12.5px", color: "#647182", lineHeight: "1.4"}}>{I(_o?.sub)}</span>
                 </span>
               </button>
             ))}
@@ -36,9 +36,9 @@ export default function TypeForm({ v }: { v: View }) {
             {v.tfErr?.en ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.tfErr?.en)}</span> : null}
           </label>
           <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
-            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Telugu name <span style={{fontWeight: "600", color: "#6b7a8c"}}>(optional)</span></span>
+            <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Telugu name <span style={{fontWeight: "600", color: "#647182"}}>(optional)</span></span>
             <input name="te" value={val(v.tf?.te, "")} onChange={v.onTF} maxLength={60} placeholder="ఉదా. అంగన్‌వాడీ కేంద్రం" aria-invalid={!!v.tfErr?.te} style={css(`height:44px;padding:0 12px;border-radius:10px;font-size:14px;border:1px solid ${v.tfErr?.te ? "#b3261e" : "#cfd8e3"}`)} />
-            {v.tfErr?.te ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.tfErr?.te)}</span> : <span style={{fontSize: "12px", color: "#6b7a8c"}}>Citizens see this name in the app's Telugu mode. Left empty, they see the English name.</span>}
+            {v.tfErr?.te ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.tfErr?.te)}</span> : <span style={{fontSize: "12px", color: "#647182"}}>Citizens see this name in the app's Telugu mode. Left empty, they see the English name.</span>}
           </label>
         </div>
         <div style={{padding: "16px 24px", borderTop: "1px solid #eef2f6", display: "flex", gap: "10px"}}>

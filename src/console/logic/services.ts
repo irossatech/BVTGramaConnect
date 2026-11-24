@@ -173,6 +173,6 @@ export function servicesView(h: ConsoleHost) {
         colors: Object.entries(SVC_COLORS).map(([k, [cc, tt, label]]) => ({label, c: cc, tint: tt, on: f.color === k, pick: () => h.setState((st) => st.sf ? {sf: {...st.sf, color: k}} : null)}))};
     })() : null),
     svcView: s.svcView, canCatalog: h.navOk('services'),
-    svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, count: k === 'requests' ? (s.reqCounts?.NEW || 0) : 0, countLabel: (s.reqCounts?.NEW || 0) + ' new', on: s.svcView === k, go: () => h.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#6b7a8c', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
+    svcTabs: ([['requests', 'Citizen requests'], ['catalog', 'Services list']] as const).map(([k, label]) => ({label, count: k === 'requests' ? (s.reqCounts?.NEW || 0) : 0, countLabel: (s.reqCounts?.NEW || 0) + ' new', on: s.svcView === k, go: () => h.setState({svcView: k}), bg: s.svcView === k ? '#fff' : 'transparent', color: s.svcView === k ? '#0A2550' : '#647182', shadow: s.svcView === k ? '0 1px 3px rgba(10,37,80,.12)' : 'none'})),
   };
 }

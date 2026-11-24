@@ -9,12 +9,20 @@ import { pathOf, type Page } from "./routes";
 
 const CSS = `
 /* "Telugu UI": the mobile app's Telugu face (Noto Sans Telugu scaled to 88% with tighter line metrics), so Telugu sits
-   at the same size as the Latin text. Telugu characters only, so English pages never download it. */
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-400.woff2) format("woff2");font-weight:400 500;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-600.woff2) format("woff2");font-weight:600;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
-@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-700.woff2) format("woff2");font-weight:700 900;font-display:swap;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+   at the same size as the Latin text. Telugu characters only, so English pages never download it.
+   "optional": a font that arrives late is not swapped in mid-view, which moved the page on slow phones (layout shift
+   0.137 on the home page, audit WEB-PERF-101, 2026-11-23); it is cached and used from the next page load.
+   "Telugu UI Local": until then, the phone's own Noto Sans Telugu (every Android phone has it) with the same 88% size
+   and line metrics, so the page looks the same either way. The web copy of Noto Sans Telugu (124 KB) is no longer in
+   the website's font lists: as the fallback of a late "Telugu UI" it was downloaded and swapped in, a second
+   download and a 0.7 s re-layout on a slow phone. */
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-400.woff2) format("woff2");font-weight:400 500;font-display:optional;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-600.woff2) format("woff2");font-weight:600;font-display:optional;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI";src:url(/assets/fonts/telugu-ui-700.woff2) format("woff2");font-weight:700 900;font-display:optional;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI Local";src:local("Noto Sans Telugu"),local("NotoSansTelugu-Regular");font-weight:400 600;size-adjust:88%;ascent-override:95%;descent-override:30%;line-gap-override:0%;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
+@font-face{font-family:"Telugu UI Local";src:local("Noto Sans Telugu Bold"),local("NotoSansTelugu-Bold");font-weight:700 900;size-adjust:88%;ascent-override:95%;descent-override:30%;line-gap-override:0%;unicode-range:U+0C00-0C7F,U+0964-0965,U+200C-200D,U+25CC}
 :root{--blue-900:#0D3B7A;--green-600:#1F8A3B;--orange-500:#E9791E;--text-heading:#0A2550;--font-latin:"Rubik","Noto Sans Telugu",sans-serif;--font-telugu:"Nunito Sans","Noto Sans Telugu",sans-serif}
-body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Telugu UI","Noto Sans Telugu",sans-serif;color:#17212e;-webkit-font-smoothing:antialiased}
+body{margin:0;background:#F6F8F3;font-family:"Nunito Sans","Telugu UI","Telugu UI Local",sans-serif;color:#17212e;-webkit-font-smoothing:antialiased}
 a{color:#0D3B7A}a:hover{color:#0A2550}
 input,textarea,select,button{font-family:inherit}
 /* Cursor: the arrow everywhere; the hand on links and buttons; the text cursor only where you type. */

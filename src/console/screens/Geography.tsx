@@ -19,16 +19,16 @@ export default function Geography({ v }: { v: View }) {
           <div style={{display: "flex", alignItems: "center", gap: "10px", padding: "12px 8px", fontWeight: "700", color: "#0A2550", fontSize: "15px"}}>
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A3B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             {I(v.stateName)}{" "}
-            <span style={{fontWeight: "500", color: "#6b7a8c"}}>{I(v.stateTe)}</span>
+            <span style={{fontWeight: "500", color: "#647182"}}>{I(v.stateTe)}</span>
             <span style={{marginLeft: "auto"}}><button onClick={v.addDistrict} style={{height: "36px", padding: "0 14px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add district</button></span>
           </div>
           {" "}
           {v.noDistricts ? null : <div role="search" style={{padding: "4px 0 10px"}}>
             <label style={{position: "relative", display: "block"}}>
               <span className="sa-sr" style={{position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)"}}>Search districts, mandals and villages</span>
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7a8c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#647182" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)"}}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
               <input type="text" inputMode="search" enterKeyHint="search" spellCheck={false} autoCorrect="off" autoCapitalize="off" value={val(v.geoQ, "")} onChange={v.onGeoQ} onKeyDown={(e) => { if (e.key === "Escape") v.clearGeoQ(); }} placeholder="Search a district, mandal or village (English or Telugu, or LGD code)" autoComplete="off" style={{width: "100%", boxSizing: "border-box", height: "44px", padding: "0 44px 0 40px", border: "1px solid #cfd8e3", borderRadius: "10px", fontSize: "14px", background: "#f9fbfd", outlineColor: "#0D3B7A"}} />
-              {v.geoQ ? <button type="button" onClick={v.clearGeoQ} aria-label="Clear search" title="Clear search" style={{position: "absolute", right: "6px", top: "50%", transform: "translateY(-50%)", width: "32px", height: "32px", border: "0", borderRadius: "8px", background: "none", color: "#6b7a8c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
+              {v.geoQ ? <button type="button" onClick={v.clearGeoQ} aria-label="Clear search" title="Clear search" style={{position: "absolute", right: "6px", top: "50%", transform: "translateY(-50%)", width: "32px", height: "32px", border: "0", borderRadius: "8px", background: "none", color: "#647182", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"}}>
                 <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button> : null}
             </label>
@@ -37,21 +37,21 @@ export default function Geography({ v }: { v: View }) {
               {v.geoSearch.more ? <span style={{color: "#b35a0e"}}>{v.geoSearch.more}</span> : null}
             </div> : null}
           </div>}
-          {v.geoSearch?.empty ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>{v.geoSearch.empty}</div> : null}
-          {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#6b7a8c", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
+          {v.geoSearch?.empty ? <div style={{padding: "28px 8px", textAlign: "center", color: "#647182", fontSize: "13px", lineHeight: "1.5"}}>{v.geoSearch.empty}</div> : null}
+          {v.noDistricts ? <div style={{padding: "28px 8px", textAlign: "center", color: "#647182", fontSize: "13px", lineHeight: "1.5"}}>No districts yet. Use <b>Add district</b> or <b>Import CSV</b> to add districts, mandals and villages.</div> : null}
           {list(v.tree).map((_n, _i1) => (
             <React.Fragment key={_i1}>
               {" "}
               <div className="sa-geo-row" style={css(`display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid #f3f5f8;padding-right:8px;padding-left: ${_n?.indent ?? ""};background: ${_n?.rowBg ?? ""}`)}>
-                <button onClick={_n?.toggle} aria-label={_n?.toggleLabel} aria-expanded={_n?.open} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#6b7a8c;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
+                <button onClick={_n?.toggle} aria-label={_n?.toggleLabel} aria-expanded={_n?.open} style={css(`width:28px;height:28px;border:0;background:none;cursor:pointer;color:#647182;display:flex;align-items:center;justify-content:center;visibility: ${_n?.toggleVis ?? ""}`)}>
                   <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d={_n?.chev} /></svg>
                 </button>
                 <button onClick={_n?.select} style={{flex: "1", minWidth: "0", overflow: "hidden", display: "flex", alignItems: "center", gap: "10px", background: "none", border: "0", padding: "6px 0", cursor: "pointer", textAlign: "left", opacity: _n?.opacity}}>
                   <span style={css(`padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background: ${_n?.tagBg ?? ""};color: ${_n?.tagColor ?? ""}`)}>{I(_n?.kind)}</span>
                   <span style={{fontWeight: "700", color: "#0A2550", fontSize: "14px", flexShrink: "1", minWidth: "48px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(_n?.name)}</span>
-                  <span style={{color: "#6b7a8c", fontSize: "13px", flexShrink: "100", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(_n?.te)}</span>
+                  <span style={{color: "#647182", fontSize: "13px", flexShrink: "100", minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{I(_n?.te)}</span>
                   {_n?.inactive ? <span style={{padding: "2px 8px", borderRadius: "999px", background: "#eef2f6", color: "#3b4a5c", fontSize: "11px", fontWeight: "700"}}>Inactive</span> : null}
-                  <span style={{marginLeft: "auto", fontSize: "12px", color: "#6b7a8c", whiteSpace: "nowrap", flexShrink: "0"}}>{I(_n?.meta)}</span>
+                  <span style={{marginLeft: "auto", fontSize: "12px", color: "#647182", whiteSpace: "nowrap", flexShrink: "0"}}>{I(_n?.meta)}</span>
                 </button>
                 <span className="sa-geo-acts" style={{display: "flex", gap: "8px", flexShrink: "0"}}>
                 {_n?.canAdd ? <button onClick={_n?.add} style={{flexShrink: "0", whiteSpace: "nowrap", height: "30px", padding: "0 10px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px"}}>{"+ "}{I(_n?.childKind)}</button> : null}
@@ -67,9 +67,9 @@ export default function Geography({ v }: { v: View }) {
         <div className={"sa-geo-form" + (v.geoFormShow ? " is-open" : "")} onClick={(e) => { if (e.target === e.currentTarget) v.cancelGeo(); }} style={{position: "sticky", top: "20px", minWidth: "0", maxHeight: "calc(100vh - 104px)", overflowY: "auto", overscrollBehavior: "contain", borderRadius: "14px"}}>
         <div style={{background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "14px", minWidth: "0"}}>
           <div style={{fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550"}}>{I(v.geoFormTitle)}</div>
-          {v.geoFormEmpty ? <div style={{color: "#6b7a8c", fontSize: "13px", lineHeight: "1.6"}}>Select a district, mandal or village on the left to edit it, or use the + buttons to add a new entry under its parent.</div> : null}
+          {v.geoFormEmpty ? <div style={{color: "#647182", fontSize: "13px", lineHeight: "1.6"}}>Select a district, mandal or village on the left to edit it, or use the + buttons to add a new entry under its parent.</div> : null}
           {v.geoFormShow ? <>
-            <div style={{fontSize: "12px", color: "#6b7a8c"}}>{"Parent: "}<b style={{color: "#3b4a5c"}}>{I(v.geoForm?.parent)}</b></div>
+            <div style={{fontSize: "12px", color: "#647182"}}>{"Parent: "}<b style={{color: "#3b4a5c"}}>{I(v.geoForm?.parent)}</b></div>
             <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
               <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Name (English)<span style={{color: "#b3261e"}}> *</span></span>
               <input name="name" value={val(v.geoForm?.name, "")} onChange={v.onGeoField} placeholder={v.geoNamePh} style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.name ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
@@ -87,22 +87,22 @@ export default function Geography({ v }: { v: View }) {
               <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                 <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>PIN code</span>
                 <input name="pin" inputMode="numeric" maxLength={6} value={val(v.geoForm?.pin, "")} onChange={v.onGeoField} placeholder="522xxx" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.pin ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
-                <span style={css(`font-size:12px;line-height:1.5;font-weight:${v.geoErr?.pin ? "700" : "400"};color:${v.geoErr?.pin ? "#b3261e" : "#6b7a8c"}`)}>{v.geoErr?.pin ? v.geoErr.pin : "6-digit postal code (optional)"}</span>
+                <span style={css(`font-size:12px;line-height:1.5;font-weight:${v.geoErr?.pin ? "700" : "400"};color:${v.geoErr?.pin ? "#b3261e" : "#647182"}`)}>{v.geoErr?.pin ? v.geoErr.pin : "6-digit postal code (optional)"}</span>
               </label>
               <div style={{display: "flex", flexDirection: "column", gap: "8px"}}>
                 <label style={{display: "flex", flexDirection: "column", gap: "6px"}}>
                   <span style={{fontSize: "12px", fontWeight: "700", color: "#0A2550"}}>Location{v.geoCoordsRequired ? <span style={{color: "#b3261e"}}> *</span> : null}</span>
                   <input name="where" value={val(v.geoForm?.where, "")} onChange={v.onGeoWhere} placeholder="Paste a Google Maps link or 16.2345, 80.4567" autoComplete="off" style={css(`min-width:0;height:42px;padding:0 12px;border:1px solid ${v.geoErr?.coords ? "#b3261e" : "#cfd8e3"};border-radius:10px;font-size:14px;outline-color:#0D3B7A`)} />
-                  <span style={css(`font-size:12px;line-height:1.5;color:${v.geoWhereOk ? "#1d7a33" : "#6b7a8c"};font-weight:${v.geoWhereOk ? "700" : "400"}`)}>{v.geoWhereNote ? v.geoWhereNote : "Find the village on Google Maps, copy its link (or right-click it and copy the numbers), and paste here."}</span>
+                  <span style={css(`font-size:12px;line-height:1.5;color:${v.geoWhereOk ? "#1d7a33" : "#647182"};font-weight:${v.geoWhereOk ? "700" : "400"}`)}>{v.geoWhereNote ? v.geoWhereNote : "Find the village on Google Maps, copy its link (or right-click it and copy the numbers), and paste here."}</span>
                 </label>
-                <div style={css(`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;background:${v.geoHasCoords ? "#e4f4df" : "#f3f5f8"};color:${v.geoHasCoords ? "#1d7a33" : "#6b7a8c"}`)}>
+                <div style={css(`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;background:${v.geoHasCoords ? "#e4f4df" : "#f3f5f8"};color:${v.geoHasCoords ? "#1d7a33" : "#647182"}`)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{flexShrink: "0"}}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
                   <span style={{flex: "1", minWidth: "0", fontWeight: "700", fontVariantNumeric: "tabular-nums"}}>{v.geoHasCoords ? v.geoCoordsText : "No location yet"}</span>
                   {v.geoViewUrl ? <a href={v.geoViewUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A", fontWeight: "700", whiteSpace: "nowrap"}}>View on map ↗</a> : null}
                 </div>
                 {v.geoErr?.coords ? <span role="alert" style={{fontSize: "12px", fontWeight: "700", color: "#b3261e", lineHeight: "1.5"}}>{I(v.geoErr?.coords)}</span> : null}
                 <span style={{display: "flex", flexWrap: "wrap", gap: "14px", fontSize: "13px", fontWeight: "700"}}>
-                  {v.geoFindUrl ? <a href={v.geoFindUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A"}}>Find on Google Maps ↗</a> : <span style={{color: "#6b7a8c", fontWeight: "400"}}>Enter the name to search for it on Google Maps.</span>}
+                  {v.geoFindUrl ? <a href={v.geoFindUrl} target="_blank" rel="noopener noreferrer" style={{color: "#0D3B7A"}}>Find on Google Maps ↗</a> : <span style={{color: "#647182", fontWeight: "400"}}>Enter the name to search for it on Google Maps.</span>}
                   <button type="button" onClick={v.toggleGeoManual} aria-expanded={v.geoManual} style={{border: "0", background: "none", padding: "0", color: "#0D3B7A", fontWeight: "700", fontSize: "13px", cursor: "pointer"}}>{v.geoManual ? "Hide number boxes" : "Enter numbers manually"}</button>
                 </span>
                 {v.geoManual ? <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px"}}>

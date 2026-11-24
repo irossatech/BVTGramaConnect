@@ -27,7 +27,7 @@ export default function DetailPanel({ v }: { v: View }) {
         {v.panel?.isPost ? <div style={{padding: "14px 24px 16px", borderTop: "1px solid #eef2f6", display: "flex", flexDirection: "column", gap: "10px", background: "#fff"}}>
             <div style={{display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap"}}>
               <span style={{fontWeight: "700", color: "#0A2550", fontSize: "13px"}}>What you can do</span>
-              <span style={{fontSize: "12.5px", color: "#6b7a8c"}}>{v.sp?.noActions ? I(v.sp?.noWhy) : I(v.sp?.actHint)}</span>
+              <span style={{fontSize: "12.5px", color: "#647182"}}>{v.sp?.noActions ? I(v.sp?.noWhy) : I(v.sp?.actHint)}</span>
             </div>
             {v.sp?.noActions ? null : <div style={{display: "flex", flexWrap: "wrap", gap: "10px"}}>
               {list(v.sp?.actions).map((_a, _i1) => (
@@ -41,11 +41,11 @@ export default function DetailPanel({ v }: { v: View }) {
         {v.panel?.isCitizen && (v.cz?.blocked || v.cz?.canBringBack) ? <div style={{padding: "14px 24px 16px", borderTop: "1px solid #eef2f6", display: "flex", flexDirection: "column", gap: "8px", background: "#fff"}}>
             {v.cz?.canUnblock ? <>
               <button onClick={v.cz?.unblock} style={{alignSelf: "flex-start", height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #0D3B7A", background: "#fff", color: "#0D3B7A"}}>Unblock this phone</button>
-              <span style={{fontSize: "12.5px", color: "#6b7a8c"}}>Lets this phone post again now. Its closed posts stay closed.</span>
-            </> : <span style={{fontSize: "12.5px", color: "#6b7a8c"}}>{v.cz?.blocked ? "Only a Super Admin can unblock this phone." : null}</span>}
+              <span style={{fontSize: "12.5px", color: "#647182"}}>Lets this phone post again now. Its closed posts stay closed.</span>
+            </> : <span style={{fontSize: "12.5px", color: "#647182"}}>{v.cz?.blocked ? "Only a Super Admin can unblock this phone." : null}</span>}
             {v.cz?.canBringBack ? <>
               <button onClick={v.cz?.bringBack} style={{alignSelf: "flex-start", height: "42px", padding: "0 18px", borderRadius: "999px", fontWeight: "700", cursor: "pointer", fontSize: "13px", border: "1.5px solid #cfd8e3", background: "#fff", color: "#3b4a5c"}}>Bring their posts back</button>
-              <span style={{fontSize: "12.5px", color: "#6b7a8c"}}>Send the posts the block closed back to review, or publish them. A reason is needed.</span>
+              <span style={{fontSize: "12.5px", color: "#647182"}}>Send the posts the block closed back to review, or publish them. A reason is needed.</span>
             </> : null}
           </div> : null}
         {/* Block on the left, on its own; Reset password and Edit details on the right. Change area and Unlock are in the panel. */}

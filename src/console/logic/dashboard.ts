@@ -38,7 +38,7 @@ export function dashboardView(h: ConsoleHost) {
   const openUsers = (status: string) => () => { h.setState({page: 'users', uf: {role: '', district: '', q: '', status}}, () => loadUsers(h, 1)); };
   const kpis = [
     {label: 'All posts', value: D ? D.kpis.total_posts : '…', sub: 'Every status', color: '#0A2550', go: () => { h.setState({page: 'posts', statusTab: 'All'}, () => loadPosts(h, 1)); }},
-    {label: 'Waiting for review', value: D ? D.kpis.pending : '…', sub: pendingSub(), color: '#b35a0e', go: () => { h.setState({page: 'posts', statusTab: 'Pending'}, () => loadPosts(h, 1)); }},
+    {label: 'Pending', value: D ? D.kpis.pending : '…', sub: pendingSub(), color: '#b35a0e', go: () => { h.setState({page: 'posts', statusTab: 'Pending'}, () => loadPosts(h, 1)); }},
     {label: 'Published today', value: D ? D.kpis.published_today : '…', sub: todayLabel, color: '#1F8A3B', go: () => { h.setState({page: 'posts', statusTab: 'Published'}, () => loadPosts(h, 1)); }},
     {label: 'Active officials', value: people('active', D?.kpis.active_users), sub: 'Can sign in', color: '#0D3B7A', go: openUsers('active')},
     {label: 'Blocked officials', value: people('blocked', D?.kpis.blocked_users), sub: 'Cannot sign in', color: '#b3261e', go: openUsers('blocked')},

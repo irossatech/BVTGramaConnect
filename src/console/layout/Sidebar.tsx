@@ -16,7 +16,7 @@ export default function Sidebar({ v }: { v: View }) {
       <nav aria-label="Console" style={{display: "flex", flexDirection: "column", gap: "10px"}}>
         {list(v.navGroups).map((_g, _gi) => (
           <div key={_gi} role="group" aria-label={_g.label || "Overview"} style={{display: "flex", flexDirection: "column", gap: "2px"}}>
-            {_g.label ? <div aria-hidden="true" style={{padding: "0 12px 6px", fontSize: "11px", fontWeight: "700", letterSpacing: ".06em", textTransform: "uppercase", color: "rgba(255,255,255,.45)"}}>{I(_g.label)}</div> : null}
+            {_g.label ? <div aria-hidden="true" style={{padding: "0 12px 6px", fontSize: "11px", fontWeight: "700", letterSpacing: ".06em", textTransform: "uppercase", color: "rgba(255,255,255,.5)"}}>{I(_g.label)}</div> : null}
             {list(_g.items).map((_n, _i1) => (
               <React.Fragment key={_i1}>
                 <button className="sa-navb" onClick={_n?.go} aria-current={_n?.on ? "page" : undefined} style={css(`display:flex;align-items:center;gap:12px;height:38px;padding:0 12px;border:0;border-radius:10px;cursor:pointer;text-align:left;font-size:14px;font-weight:600;color: ${_n?.color ?? ""};background: ${_n?.bg ?? ""}`)}>
