@@ -335,6 +335,8 @@ export interface ReportActivity {
 export interface Settings {
   review_escalation_hours: number;
   citizen_posts_per_day?: number | null;
+  /** Banners a citizen's Home shows, newest first; 0 is no limit (Jira BVTGC-92). */
+  ads_banner_limit?: number | null;
   languages?: { te?: boolean; en?: boolean } | null;
 }
 

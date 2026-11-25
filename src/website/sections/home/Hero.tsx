@@ -38,7 +38,7 @@ export default function Hero({ v }: { v: View }) {
           <div className="gc-in" style={{"--d": "200ms", flex: "0 1 auto", minWidth: "0", margin: "0 auto", position: "relative", width: "min(100%,400px,max(280px,62vh))", aspectRatio: "1"}}>
             <svg className="gc-spin" viewBox="0 0 400 400" aria-hidden="true" style={{position: "absolute", inset: "0", width: "100%", height: "100%"}}>
               <defs><path id="gc-ring" d="M200 200 m-182 0 a182 182 0 1 1 364 0 a182 182 0 1 1 -364 0" /></defs>
-              <text style={{fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: "3px", fill: ink}}><textPath href="#gc-ring" textLength="1140" lengthAdjust="spacing">{v.ringText}</textPath></text>
+              <text style={{fontFamily: display, fontWeight: "700", fontSize: fs.base, letterSpacing: v.te ? "0" : "3px", fill: ink}}><textPath href="#gc-ring" textLength="1140" lengthAdjust="spacing">{v.ringText}</textPath></text>
             </svg>
             <div style={{position: "absolute", inset: "13%", borderRadius: "50%", overflow: "hidden", boxShadow: "0 30px 60px -30px rgba(10,37,80,.5)"}}>
               <img src="/assets/village-square.webp" srcSet="/assets/village-square-320.webp 320w, /assets/village-square-480.webp 480w, /assets/village-square.webp 632w" sizes="300px" alt={v.t?.villageImgAlt} width="632" height="632" fetchPriority="high" style={{width: "100%", height: "100%", objectFit: "cover"}} />

@@ -84,6 +84,19 @@ export default function Settings({ v }: { v: View }) {
               <span style={{color: "#3b4a5c", fontSize: "13px", width: "38px"}}>{Number(v.settings?.citizenPerDay) === 0 ? "none" : "a day"}</span>
               <button onClick={v.saveCitizenPerDay} aria-label="Save citizen posts per day" style={save}>Save</button>
             </div>
+            <div style={rowLine}>
+              <label htmlFor="set-ads" style={{flex: "1", minWidth: "0"}}>
+                <span style={name}>Banners per village</span>
+                <span style={help}>How many banners a citizen’s Home shows, newest first. 0 means no limit.</span>
+              </label>
+              <span style={stepper}>
+                <button type="button" onClick={v.adsLess} disabled={!v.canAdsLess} aria-label="One banner less" style={{...stepBtn, opacity: v.canAdsLess ? "1" : ".35", cursor: v.canAdsLess ? "pointer" : "default"}}>−</button>
+                <input id="set-ads" type="text" inputMode="numeric" value={val(v.settings?.adsLimit, "")} onChange={v.onAdsLimit} style={num} />
+                <button type="button" onClick={v.adsMore} disabled={!v.canAdsMore} aria-label="One banner more" style={{...stepBtn, opacity: v.canAdsMore ? "1" : ".35", cursor: v.canAdsMore ? "pointer" : "default"}}>+</button>
+              </span>
+              <span style={{color: "#3b4a5c", fontSize: "13px", width: "38px"}}>{Number(v.settings?.adsLimit) === 0 ? "none" : "max"}</span>
+              <button onClick={v.saveAdsLimit} aria-label="Save banners per village" style={save}>Save</button>
+            </div>
           </section>
           <section style={{...card, flex: "1"}} aria-labelledby="set-langs">
             <span id="set-langs" style={title}>Languages</span>

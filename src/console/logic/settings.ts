@@ -58,7 +58,7 @@ function addCategory(h: ConsoleHost) {
 
 export function loadSettings(h: ConsoleHost) {
   loadAdminCategories(h);
-  h.api.get<Settings>('/admin/settings/').then((st) => h.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => h.fail(e));
+  h.api.get<Settings>('/admin/settings/').then((st) => h.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, adsLimit: st.ads_banner_limit ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => h.fail(e));
   if (h.can('notifications.manage_templates')) h.api.get<ListOrPage<NotificationTemplate>>('/admin/notification-templates/').then((d) => {
     const templates = rows(d);
     h.setState((s) => ({settings: {...s.settings, templates}}));
@@ -113,6 +113,16 @@ export function settingsView(h: ConsoleHost) {
     citLess: () => h.setState((st) => ({settings: {...st.settings, citizenPerDay: Math.max(0, (Number(st.settings.citizenPerDay) || 0) - 1)}})),
     citMore: () => h.setState((st) => ({settings: {...st.settings, citizenPerDay: Math.min(1000, (Number(st.settings.citizenPerDay) || 0) + 1)}})),
     canCitLess: (Number(s.settings.citizenPerDay) || 0) > 0, canCitMore: (Number(s.settings.citizenPerDay) || 0) < 1000,
+    // Banners per village on a citizen's Home (Jira BVTGC-92): 0 = no limit, any other number = at most that many,
+    // newest first. The server cuts the list; the app follows the same number.
+    adsLess: () => h.setState((st) => ({settings: {...st.settings, adsLimit: Math.max(0, (Number(st.settings.adsLimit) || 0) - 1)}})),
+    adsMore: () => h.setState((st) => ({settings: {...st.settings, adsLimit: Math.min(1000, (Number(st.settings.adsLimit) || 0) + 1)}})),
+    canAdsLess: (Number(s.settings.adsLimit) || 0) > 0, canAdsMore: (Number(s.settings.adsLimit) || 0) < 1000,
+    onAdsLimit: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, adsLimit: e.target.value === '' ? '' : Math.max(0, Math.min(1000, Math.round(Number(e.target.value) || 0)))}})),
+    saveAdsLimit: () => {
+      const n = Number(s.settings.adsLimit) || 0;
+      h.api.patch('/admin/settings/', {ads_banner_limit: n}).then(() => h.toast(n ? 'Settings saved · ' + n + (n === 1 ? ' banner' : ' banners') + ' per village' : 'Settings saved · no banner limit')).catch((e: unknown) => h.fail(e));
+    },
     onCitizenPerDay: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, citizenPerDay: e.target.value === '' ? '' : Math.max(0, Math.min(1000, Math.round(Number(e.target.value) || 0)))}})),
     saveCitizenPerDay: () => {
       const n = Number(s.settings.citizenPerDay) || 0;

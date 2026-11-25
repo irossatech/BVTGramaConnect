@@ -43,7 +43,7 @@ function humanAction(k: string) {
 
 // "On what" for the actions that record no target_label, from the few fields of `data` that hold no personal
 // data (settings, report names, import counts). Everything else in `data` is dropped on load (audit WEB-DP-001).
-const SETTING: Readonly<Record<string, string>> = {review_escalation_hours: 'Review time limit', citizen_posts_per_day: 'Citizen posts per day'};
+const SETTING: Readonly<Record<string, string>> = {review_escalation_hours: 'Review time limit', citizen_posts_per_day: 'Citizen posts per day', ads_banner_limit: 'Banners per village'};
 const REPORT: Readonly<Record<string, string>> = {audit: 'Audit log', 'posts-by-area': 'Posts by area', 'review-time': 'How fast posts are reviewed', 'admin-activity': 'Admin activity', summary: 'Report summary'};
 const inWords = (k: string) => k.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
 /** [name]: a service's or bill's name from its key (the console's lists, logic/services.ts). */
@@ -54,7 +54,9 @@ function summaryOf(action: string, data: unknown, name: (key: string, bill: bool
     const b = (d.before || {}) as Record<string, unknown>, a = (d.after || {}) as Record<string, unknown>;
     const out: string[] = [];
     for (const k of Object.keys(SETTING)) {
-      if (b[k] !== a[k]) out.push(SETTING[k] + ': ' + (k === 'citizen_posts_per_day' && !num(b[k]) ? 'no limit' : String(b[k])) + ' → ' + (k === 'citizen_posts_per_day' && !num(a[k]) ? 'no limit' : String(a[k])) + (k === 'review_escalation_hours' ? ' h' : ''));
+      // The two limits: 0 (or missing, before a setting existed) is "no limit".
+      const shown = (x: unknown) => (k !== 'review_escalation_hours' && !num(x) ? 'no limit' : String(x));
+      if (b[k] !== a[k] && !(b[k] === undefined && !num(a[k]))) out.push(SETTING[k] + ': ' + shown(b[k]) + ' → ' + shown(a[k]) + (k === 'review_escalation_hours' ? ' h' : ''));
     }
     const en = (x: unknown) => !!(x && typeof x === 'object' && (x as Record<string, unknown>).en);
     if (en(b.languages) !== en(a.languages)) out.push('English: ' + (en(a.languages) ? 'switched on' : 'switched off'));

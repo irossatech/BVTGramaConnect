@@ -387,6 +387,8 @@ export interface SettingsState {
   escalation: number;
   /** '' while the box is empty. */
   citizenPerDay: number | "";
+  /** Banners per village on a citizen's Home, 0 = no limit; '' while the box is empty. */
+  adsLimit: number | "";
   langs: { te: boolean; en: boolean };
   templates: NotificationTemplate[];
 }

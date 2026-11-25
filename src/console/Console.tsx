@@ -71,7 +71,7 @@ export default class Component extends React.Component<Props, State> {
     contacts: [], contactCount: 0, contactCounts: {}, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
-    settings: {escalation: 24, citizenPerDay: 5, langs: {te: true, en: true}, templates: []},
+    settings: {escalation: 24, citizenPerDay: 5, adsLimit: 0, langs: {te: true, en: true}, templates: []},
     modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', modalFile: null, modalImg: '', toasts: [], imp: null,
   };
 
