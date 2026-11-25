@@ -41,6 +41,7 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-I18N-004 Console Telugu text without `lang` | Post text carries its language | `c74dd61` |
 | WEB-DP-001 Personal data in console lists | Users: last 4 digits of the mobile; Service requests: name only; Contact messages: masked mobile, no message, View panel. Important numbers: shown in full on purpose, see Decided | PRs #6, #7, #8; BackEnd PRs #93, #94 |
 | WEB-DP-004 Audit `data` with personal fields | The console does not keep `data`; the server masks personal data in audit entries | `c74dd61`; BackEnd `34e4b80` |
+| WEB-DOC-002 Docs behind later decisions (WEB_07) | `api.md` contact-form limit and WEB-DP-003's screen windows follow the 2026-11-20 decision; the Backend list shows what closed each finding | 2026-11-25 docs commit |
 | WEB-DOC-001 Docs contradicted the code | `.claude/*.md`, README and comments reconciled | `996c81e`, `c74dd61`, branch `fix/web02-no-decision` |
 | WEB-REACT-001 Whole site re-rendered every 3.2 s | The hero word's timer is its own small component (`RotatingWord`, words from `renderVals()`) | branch `fix/web02-no-decision` |
 | WEB-SEO-002 Hand-kept page lists; one `lastmod` | Lists come from `routes.ts` and the exported files; the sitemap has no `lastmod` | `996c81e`, branch `fix/web02-no-decision` |
@@ -71,7 +72,7 @@ WEB_01 used its own numbers for some findings; they are the same findings as WEB
 | WEB-I18N-003 Small Telugu sizes | 2026-11-14, owner approved: the website's two smallest Telugu sizes go from 11.5 px (`xs`: kickers, small labels) and 12 px (`sm`: the ticker label, chips, tags) to 13 px (`ui()` in `src/website/ui/theme.ts`). Checked in headless Chrome on every page at 375 and 1280 px: nothing overflows or is cut off; phone pages grow by 20 to 40 px | English sizes stay the prototype's (12 and 13 px). Telugu body text (14 px) and headings are unchanged. The console is unchanged |
 | WEB-SSG-001 Bare 404 page | 2026-11-14, option A: the site's own 404 page (`src/pages/404.tsx`, `sections/NotFound.tsx`): header, footer, a Telugu/English message and a link home; `noindex`. Nginx serves it through `error_page 404 /404.html` | Only for website addresses: `/api/`, `/console/` and `/media/` keep their own 404 answers. Production and qa use the hosting panel's Nginx, which must be set to the same 404 page (backlog 22) |
 | WEB-DP-002 Names sent to Google Input Tools | 2026-11-14, lead: Telugu name suggestions stay on Google (`TRANSLITERATION_PROVIDER`) for every name field, people's names included; names are not treated as sensitive like mobile numbers (`.claude/project.md`) | Mobile numbers, emails and addresses are never sent there |
-| WEB-DP-003 No retention limit | 2026-11-14, lead: data is kept permanently (contact messages, service requests, citizen phone records, posts, audit log); screens show only recent ones: contact messages 90 days, finished service requests 180 days, audit log 90 to 180 days (`.claude/project.md`) | No scheduled purge of these; only expired sessions and tokens, failed jobs, old failed-login records and read notifications are cleaned up |
+| WEB-DP-003 No retention limit | 2026-11-14, lead: data is kept permanently (contact messages, service requests, citizen phone records, posts, audit log). ~~Screens show only recent ones~~: since 2026-11-20 (owner, "Nothing is hidden by age") every screen lists all records, however old, page by page (`.claude/project.md`) | No scheduled purge of these; only expired sessions and tokens, failed jobs, old failed-login records and read notifications are cleaned up |
 | WEB-FUNC-001 New post to one area only | 2026-11-14, owner: keep the single "Who sees it" picker. All districts sends the post to everyone (every district and village); one district sends it to every mandal and village in that district; a mandal or village narrows it further. That covers how the Super Admin posts | No multi-area picker in the console (backlog 17 closed). Posts to several separate areas in one go are made from the mobile app, which already sends several `targets`; the server allows 1 to 200 |
 | WEB-OPS-002 27 MB APK in git | 2026-11-14, option A: the APK stays committed in `dist/downloads/` (the server deploys only the committed `dist/`), until the app is on Google Play; then the APK and the "Direct download" link go and the store link takes over | No Git LFS and no separate server folder: each new APK adds about 27 MB to history, accepted while new APKs are rare |
 | WEB-DP-001 (Contact messages) | 2026-11-17, owner: the Contact messages table shows each message in full, so a message can be read and handled from the list. The console loads the list without `contact=0`; the mobile stays masked on screen (full only in View) | Table: name, village, masked mobile, message, received, View and Mark handled. Users and Service requests stay as in Fixed |
@@ -101,12 +102,12 @@ Do not build these without the owner's or lead's answer. Backlog numbers are in 
 
 ## Backend
 
-Tracked by the backend team in BVTGramaConnect_BackEnd; nothing to change in this repo.
+Tracked by the backend team in BVTGramaConnect_BackEnd; nothing to change in this repo. All closed in the backend's Stage 5 (2026-11-25, Ready for Production); WEB_07 (2026-11-25) re-checked the status.
 
-| Finding | What |
-|---|---|
-| WEB-SEC-011 | Citizen block/discard checks only the post's first area. Harmless while only the Super Admin holds `posts.block_citizen`. Options: check every area (A), require a state-wide grant (B), or accept (C); waiting for the lead's choice (2026-11-16) |
-| WEB-SEC-014 | Admin endpoints also accept the mobile app's JWT |
-| WEB-SEC-016 | Removing a role assignment needs no specific permission |
-| WEB-SEC-019 | Lockout per username and IP, so guessing from many IPs is not capped |
-| WEB-SEC-017 (server side) | A size limit on the villages CSV import on the server |
+| Finding | What | Closed by |
+|---|---|---|
+| WEB-SEC-011 | Citizen block/discard checked only the post's first area | BackEnd BVTGC-112 (close-out) |
+| WEB-SEC-014 | Admin endpoints also accept the mobile app's JWT | BackEnd BVTGC-110 (decision recorded) |
+| WEB-SEC-016 | Removing a role assignment needed no specific permission | BackEnd BVTGC-110 (follows the giving rule, matrix test) |
+| WEB-SEC-019 | Lockout per username and IP, so guessing from many IPs was not capped | BackEnd BVTGC-110 (20 an hour per username, from any address) |
+| WEB-SEC-017 (server side) | A size limit on the villages CSV import on the server | BackEnd BVTGC-112 |

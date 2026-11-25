@@ -36,7 +36,7 @@ Request: `{"name", "mobile", "village_text", "message", "language", "website"}`.
 
 - Validation matches the page: name and message required after trimming, mobile 10 digits.
 - `website` is a hidden honeypot field. When a bot fills it, the server answers `201` with `id` 0 and stores nothing.
-- At most 5 messages per IP per hour (`CONTACT_MESSAGES_PER_IP_PER_HOUR`), then `429` with `Retry-After`. The page shows the `toastBusy` text.
+- No limit per sender since 2026-11-20 (owner decision; the backend removed `CONTACT_MESSAGES_PER_IP_PER_HOUR`). A `429`, should the server send one, still shows the `toastBusy` text.
 - Other failures show the `toastFail` text.
 - Messages are read and marked handled in the console's Contact messages page.
 
