@@ -264,6 +264,8 @@ export interface AuditEntry {
   at: string;
   actor?: Actor | null;
   action: string;
+  /** The action in words, after the actor's name ("published a post"), in the Accept-Language language (BVTGC-100). */
+  action_label?: string;
   target_label?: string;
   area?: Area | null;
   /** Who or what did it: "console", "app", "citizen", "system"… */

@@ -107,7 +107,8 @@ export function auditRow(h: ConsoleHost, a: AuditEntry) {
   const name = citizen ? 'A citizen' : stranger ? 'Someone' : (a.actor && a.actor.name) || 'System';
   const prefix = String(a.action || '').split('.')[0];
   const kind = a.action === 'contact.handled' || a.action === 'contact.reopened' ? (['Message', '#e3f0fb', '#0D3B7A'] as const) : KIND[prefix] || (['System', '#eef2f6', '#647182'] as const);
-  const action = ACT[a.action] || humanAction(a.action);
+  // The server's words first (BVTGC-117); the console's own list stays for an older server.
+  const action = a.action_label || ACT[a.action] || humanAction(a.action);
   return {time: h.fmt(a.at, false), ago: ago(h, a.at), at: h.fmt(a.at, true), user: name, role: citizen ? 'Citizen (app)' : stranger ? 'Not signed in' : rk === 'system' ? 'Automatic' : ROLE[rk].label, action, actionCap: action.charAt(0).toUpperCase() + action.slice(1), kind: kind[0], kbg: kind[1], kcolor: kind[2], target: onWhat(a), area: placeOf(a.area), bg: citizen ? '#b35a0e' : ROLE[rk].bg, initial: name[0], rbg: citizen ? '#fff0dc' : ROLE[rk].tbg, rcolor: citizen ? '#b35a0e' : ROLE[rk].tc};
 }
 
