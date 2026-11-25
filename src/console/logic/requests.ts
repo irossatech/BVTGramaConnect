@@ -2,7 +2,7 @@
 // from Services in the app. Moved out of Console.tsx unchanged (audit WEB-ARCH-001).
 // Calls GET/PATCH /service-requests/ and GET /users/ for the assignee list (.claude/api.md).
 import type { Paged, ServiceRequest, ServiceRequestsPage, User } from "../types";
-import { isStatus, orEmpty, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange, type Tone } from "../model";
+import { isStatus, sessionEnded, orEmpty, pageCount, pager, PAGE_SIZE, RK, ROLE, type FieldChange, type Tone } from "../model";
 import type { ConsoleHost } from "./host";
 
 // Service request: what the citizen is told when it moves to each status.
@@ -24,7 +24,9 @@ export function loadRequests(h: ConsoleHost, page: number, quiet = false) {
   (quiet ? h.api.getBackground : h.api.get)<ServiceRequestsPage>('/service-requests/', {status: s.reqFilter === 'ALL' ? '' : s.reqFilter, q: s.reqQ, contact: '0', page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({reqs: d.results || [], reqCount: d.count || 0, reqCounts: d.status_counts || {}, reqPage: page, reqPages: pageCount(d.count), reqLoading: false, reqUnavailable: false}))
     .catch((e: unknown) => {
-      if (!latest() || quiet) return;
+      if (!latest()) return;
+      // The quiet refresh keeps the list on screen on a failure, except when the session has ended (BVTGC-102).
+      if (quiet) return sessionEnded(e) ? h.fail(e) : undefined;
       h.setState({reqLoading: false, reqs: [], reqCount: 0, reqCounts: {}, reqUnavailable: isStatus(e, 404)});
       if (!isStatus(e, 404)) h.fail(e);
     });

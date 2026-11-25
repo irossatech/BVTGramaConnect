@@ -2,6 +2,7 @@
 // a notification is about (its post or service request). The once-a-minute refresh stays in Console.tsx (it goes with
 // the idle sign-out). Moved out of Console.tsx unchanged (audit WEB-ARCH-001). Calls /notifications/ (.claude/api.md).
 import type { ConsoleNotification, NotificationPage, Post, ServiceRequest } from "../types";
+import { sessionEnded } from "../model";
 import type { ConsoleHost } from "./host";
 import { adaptPost, openPost } from "./posts";
 import { openRequest } from "./requests";
@@ -20,7 +21,12 @@ export function loadNotifs(h: ConsoleHost, more?: boolean, background = false) {
       next = null;
     }
     h.setState((s) => ({notifs: more ? [...s.notifs, ...(d.results || [])] : (d.results || []), notifUnread: d.unread_count ?? 0, notifNext: next, notifLoading: false}));
-  }).catch(() => h.setState({notifLoading: false, notifError: true}));
+  }).catch((e: unknown) => {
+    h.setState({notifLoading: false, notifError: true});
+    // The minute check is the console's only call while nobody clicks: an ended session (blocked, password reset,
+    // signed out elsewhere) goes back to the login screen now, not at the next click (Jira BVTGC-102).
+    if (sessionEnded(e)) h.fail(e);
+  });
 }
 
 function toggleNotifs(h: ConsoleHost) {

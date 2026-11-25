@@ -212,6 +212,17 @@ export function consoleE2E(c) {
     check("session ended on the server: back to the login form", await p.page.locator('input[name="username"]').waitFor({ timeout: 5000 }).then(() => true, () => false));
     await p.ctx.close();
 
+    // 7b. BVTGC-102: an ended session is noticed by the bell's minute check alone, with nobody clicking.
+    p = await fresh();
+    await p.page.clock.install();
+    await signIn(p.page, server.url, "test.super", U["test.super"].password);
+    await nav(p.page).first().waitFor({ timeout: 8000 });
+    server.expireSessions();
+    await p.page.clock.fastForward(61000);
+    const alone = await p.page.locator('input[name="username"]').waitFor({ timeout: 5000 }).then(() => true, () => false);
+    check("session ended: the minute check alone returns to the login form, no click (BVTGC-102)", alone);
+    await p.ctx.close();
+
     // 8. CSRF: every unsafe request carried the csrftoken cookie's value as X-CSRFToken.
     const unsafe = server.log.filter((x) => x.unsafe);
     const missing = unsafe.filter((x) => !x.csrfOk).map((x) => `${x.method} ${x.path}`);

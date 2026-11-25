@@ -567,6 +567,10 @@ export const orEmpty = <T extends object>(x: T | null): Partial<T> => x || {};
 
 export const isStatus = (e: unknown, status: number): boolean => e instanceof ApiError && e.status === status;
 
+/** The session is over (signed out elsewhere, blocked, password reset, console access taken away): a background check
+ *  must hand this to fail(), which returns to the login screen, instead of dropping it (Jira BVTGC-102). */
+export const sessionEnded = (e: unknown): boolean => e instanceof ApiError && (e.status === 401 || e.code === 'not_console_user');
+
 /** Rows per page in every paged list (the server's page_size). */
 export const PAGE_SIZE = 20;
 
