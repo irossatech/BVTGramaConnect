@@ -9,7 +9,7 @@ import GCApi, { type SiteApiError } from "./api";
 import LOCALES, { type Lang, type Strings } from "./i18n";
 import { istDayMonth } from "./dates";
 import { isPage, pageFromSlug, pathOf, type Page } from "./routes";
-import { DELETE_PATH, friendCode } from "./wallet";
+import { DELETE_PATH, friendCode, loginOk } from "./wallet";
 import { cream, greenText, ui } from "./ui/theme";
 import Header from "./sections/Header";
 import Home from "./sections/Home";
@@ -19,6 +19,7 @@ import Faq from "./sections/Faq";
 import Contact from "./sections/Contact";
 import Legal from "./sections/Legal";
 import NotFound from "./sections/NotFound";
+import DeleteAccount from "./sections/DeleteAccount";
 import Footer from "./sections/Footer";
 
 type Category = "announce" | "schemes" | "news" | "updates";
@@ -37,6 +38,28 @@ interface ShowcasePost {
 interface Showcase {
   featured: ShowcasePost | null;
   items?: ShowcasePost[];
+}
+
+/** "Delete my wallet account" (BVTGC-142): the step, what is typed, and the last refusal in the server's words. */
+interface DeleteForm {
+  step: 1 | 2 | 3;
+  login: string;
+  code: string;
+  /** "I understand" is ticked. */
+  ok: boolean;
+  busy: boolean;
+  err: string;
+  /** The code is too old, used or out of tries: "Send a new code" shows under the message. */
+  expired: boolean;
+}
+const EMPTY_DEL: DeleteForm = { step: 1, login: "", code: "", ok: false, busy: false, err: "", expired: false };
+
+/** A refused deletion call, in words: the server's own (it answers in the page's language), or the page's for a
+ *  switched-off wallet (404), a server error or no network. */
+function delMessage(err: SiteApiError, t: Strings): string {
+  if (err.status === 404) return t.delOff;
+  if (err.status === 0 || err.status >= 500) return t.toastFail;
+  return err.message || t.toastFail;
 }
 
 interface ContactForm {
@@ -88,6 +111,7 @@ interface State {
   enOff: boolean;
   /** A friend's referral code from an invite link (?ref=, BVTGC-141), shown in the download panel; null for none. */
   friend: string | null;
+  del: DeleteForm;
 }
 
 // Showcase category chip colours (labels: categories in the locale files); announce keeps the prototype's exact chip colours.
@@ -171,6 +195,7 @@ export default class Site extends React.Component<Props, State> {
     scrolled: false,
     enOff: false,
     friend: null,
+    del: EMPTY_DEL,
   };
 
   private el: HTMLDivElement | null = null;
@@ -390,6 +415,45 @@ export default class Site extends React.Component<Props, State> {
         }
         this.setState({ errs, formError: false });
         this.el?.querySelector<HTMLElement>(`[name=${first}]`)?.focus();
+      });
+  }
+
+  // ---- Delete my wallet account (BVTGC-142): POST /citizen/auth/delete/code/ then /citizen/auth/delete/ ----
+
+  private setDel(x: Partial<DeleteForm>) {
+    this.setState((st) => ({ del: { ...st.del, ...x } }));
+  }
+
+  // Step 1, and "Send a new code": the same answer whether or not the login is registered.
+  private delSend(L: Lang, t: Strings) {
+    const d = this.state.del;
+    if (d.busy) return;
+    const login = d.login.trim();
+    if (!loginOk(login)) {
+      this.setDel({ err: t.delLoginErr, expired: false });
+      return;
+    }
+    this.setDel({ busy: true, err: "", expired: false });
+    GCApi.post("/citizen/auth/delete/code/", { login }, { lang: L })
+      .then(() => {
+        if (!this.dead) this.setDel({ busy: false, step: 2, code: "", ok: false });
+      })
+      .catch((err: SiteApiError) => {
+        if (!this.dead) this.setDel({ busy: false, err: delMessage(err, t) });
+      });
+  }
+
+  // Step 2: the emailed code deletes the account at once.
+  private delConfirm(L: Lang, t: Strings) {
+    const d = this.state.del;
+    if (d.busy || !d.ok || d.code.length !== 6) return;
+    this.setDel({ busy: true, err: "", expired: false });
+    GCApi.post("/citizen/auth/delete/", { login: d.login.trim(), code: d.code }, { lang: L })
+      .then(() => {
+        if (!this.dead) this.setDel({ busy: false, step: 3, code: "" });
+      })
+      .catch((err: SiteApiError) => {
+        if (!this.dead) this.setDel({ busy: false, err: delMessage(err, t), expired: err.code === "code_expired" });
       });
   }
 
@@ -617,6 +681,26 @@ export default class Site extends React.Component<Props, State> {
             })),
           }
         : null,
+      // Delete my wallet account (BVTGC-142).
+      del: {
+        ...s.del,
+        stepLabel: t.delStep.replace("{n}", String(s.del.step)),
+        step1: s.del.step === 1,
+        step2: s.del.step === 2,
+        step3: s.del.step === 3,
+        canSend: !!s.del.login.trim() && !s.del.busy,
+        canDelete: s.del.ok && s.del.code.length === 6 && !s.del.busy,
+      },
+      onDelLogin: (e: ChangeEvent<HTMLInputElement>) => this.setDel({ login: e.target.value, err: "", expired: false }),
+      onDelLoginKey: (e: { key: string }) => {
+        if (e.key === "Enter") this.delSend(L, t);
+      },
+      onDelCode: (e: ChangeEvent<HTMLInputElement>) => this.setDel({ code: e.target.value.replace(/\D/g, "").slice(0, 6), err: "", expired: false }),
+      toggleDelOk: () => this.setDel({ ok: !this.state.del.ok }),
+      delSend: () => this.delSend(L, t),
+      delResend: () => this.delSend(L, t),
+      delConfirm: () => this.delConfirm(L, t),
+      delBack: () => this.setDel({ step: 1, code: "", ok: false, err: "", expired: false }),
       // The friend's referral code (BVTGC-141) and its Copy button.
       friendCode: s.friend,
       copyCode: () => {
@@ -684,6 +768,7 @@ export default class Site extends React.Component<Props, State> {
           {v.pg?.faq ? <Faq v={v} /> : null}
           {v.pg?.contact ? <Contact v={v} /> : null}
           {v.legal ? <Legal v={v} legal={v.legal} /> : null}
+          {v.pg?.delete ? <DeleteAccount v={v} /> : null}
           {v.missing ? <NotFound v={v} /> : null}
         </main>
         <Footer v={v} />

@@ -50,6 +50,13 @@ Every error has the same shape:
 
 `GCApi` rejects with that `error` object plus `status` (`0` for a network failure).
 
+### POST /citizen/auth/delete/code/ and POST /citizen/auth/delete/ (BVTGC-142)
+
+The "Delete my wallet account" page (`/delete-account/`, `src/website/sections/DeleteAccount.tsx`; BackEnd contract section 21), the deletion address given to Google Play.
+
+- Step 1: `POST /citizen/auth/delete/code/` `{login}` (the email or the 10-digit mobile number) → `200 {expires_in, resend_after}`, the same for every login, so the page always says "If this is registered, we sent a code". `429 code_cooldown` / `code_limit` show the server's message.
+- Step 2: `POST /citizen/auth/delete/` `{login, code}` → `200 {deleted: true}`. `400 code_wrong` (with `attempts_left`) and `400 code_expired` show the server's message, which is in the page's language (`Accept-Language`); after `code_expired` the page offers "Send a new code". A `404` means the wallet is switched off: the page's own `delOff` text.
+
 ### The friend's referral code (BVTGC-141)
 
 No call. An invite link `/app/?ref=CODE` is redirected by the backend to `/?ref=CODE#get-app`; `Site.tsx` reads `ref` and the download panel shows the code with Copy when it is 8 characters of the code alphabet (`src/website/wallet.ts`, the backend's `REFERRAL_ALPHABET`). The page never asks the server whether a code exists.

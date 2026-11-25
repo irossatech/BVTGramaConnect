@@ -2,18 +2,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PAGES, isPage, pageFromSlug, pathOf, subpageSlugs } from "../src/website/routes.ts";
+import { DELETE_PATH } from "../src/website/wallet.ts";
 
 test("every page has its own address and is found from it again", () => {
   assert.equal(pathOf("home"), "/");
   for (const p of PAGES.filter((x) => x !== "home")) {
     const path = pathOf(p);
-    assert.match(path, /^\/[a-z]+\/$/);
+    assert.match(path, /^\/[a-z]+(-[a-z]+)*\/$/);
     assert.equal(pageFromSlug(path.slice(1, -1)), p);
   }
 });
 
 test("the addresses search engines already know stay the same", () => {
-  assert.deepEqual(subpageSlugs(), ["howitworks", "officials", "faq", "contact", "privacy", "terms"]);
+  assert.deepEqual(subpageSlugs(), ["howitworks", "officials", "faq", "contact", "privacy", "terms", "delete-account"]);
+});
+
+test("the wallet deletion page is where the privacy policy and Google Play say (BVTGC-142)", () => {
+  assert.equal(pathOf("delete"), DELETE_PATH);
+  assert.equal(pageFromSlug("delete-account"), "delete");
 });
 
 test("unknown names are not pages", () => {

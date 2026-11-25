@@ -129,6 +129,7 @@ const META: Record<Page, { title: string; description: string }> = {
   contact: { title: title("contact"), description: cut(TE.ui.contactSub) },
   privacy: { title: title("privacy"), description: cut(TE.legal.privacy.intro) },
   terms: { title: title("terms"), description: cut(TE.legal.terms.intro) },
+  delete: { title: title("delete"), description: cut(TE.ui.delSub) },
 };
 
 // The 404 page: Telugu like the others, and kept out of search results (noindex, so no canonical link either).
