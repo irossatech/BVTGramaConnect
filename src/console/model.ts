@@ -411,6 +411,21 @@ export interface SelView {
   remove: () => void;
 }
 
+/** The citizen wallet's eight settings in Settings (BVTGC-140); a number is '' while its box is empty. */
+export interface WalletForm {
+  /** The server sent the wallet's settings (an older server has none: the card stays hidden). */
+  known: boolean;
+  enabled: boolean;
+  /** Mandal ids where sign-up is open; empty: everywhere. */
+  pilot: number[];
+  reward: number | "";
+  welcome: number | "";
+  hold: number | "";
+  active: number | "";
+  perMonth: number | "";
+  perPhone: number | "";
+}
+
 export interface SettingsState {
   escalation: number;
   /** '' while the box is empty. */
@@ -419,6 +434,10 @@ export interface SettingsState {
   adsLimit: number | "";
   langs: { te: boolean; en: boolean };
   templates: NotificationTemplate[];
+  /** The citizen wallet (BVTGC-140), its server errors by field name (400 validation_error), and the mandal being added. */
+  wallet: WalletForm;
+  walletErr: Record<string, string>;
+  walletPick: string;
 }
 
 export interface State {
@@ -564,6 +583,27 @@ export interface State {
   waHistoryLoading: boolean;
   waBalance: WalletSummary | null;
   waDlg: WalletDialog | null;
+  /** Referrals tab (BVTGC-140): GET /admin/referrals/ with status_counts. */
+  waRefs: ReferralRow[];
+  waRefCount: number;
+  waRefPage: number;
+  waRefPages: number;
+  waRefLoading: boolean;
+  waRefQ: string;
+  /** PENDING, CONFIRMED or REJECTED. */
+  waRefStatus: string;
+  waRefCounts: Partial<Record<string, number>>;
+  /** Wallet entries tab (BVTGC-140): GET /admin/wallet/entries/ with the export's filters. */
+  waEntries: WalletEntryRow[];
+  waEntCount: number;
+  waEntPage: number;
+  waEntPages: number;
+  waEntLoading: boolean;
+  waEntKind: string;
+  waEntStatus: string;
+  /** India dates, YYYY-MM-DD; '' when not chosen. */
+  waEntFrom: string;
+  waEntTo: string;
   contactPage: number;
   contactPages: number;
   contactQ: string;

@@ -73,9 +73,12 @@ export default class Component extends React.Component<Props, State> {
     contacts: [], contactCount: 0, contactCounts: {}, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
     waTab: 'accounts', waAccounts: [], waCount: 0, waPage: 1, waPages: 1, waLoading: false, waQ: '', waStatus: '', waVillage: '', waPilot: [],
     waOpen: null, waHistory: [], waHistoryCount: 0, waHistoryLoading: false, waBalance: null, waDlg: null,
+    waRefs: [], waRefCount: 0, waRefPage: 1, waRefPages: 1, waRefLoading: false, waRefQ: '', waRefStatus: 'PENDING', waRefCounts: {},
+    waEntries: [], waEntCount: 0, waEntPage: 1, waEntPages: 1, waEntLoading: false, waEntKind: '', waEntStatus: '', waEntFrom: '', waEntTo: '',
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
-    settings: {escalation: 24, citizenPerDay: 5, adsLimit: 0, langs: {te: true, en: true}, templates: []},
+    settings: {escalation: 24, citizenPerDay: 5, adsLimit: 0, langs: {te: true, en: true}, templates: [],
+      wallet: {known: false, enabled: false, pilot: [], reward: 50, welcome: 20, hold: 7, active: 2, perMonth: 30, perPhone: 3}, walletErr: {}, walletPick: ''},
     modal: null, modalText: '', modalText2: '', modalSel: '', modalGen: '', modalFile: null, modalImg: '', toasts: [], imp: null,
   };
 
