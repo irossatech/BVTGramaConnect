@@ -50,6 +50,10 @@ Every error has the same shape:
 
 `GCApi` rejects with that `error` object plus `status` (`0` for a network failure).
 
+### The friend's referral code (BVTGC-141)
+
+No call. An invite link `/app/?ref=CODE` is redirected by the backend to `/?ref=CODE#get-app`; `Site.tsx` reads `ref` and the download panel shows the code with Copy when it is 8 characters of the code alphabet (`src/website/wallet.ts`, the backend's `REFERRAL_ALPHABET`). The page never asks the server whether a code exists.
+
 ### GET /public/showcase/
 
 Called on page load and again the first time the language is switched, with `Accept-Language` set to the page language. It fills the phone picture in the hero.

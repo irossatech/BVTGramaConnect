@@ -9,6 +9,7 @@ import GCApi, { type SiteApiError } from "./api";
 import LOCALES, { type Lang, type Strings } from "./i18n";
 import { istDayMonth } from "./dates";
 import { isPage, pageFromSlug, pathOf, type Page } from "./routes";
+import { DELETE_PATH, friendCode } from "./wallet";
 import { cream, greenText, ui } from "./ui/theme";
 import Header from "./sections/Header";
 import Home from "./sections/Home";
@@ -85,6 +86,8 @@ interface State {
   scrolled: boolean;
   /** The Super Admin switched English off (GET /app-config/): Telugu only, no language switch. */
   enOff: boolean;
+  /** A friend's referral code from an invite link (?ref=, BVTGC-141), shown in the download panel; null for none. */
+  friend: string | null;
 }
 
 // Showcase category chip colours (labels: categories in the locale files); announce keeps the prototype's exact chip colours.
@@ -167,6 +170,7 @@ export default class Site extends React.Component<Props, State> {
     sending: false,
     scrolled: false,
     enOff: false,
+    friend: null,
   };
 
   private el: HTMLDivElement | null = null;
@@ -206,6 +210,10 @@ export default class Site extends React.Component<Props, State> {
     document.documentElement.lang = L;
     this.loadSite();
     this.loadShowcase(L);
+    // An invite link (/app/?ref=CODE lands on /?ref=CODE#get-app): the friend's code in the download panel, checked by
+    // its shape only; the server is never asked whether it exists (BVTGC-141).
+    const code = friendCode(window.location.search);
+    if (code) this.setState({ friend: code });
     // In a task of its own after React's start-up: measuring every section lays the whole page out, which made the
     // start-up one long block on a slow phone (audit WEB-PERF-102, 2026-11-23). Until "gc-ready" nothing is hidden.
     window.setTimeout(() => {
@@ -524,7 +532,7 @@ export default class Site extends React.Component<Props, State> {
     // Hero: the words that take turns every few seconds (ui/parts.tsx RotatingWord), and the brand line around the photo.
     const words = (["announce", "schemes", "news", "updates"] as const).map((k) => ({ text: loc.words[k], color: CAT[k].color, icon: icons[k] }));
     const legalPage = !s.missing && (s.page === "privacy" || s.page === "terms") ? s.page : null;
-    const fill = (x: string) => x.replace("{email}", contact.email).replace("{phone}", contact.phone);
+    const fill = (x: string) => x.replace("{email}", contact.email).replace("{phone}", contact.phone).replace("{delete}", (config.siteUrl || "") + DELETE_PATH);
     return {
       page: s.page,
       te: L === "te",
@@ -609,6 +617,17 @@ export default class Site extends React.Component<Props, State> {
             })),
           }
         : null,
+      // The friend's referral code (BVTGC-141) and its Copy button.
+      friendCode: s.friend,
+      copyCode: () => {
+        const code = s.friend;
+        if (!code) return;
+        try {
+          navigator.clipboard.writeText(code).then(() => this.toast(t.refCopied), () => {});
+        } catch {
+          /* no clipboard (an old browser): the code stays on screen to type */
+        }
+      },
       playClick: () => this.openStore(config.playStoreUrl, t),
       appClick: () => this.openStore(config.appStoreUrl, t),
       // No app in a store yet: each button says so in large text until the server has its store link.
