@@ -10,6 +10,7 @@ import ImportProgressPanel from "./panels/ImportProgress";
 import Toasts from "./panels/Toasts";
 import type { ConsoleHost } from "./logic/host";
 import { contactPanelView, contactsView, loadContacts } from "./logic/messages";
+import { loadWallet, walletDialogView, walletPanelView, walletView } from "./logic/wallet";
 import { loadRequests, requestPanelView, requestsView } from "./logic/requests";
 import { adFormView, adsView, loadAds } from "./logic/ads";
 import { auditView, loadAudit } from "./logic/audit";
@@ -37,11 +38,12 @@ const AppShell = React.lazy(() => import("./AppShell"));
 export type View = ReturnType<Component["renderVals"]>;
 
 export default class Component extends React.Component<Props, State> {
-  private static readonly ICON: Readonly<Record<NavKey, string>> = {bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
+  private static readonly ICON: Readonly<Record<NavKey, string>> = {wallet:'M3 7a2 2 0 0 1 2-2h13v4M3 7v10a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2zM16 14h.01',bills:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11',services:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',ads:'M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 15l5-5 4 4 3-3 8 8M15.5 9.5h.01',requests:'M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z',contact:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',numbers:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z',dashboard:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',geography:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',posts:'M4 4h13a3 3 0 0 1 3 3v12H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1zm3 4h6M7 12h6M7 16h4M16 8h1M16 12h1',reports:'M3 20h18M6 17V10M11 17V4M16 17v-7M21 17v-4',audit:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 8h6m-6 4h4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L14.8 3H9.2l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h5.6l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z'};
   private static readonly LEVEL_OF_ROLE = LEVEL_OF_ROLE;
-  private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings'];
+  private static readonly PAGES: readonly PageKey[] = ['dashboard','geography','users','posts','requests','bills','ads','reports','audit','contact','numbers','settings','wallet'];
   // A page shows when the user has any one of these permissions (BackEnd apps/accounts/role_matrix.py).
-  private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
+  // Citizens & wallet (BVTGC-139): any of the Super Admin's wallet permissions (BackEnd role_matrix; today the Super Admin only).
+  private static readonly NAV_PERM: Readonly<Record<NavKey, readonly string[]>> = {wallet:['accounts.manage_citizen_accounts','wallet.review_referrals','wallet.view_wallets'],bills:['bills.manage_bills'],services:['service_requests.manage_services'],dashboard:['web_admin.view_dashboard'],geography:['geography.manage_master_data'],users:['accounts.manage_district_admin','accounts.manage_mandal_admin','accounts.manage_village_admin','accounts.manage_panchayat_member'],posts:['posts.view_review_queue'],reports:['web_admin.view_reports'],audit:['audit.view_audit_log'],contact:['web_public.manage_contact_messages'],requests:['service_requests.view_service_requests','service_requests.manage_services'],ads:['ads.manage_ad'],numbers:['contacts.manage_contact'],settings:['posts.manage_settings','posts.manage_categories','notifications.manage_templates']};
   private static readonly CONSOLE_PERM = 'web_admin.access_web_console';
   private static readonly LOGIN_ERR: Readonly<Record<string, string>> = {invalid_credentials:'Wrong username or password.',not_console_user:'This console is for Super Admins only. Use the mobile app.',account_blocked:'This account is blocked. Contact your administrator.'};
 
@@ -69,6 +71,8 @@ export default class Component extends React.Component<Props, State> {
     panel: null, panelPost: null, panelHistory: [], panelUser: null, panelUserPosts: [], drawerOpen: false, nu: {...EMPTY_NU},
     audit: [], auditCount: 0, auditOpen: null, auditPage: 1, auditPages: 1, auditQ: '', auditType: '', auditFrom: '', auditTo: '', distQ: '', auditLoading: false,
     contacts: [], contactCount: 0, contactCounts: {}, contactPage: 1, contactPages: 1, contactQ: '', contactFilter: 'new', contactLoading: false,
+    waTab: 'accounts', waAccounts: [], waCount: 0, waPage: 1, waPages: 1, waLoading: false, waQ: '', waStatus: '', waVillage: '', waPilot: [],
+    waOpen: null, waHistory: [], waHistoryCount: 0, waHistoryLoading: false, waBalance: null, waDlg: null,
     nums: [], numCount: 0, numPage: 1, numPages: 1, numLoading: false, numTab: 'AREA', numQ: '', numType: '', numDistrict: '', ctypes: [], ctypesAdmin: [], nf: null, tf: null,
     dash: null, dashPeople: null, reports: {summary: null, byArea: [], reviewTime: [], activity: []}, categories: [],
     settings: {escalation: 24, citizenPerDay: 5, adsLimit: 0, langs: {te: true, en: true}, templates: []},
@@ -342,7 +346,7 @@ export default class Component extends React.Component<Props, State> {
   }
 
   private goPage(p: PageKey) {
-    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, cm: null, af: null, cf: null});
+    this.setState({page: p, menuOpen: false, navOpen: false, panel: null, drawerOpen: false, nf: null, rq: null, cm: null, af: null, cf: null, waOpen: null, waDlg: null});
     if (this.scrollEl) this.scrollEl.scrollTop = 0;
     this.loadPage(p);
   }
@@ -565,6 +569,7 @@ export default class Component extends React.Component<Props, State> {
     if (p === 'posts') loadPosts(this.host, 1);
     if (p === 'audit') loadAudit(this.host, 1);
     if (p === 'contact') loadContacts(this.host, 1);
+    if (p === 'wallet') loadWallet(this.host);
     if (p === 'ads') loadAds(this.host);
     if (p === 'bills') loadServices(this.host, true);
     if (p === 'requests') {
@@ -784,7 +789,7 @@ export default class Component extends React.Component<Props, State> {
     const is = {checking: s.screen === 'checking', auth: s.screen === 'login' || s.screen === 'change_password', login: s.screen === 'login', changePassword: s.screen === 'change_password', app: s.screen === 'app'};
     const pg: Partial<Record<PageKey, boolean>> = {};
     pg[s.page] = true;
-    const titles: Readonly<Record<NavKey, string>> = {bills: 'Bills & Recharges', ads: 'Sponsored banners', services: 'Services', requests: 'Services', dashboard: 'Dashboard', geography: 'Geography · Master Data', users: 'Users', posts: 'Posts', reports: 'Reports', audit: 'Audit Log', contact: 'Contact messages', numbers: 'Important numbers', settings: 'Settings'};
+    const titles: Readonly<Record<NavKey, string>> = {bills: 'Bills & Recharges', ads: 'Sponsored banners', services: 'Services', requests: 'Services', dashboard: 'Dashboard', geography: 'Geography · Master Data', users: 'Users', posts: 'Posts', reports: 'Reports', audit: 'Audit Log', contact: 'Contact messages', numbers: 'Important numbers', settings: 'Settings', wallet: 'Citizens & wallet'};
     const pendingN = s.pendingCount;
     const navItems = C.PAGES.filter((k) => this.navOk(k)).map((k) => {
       const on = s.page === k;
@@ -794,7 +799,7 @@ export default class Component extends React.Component<Props, State> {
     const NAV_GROUPS: readonly {label: string; keys: readonly PageKey[]}[] = [
       {label: '', keys: ['dashboard', 'reports']},
       {label: 'Content', keys: ['posts', 'ads']},
-      {label: 'Citizens', keys: ['requests', 'bills', 'contact', 'numbers']},
+      {label: 'Citizens', keys: ['requests', 'bills', 'contact', 'numbers', 'wallet']},
       {label: 'Admin', keys: ['users', 'geography', 'audit', 'settings']},
     ];
     const navKeys = C.PAGES.filter((k) => this.navOk(k));
@@ -839,6 +844,7 @@ export default class Component extends React.Component<Props, State> {
       ...postsView(this.host),
       ...reportsView(this.host), ...auditView(this.host),
       ...contactsView(this.host),
+      ...walletView(this.host), ...walletPanelView(this.host), ...walletDialogView(this.host),
       ...requestsView(this.host),
       ...adsView(this.host), ...adFormView(this.host),
       ...composeView(this.host),

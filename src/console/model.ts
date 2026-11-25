@@ -5,12 +5,13 @@ import { ApiError } from "./api";
 import type {
   Actor, Ad, AdminContact, AdminContactType, Area, AreaLevel, AuditEntry, CatalogItem, Category, ContactImportError, ContactMessage, ContactTypeRef, Dashboard, GeoState,
   ConsoleNotification, ListOrPage, Me, Media, NotificationTemplate, Post, PostCitizen, PostEvent,
-  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest, BlockedCitizenRow, CitizenBlock } from "./types";
+  ReportActivity, ReportDistrict, ReportReviewTime, ReportSummary, ReviewAction, RoleAssignment, ServiceRequest, BlockedCitizenRow, CitizenBlock,
+  CitizenAccountRow, ReferralRow, WalletEntryRow, WalletSummary } from "./types";
 // ---- the console's own shapes (API data mapped for the markup) ----
 
 export type Props = Record<string, never>;
 export type Screen = "checking" | "login" | "change_password" | "app";
-export type PageKey = "dashboard" | "geography" | "users" | "posts" | "requests" | "bills" | "ads" | "reports" | "audit" | "contact" | "numbers" | "settings";
+export type PageKey = "dashboard" | "geography" | "users" | "posts" | "requests" | "bills" | "ads" | "reports" | "audit" | "contact" | "numbers" | "settings" | "wallet";
 /** A page, or the services list (a view of the requests page with its own permissions). */
 export type NavKey = PageKey | "services";
 export type StatusTab = "All" | "Pending" | "Escalated" | "Published" | "Recheck" | "Rejected" | "Blocked";
@@ -66,6 +67,33 @@ export interface ModalSpec {
   teFromEn?: boolean;
   /** An image the admin must upload (Add category: its icon); passed to onConfirm as `file`. */
   imageLabel?: string;
+}
+
+/** What a Citizens & wallet dialog does (BVTGC-139/140): the Super Admin's help after a call-back, block, unblock,
+ *  delete, find a caller's account, adjust points, or decide a referral. */
+export type WalletDialogKind = "email" | "mobile" | "block" | "unblock" | "delete" | "find" | "adjust" | "confirm" | "reject";
+
+/** The open Citizens & wallet dialog and what is typed in it. */
+export interface WalletDialog {
+  kind: WalletDialogKind;
+  account?: CitizenAccountRow;
+  referral?: ReferralRow;
+  /** Set new email: the new address. */
+  email: string;
+  /** Every action's reason (the referral's comment for confirm and reject). */
+  reason: string;
+  /** "I called the number back and spoke to the citizen" (set email, remove number). */
+  called: boolean;
+  /** Adjust points: the number typed and whether it adds or takes away. */
+  points: string;
+  sign: "+" | "-";
+  /** Find: the full mobile number or email the caller gives (sent in a POST body only). */
+  find: string;
+  /** Find: the accounts found; null before a search. */
+  found: CitizenAccountRow[] | null;
+  busy: boolean;
+  /** The server's field errors (or the form's own), shown under each field: email, reason, called_back, points, find. */
+  err: Record<string, string>;
 }
 
 /** The New post panel (same fields as the app's Compose). */
@@ -514,6 +542,28 @@ export interface State {
   contactCount: number;
   /** The pills' numbers from GET /admin/contact-messages/ status_counts (search applied, pill not). */
   contactCounts: Partial<Record<"new" | "handled" | "all", number>>;
+  /** Citizens & wallet (BVTGC-139/140): the tab open. */
+  waTab: "accounts" | "referrals" | "entries";
+  /** Accounts tab: GET /admin/citizen-accounts/ (search, status and village filters, 20 a page). */
+  waAccounts: CitizenAccountRow[];
+  waCount: number;
+  waPage: number;
+  waPages: number;
+  waLoading: boolean;
+  waQ: string;
+  /** '' (every account), active, blocked or deleted. */
+  waStatus: string;
+  /** A village id from the pilot mandals, or '' for all. */
+  waVillage: string;
+  /** The pilot mandals from Settings (wallet_pilot_mandals): the village filter lists their villages; empty: none. */
+  waPilot: number[];
+  /** The account open in its panel, and its wallet history (GET /admin/wallets/{id}/, newest first). */
+  waOpen: CitizenAccountRow | null;
+  waHistory: WalletEntryRow[];
+  waHistoryCount: number;
+  waHistoryLoading: boolean;
+  waBalance: WalletSummary | null;
+  waDlg: WalletDialog | null;
   contactPage: number;
   contactPages: number;
   contactQ: string;
@@ -552,7 +602,7 @@ export interface State {
 }
 
 /** The forms Escape closes, top first. */
-export const FORMS = ["tf", "nf", "sf", "af", "rq", "cm", "cf"] as const;
+export const FORMS = ["waDlg", "tf", "nf", "sf", "af", "rq", "cm", "cf", "waOpen"] as const;
 /** The forms whose Telugu name is suggested from the English one. */
 export type TeForm = "geoForm" | "nu" | "sf" | "tf" | "nf" | "modal";
 

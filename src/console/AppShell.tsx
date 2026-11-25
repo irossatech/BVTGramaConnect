@@ -18,6 +18,9 @@ import Ads from "./screens/Ads";
 import Services from "./screens/Services";
 import Numbers from "./screens/Numbers";
 import SettingsScreen from "./screens/Settings";
+import CitizensWallet from "./screens/CitizensWallet";
+import CitizenAccountPanel from "./panels/CitizenAccountPanel";
+import WalletDialog from "./panels/WalletDialog";
 import DetailPanel from "./panels/DetailPanel";
 import UserDrawer from "./panels/UserDrawer";
 import RequestPanel from "./panels/RequestPanel";
@@ -68,6 +71,8 @@ export default function AppShell({ v }: { v: View }) {
             {v.pg?.numbers ? <Numbers v={v} /> : null}
             {/* SETTINGS */}
             {v.pg?.settings ? <SettingsScreen v={v} /> : null}
+            {/* CITIZENS & WALLET (BVTGC-139/140) */}
+            {v.pg?.wallet ? <CitizensWallet v={v} /> : null}
           </div>
           </div>
         </main>
@@ -89,6 +94,8 @@ export default function AppShell({ v }: { v: View }) {
       {v.cfShow ? <ComposeFormPanel v={v} /> : null}
       {v.nfShow ? <NumberFormPanel v={v} /> : null}
       {v.tfShow ? <TypeFormPanel v={v} /> : null}
+      {v.waShow ? <CitizenAccountPanel v={v} /> : null}
+      {v.wdShow ? <WalletDialog v={v} /> : null}
       {" "}
       {/* MODAL */}
       {" "}
