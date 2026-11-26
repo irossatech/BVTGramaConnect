@@ -192,6 +192,7 @@
     "refHint": "Enter this code when you create your wallet account in the app.",
     "refCopy": "Copy",
     "refCopied": "Code copied",
+    "refCopyManual": "Copying didn't work here. Select the code and copy it.",
     "delStep": "Step {n} of 3",
     "delTitle": "Delete my wallet account",
     "delSub": "You can delete your account here, even without the app. We'll send a code to the account's email.",
