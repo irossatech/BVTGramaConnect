@@ -16,7 +16,7 @@
 import { ApiError } from "../api";
 import type { CitizenAccountRow, Paged, ReferralRow, Settings, WalletEntryRow, WalletSummary } from "../types";
 import { orEmpty, pageCount, pager, PAGE_SIZE, sessionEnded, type FieldChange, type State, type WalletDialog, type WalletDialogKind } from "../model";
-import { accountTone, contactLine, entryKind, entryTone, findBody, parsePoints, reasonWords, referralTone, signed } from "../walletText";
+import { accountTone, contactLine, entryKind, entryTone, findBody, parsePoints, PERSONAL_SEARCH_HINT, PERSONAL_SEARCH_TEXT, reasonWords, referralTone, signed, tooPersonalToSearch } from "../walletText";
 import type { ConsoleHost } from "./host";
 
 const ACCOUNTS = '/admin/citizen-accounts/';
@@ -56,6 +56,11 @@ function loadTab(h: ConsoleHost, tab: Tab) {
 export function loadReferrals(h: ConsoleHost, page: number) {
   const s = h.state;
   const latest = h.ticket('waRefs');
+  // A full number or email is never sent in a request address (BVTGC-161): the list empties and says why.
+  if (tooPersonalToSearch(s.waRefQ)) {
+    h.setState({waRefs: [], waRefCount: 0, waRefPage: 1, waRefPages: 1, waRefLoading: false});
+    return;
+  }
   h.setState({waRefLoading: true});
   h.api.get<Paged<ReferralRow> & {status_counts?: Record<string, number>}>('/admin/referrals/', {status: s.waRefStatus, q: s.waRefQ.trim(), page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({waRefs: d.results || [], waRefCount: d.count || 0, waRefCounts: d.status_counts || {}, waRefPage: page, waRefPages: pageCount(d.count), waRefLoading: false}))
@@ -109,6 +114,10 @@ export function loadEntries(h: ConsoleHost, page: number) {
 function exportWallet(h: ConsoleHost, type: 'referrals' | 'entries') {
   const s = h.state;
   if (s.exporting) return;
+  if (type === 'referrals' && tooPersonalToSearch(s.waRefQ)) {
+    h.toast('Clear the full number or email from the search first');  // never in a request address (BVTGC-161)
+    return;
+  }
   const stamp = new Date().toISOString().slice(0, 10);
   const query = type === 'referrals'
     ? {type, format: 'csv', status: s.waRefStatus, q: s.waRefQ.trim()}
@@ -146,6 +155,12 @@ function adjustPoints(h: ConsoleHost, d: WalletDialog) {
 export function loadAccounts(h: ConsoleHost, page: number) {
   const s = h.state;
   const latest = h.ticket('waAccounts');
+  // A full number or email is never sent in a request address (BVTGC-161): "Find by mobile or email" sends it in a
+  // POST body instead; the list empties and says so.
+  if (tooPersonalToSearch(s.waQ)) {
+    h.setState({waAccounts: [], waCount: 0, waPage: 1, waPages: 1, waLoading: false});
+    return;
+  }
   h.setState({waLoading: true});
   h.api.get<Paged<CitizenAccountRow>>(ACCOUNTS, {q: s.waQ.trim(), status: s.waStatus, village_id: s.waVillage, page, page_size: PAGE_SIZE})
     .then((d) => latest() && h.setState({waAccounts: d.results || [], waCount: d.count || 0, waPage: page, waPages: pageCount(d.count), waLoading: false}))
@@ -403,8 +418,8 @@ function referralsAndEntries(h: ConsoleHost) {
         confirm: () => openDialog(h, 'confirm', {referral: r}), reject: () => openDialog(h, 'reject', {referral: r})};
     }),
     waRefEmpty: !s.waRefs.length,
-    waRefEmptyText: s.waRefLoading ? 'Loading…' : s.waRefQ.trim() ? 'No referrals match “' + s.waRefQ.trim() + '”' : s.waRefStatus === 'PENDING' ? 'No referrals waiting' : 'No referrals here yet',
-    waRefEmptyHint: s.waRefLoading || s.waRefQ.trim() ? '' : 'Waiting referrals are decided by the hourly job when their hold ends. You may confirm or reject one earlier, with a comment.',
+    waRefEmptyText: s.waRefLoading ? 'Loading…' : tooPersonalToSearch(s.waRefQ) ? PERSONAL_SEARCH_TEXT : s.waRefQ.trim() ? 'No referrals match “' + s.waRefQ.trim() + '”' : s.waRefStatus === 'PENDING' ? 'No referrals waiting' : 'No referrals here yet',
+    waRefEmptyHint: s.waRefLoading ? '' : tooPersonalToSearch(s.waRefQ) ? PERSONAL_SEARCH_HINT : s.waRefQ.trim() ? '' : 'Waiting referrals are decided by the hourly job when their hold ends. You may confirm or reject one earlier, with a comment.',
     waRefPager: pager(s.waRefPage, s.waRefPages, (p) => loadReferrals(h, p)),
     exportRefs: () => exportWallet(h, 'referrals'), exportingRefs: s.exporting === 'wallet-referrals',
     waIsEntries: s.waTab === 'entries',
@@ -458,8 +473,8 @@ export function walletView(h: ConsoleHost) {
         statusLabel: tone.label, sbg: tone.bg, scolor: tone.color, on: !!s.waOpen && s.waOpen.id === a.id, open: () => openAccount(h, a)};
     }),
     waEmpty: !s.waAccounts.length,
-    waEmptyText: s.waLoading ? 'Loading…' : s.waQ.trim() ? 'No accounts match “' + s.waQ.trim() + '”' : s.waStatus || s.waVillage ? 'No accounts with these filters' : 'No wallet accounts yet',
-    waEmptyHint: s.waLoading || s.waQ.trim() ? '' : 'Citizens who open a wallet account in the app are listed here. Use “Find by mobile or email” for a caller.',
+    waEmptyText: s.waLoading ? 'Loading…' : tooPersonalToSearch(s.waQ) ? PERSONAL_SEARCH_TEXT : s.waQ.trim() ? 'No accounts match “' + s.waQ.trim() + '”' : s.waStatus || s.waVillage ? 'No accounts with these filters' : 'No wallet accounts yet',
+    waEmptyHint: s.waLoading ? '' : tooPersonalToSearch(s.waQ) ? PERSONAL_SEARCH_HINT : s.waQ.trim() ? '' : 'Citizens who open a wallet account in the app are listed here. Use “Find by mobile or email” for a caller.',
     waPager: pager(s.waPage, s.waPages, (p) => loadAccounts(h, p)),
   };
 }

@@ -21,6 +21,39 @@ export function friendCode(search: string): string | null {
   return REF.test(code) ? code : null;
 }
 
+/** What copyText() needs of the browser; tests pass small fakes. */
+export type CopyNavigator = { clipboard?: { writeText(text: string): Promise<void> } };
+export type CopyDocument = Pick<Document, "createElement" | "execCommand"> & { body: Pick<HTMLElement, "appendChild" | "removeChild"> | null };
+
+/** Copies `text` and says whether it worked (BVTGC-163). Browsers give the clipboard to https pages only; on an http
+ *  address (the qa server) it is missing, so the older way is tried: a hidden text box, selected and copied. False
+ *  when neither works, so the page can tell the visitor to copy the code by hand instead of doing nothing. */
+export async function copyText(text: string, nav: CopyNavigator | undefined, doc: CopyDocument | undefined): Promise<boolean> {
+  try {
+    if (nav?.clipboard?.writeText) {
+      await nav.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* refused (no permission): try the older way */
+  }
+  if (!doc?.body) return false;
+  try {
+    const box = doc.createElement("textarea");
+    box.value = text;
+    box.setAttribute("readonly", "");
+    box.style.position = "fixed";
+    box.style.opacity = "0";
+    doc.body.appendChild(box);
+    box.select();
+    const ok = doc.execCommand("copy");
+    doc.body.removeChild(box);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 /** The "Delete my wallet account" page's address, given to Google Play and named in the privacy policy (BVTGC-142). */
 export const DELETE_PATH = "/delete-account/";
 

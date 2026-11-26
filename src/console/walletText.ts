@@ -71,6 +71,25 @@ export function findBody(text: string): { email: string } | { mobile: string } |
   return t.includes("@") ? { email: t } : { mobile: t };
 }
 
+/** Whether a search box holds a full email or mobile number (an @, or 10 digits or more), which must never go into a
+ *  request address and so the server's logs (BVTGC-161). The searches take a name, the last 4 digits or a referral
+ *  code (8 characters); a full number or email belongs in "Find by mobile or email", which sends a POST body. */
+export function tooPersonalToSearch(text: string): boolean {
+  const t = text || "";
+  return t.includes("@") || t.replace(/\D/g, "").length >= 10;
+}
+
+/** The words the Accounts and Referrals tabs show instead of searching for a full number or email (BVTGC-161). */
+export const PERSONAL_SEARCH_TEXT = "A full number or email is not searched here";
+export const PERSONAL_SEARCH_HINT = "Search by a name, the last 4 digits or a referral code. For a caller's full number or email, use “Find by mobile or email” on the Accounts tab.";
+
+/** A mandal in the wallet card's "+ Add mandal" picker (BVTGC-162): "Tenali (తెనాలి) · Guntur", so the picker's
+ *  search finds it by its English or its Telugu name; "Tenali · Guntur" when the data has no Telugu name. */
+export function mandalPickLabel(name: string, te: string, district: string): string {
+  const telugu = (te || "").trim();
+  return (telugu && telugu !== name ? name + " (" + telugu + ")" : name) + " · " + district;
+}
+
 /** "l***@gmail.com · ••3210": how a row names its contact details, or "No number" when the Super Admin removed it. */
 export function contactLine(emailHint: string, last4: string, missing: boolean): string {
   const mobile = missing ? "No number" : last4 ? "••" + last4 : "—";

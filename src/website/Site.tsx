@@ -9,7 +9,7 @@ import GCApi, { type SiteApiError } from "./api";
 import LOCALES, { type Lang, type Strings } from "./i18n";
 import { istDayMonth } from "./dates";
 import { isPage, pageFromSlug, pathOf, type Page } from "./routes";
-import { DELETE_PATH, friendCode, loginOk } from "./wallet";
+import { DELETE_PATH, copyText, friendCode, loginOk } from "./wallet";
 import { cream, greenText, ui } from "./ui/theme";
 import Header from "./sections/Header";
 import Home from "./sections/Home";
@@ -706,11 +706,9 @@ export default class Site extends React.Component<Props, State> {
       copyCode: () => {
         const code = s.friend;
         if (!code) return;
-        try {
-          navigator.clipboard.writeText(code).then(() => this.toast(t.refCopied), () => {});
-        } catch {
-          /* no clipboard (an old browser): the code stays on screen to type */
-        }
+        // On an http address (qa) the browser gives no clipboard: copyText() falls back to the older way, and when
+        // nothing works the visitor is told to copy the code by hand, never left with no answer (BVTGC-163).
+        void copyText(code, navigator, document).then((ok) => this.toast(ok ? t.refCopied : t.refCopyManual));
       },
       playClick: () => this.openStore(config.playStoreUrl, t),
       appClick: () => this.openStore(config.appStoreUrl, t),
