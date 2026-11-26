@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { accountTone, contactLine, entryKind, entryTone, findBody, parsePoints, reasonWords, referralTone, signed } from "../src/console/walletText.ts";
+import { accountTone, contactLine, entryKind, entryTone, findBody, parsePoints, reasonWords, referralTone, signed, tooPersonalToSearch } from "../src/console/walletText.ts";
+
+test("a full number or email is never searched in a web address (BVTGC-161)", () => {
+  for (const personal of ["9876543210", "+91 98765 43210", "98765-43210", "09876543210", "lakshmi@gmail.com", "@gmail", "ravi 9876543210"]) {
+    assert.equal(tooPersonalToSearch(personal), true, personal);
+  }
+  for (const fine of ["", "Ravi", "రవి కుమార్", "3210", "K7QX2MPA", "K7QX2345", "987654321"]) {
+    assert.equal(tooPersonalToSearch(fine), false, fine);
+  }
+});
 
 // Citizens & wallet (BVTGC-139/140): the small rules behind the page, without React.
 
