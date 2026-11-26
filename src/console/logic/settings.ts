@@ -58,6 +58,52 @@ function addCategory(h: ConsoleHost) {
     }});
 }
 
+// Edit a post category (PATCH /admin/categories/{id}/, BackEnd contract section 5, 2026-11-26): the English and Telugu
+// names and the icon. The key never changes, so the apps keep finding it; a new icon is optional (the current one stays).
+function editCategory(h: ConsoleHost, c: Category) {
+  h.ask({title: 'Edit category · ' + c.name_en, body: 'The new names show in the app, on the website and in New post. Its posts stay in this category.',
+    hasInput: true, noGen: true, inputLabel: 'Name in English', inputPh: 'For example Health', preset: c.name_en, input2Label: 'Name in Telugu', input2Ph: 'ఉదా: ఆరోగ్యం', preset2: c.name_te,
+    imageLabel: 'Icon', imagePreset: c.icon_url || '',
+    confirmLabel: 'Save', bg: '#0D3B7A', onConfirm: (t, _sel, _gen, t2, icon) => {
+      const en = t.trim(), te = t2.trim();
+      if (!en || !te) return h.toast('Write the name in English and in Telugu.', '#b3261e');
+      const path = '/admin/categories/' + c.id + '/';
+      let saved: Promise<unknown>;
+      if (icon) {
+        const fd = new FormData();
+        fd.append('name_en', en);
+        fd.append('name_te', te);
+        fd.append('icon', icon);
+        saved = h.api.upload(path, fd, undefined, 'PATCH');
+      } else {
+        saved = h.api.patch(path, {name_en: en, name_te: te});
+      }
+      saved.then(() => {
+        h.toast('Category saved · ' + en);
+        loadAdminCategories(h);
+      }).catch((e: unknown) => h.fail(e));
+    }});
+}
+
+// Delete a post category added by mistake (DELETE /admin/categories/{id}/, 2026-11-26). Only one no post uses: posts are
+// kept permanently and keep their category, so the server answers 409 category_in_use otherwise; switch it off instead.
+function deleteCategory(h: ConsoleHost, c: Category) {
+  const n = c.post_count || 0;
+  if (n) {
+    h.ask({title: 'This category has posts', body: n + ' post' + (n === 1 ? ' uses' : 's use') + ' "' + c.name_en + '", and posts are never deleted, so the category cannot be deleted. Switch it off instead: it is hidden from citizens and from New post.', confirmLabel: 'OK', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+    return;
+  }
+  h.ask({title: 'Delete "' + c.name_en + '"?', body: 'No post uses this category. It is removed from the app, the website and New post for good.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => h.api.del('/admin/categories/' + c.id + '/').then(() => {
+    h.toast('Category deleted · ' + c.name_en, '#E9791E');
+    loadAdminCategories(h);
+  }).catch((e: unknown) => {
+    // A server without the delete yet (BackEnd before 2026-11-26) answers 405.
+    if (e instanceof ApiError && e.status === 405) h.ask({title: 'Not available yet', body: 'Deleting a category needs a server update. For now, switch the category off: citizens stop seeing it.', confirmLabel: 'OK', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+    else h.fail(e);
+    loadAdminCategories(h);
+  })});
+}
+
 /** The wallet's settings as the server has them; an older server without them keeps the card hidden. */
 function walletFrom(st: Settings, before: WalletForm): WalletForm {
   if (st.wallet_enabled === undefined) return before;
@@ -162,7 +208,10 @@ export function settingsView(h: ConsoleHost) {
     toggle: () => h.api.patch('/admin/categories/' + c.id + '/', {is_active: !c.is_active}).then(() => {
       h.toast(c.name_en + (c.is_active ? ' disabled' : ' enabled'), c.is_active ? '#E9791E' : '#6cc04a');
       loadAdminCategories(h);
-    }).catch((e: unknown) => h.fail(e))}));
+    }).catch((e: unknown) => h.fail(e)),
+    // Only on the full list (Settings loads it with ids); Delete is shown greyed while posts use the category.
+    canManage: !!c.id && h.can('posts.manage_categories'), canDelete: !(c.post_count || 0),
+    edit: () => editCategory(h, c), del: () => deleteCategory(h, c)}));
   // Telugu is always on (the default language): an "Always on" tag instead of a switch that only says no.
   const langRows = ([{id: 'te', name: 'తెలుగు · Telugu', sub: 'The default language'}, {id: 'en', name: 'English', sub: 'Citizens can switch to English in the app and on the website'}] as const).map((l) => {
     const on = s.settings.langs[l.id];

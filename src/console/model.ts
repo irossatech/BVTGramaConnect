@@ -67,6 +67,9 @@ export interface ModalSpec {
   teFromEn?: boolean;
   /** An image the admin must upload (Add category: its icon); passed to onConfirm as `file`. */
   imageLabel?: string;
+  /** The image there is already (Edit category: the current icon). Shown until another is picked; picking one is
+   *  then optional, and onConfirm gets `file` null when the admin kept it. */
+  imagePreset?: string;
 }
 
 /** What a Citizens & wallet dialog does (BVTGC-139/140): the Super Admin's help after a call-back, block, unblock,
