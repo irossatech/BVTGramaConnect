@@ -15,7 +15,7 @@ export default function Services({ v }: { v: View }) {
         {list(v.svcRows).map((_g, _i1) => (
           <div key={_i1} style={css(`display:flex;align-items:center;gap:14px;padding:12px 16px;border-top: ${_i1 ? "1px solid #f3f5f8" : "0"}`)}>
             <span style={{opacity: _g?.on ? "1" : ".45", display: "flex"}}><span style={{width: "44px", height: "44px", borderRadius: "13px", background: _g.tint, color: _g.c, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0"}}>{_g.img ? <img src={_g.img} alt="" style={{height: "24px", maxWidth: "30px"}} /> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={_g.d} /></svg>}</span></span>
-            <button onClick={_g?.open} disabled={_g?.locked} style={{flex: "1", minWidth: "0", display: "flex", flexDirection: "column", gap: "2px", textAlign: "left", background: "none", border: "0", padding: "0", cursor: _g?.locked ? "default" : "pointer"}}>
+            <button onClick={_g?.open} disabled={!_g?.canChange} title={_g?.offHint} style={{flex: "1", minWidth: "0", display: "flex", flexDirection: "column", gap: "2px", textAlign: "left", background: "none", border: "0", padding: "0", cursor: _g?.canChange ? "pointer" : "default"}}>
               <span style={{display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap"}}>
                 <span style={{fontWeight: "700", fontSize: "14.5px", color: _g?.on ? "#0A2550" : "#647182"}}>{I(_g?.name)}</span>
                 {_g?.on ? null : <span style={{padding: "1px 8px", borderRadius: "999px", fontSize: "11px", fontWeight: "700", background: "#eef2f6", color: "#3b4a5c"}}>Hidden</span>}
@@ -28,7 +28,8 @@ export default function Services({ v }: { v: View }) {
               Show
               <button type="button" role="switch" aria-checked={!!_g?.on} aria-label={"Show on Home: " + (_g?.name || "")} onClick={_g?.toggle} disabled={_g?.locked} style={css(`flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;transition:background .15s;justify-content: ${_g?.on ? "flex-end" : "flex-start"};background: ${_g?.on ? "#1F8A3B" : "#cfd8e3"};opacity: ${_g?.locked ? .5 : 1}`)}><span style={{width: "20px", height: "20px", borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.25)"}} /></button>
             </label>
-            <button onClick={_g?.open} disabled={_g?.locked} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: "pointer", fontSize: "12px", opacity: _g?.locked ? ".5" : "1"}}>Edit</button>
+            <button onClick={_g?.open} disabled={!_g?.canChange} title={_g?.offHint} aria-label={"Edit " + (_g?.name || "")} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#0D3B7A", fontWeight: "700", cursor: _g?.canChange ? "pointer" : "not-allowed", fontSize: "12px", opacity: _g?.canChange ? "1" : ".45"}}>Edit</button>
+            {_g?.hasDelete ? <button onClick={_g?.del} disabled={!_g?.canChange} title={_g?.offHint} aria-label={"Delete " + (_g?.name || "")} style={{height: "32px", padding: "0 14px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color: "#b3261e", fontWeight: "700", cursor: _g?.canChange ? "pointer" : "not-allowed", fontSize: "12px", opacity: _g?.canChange ? "1" : ".45"}}>Delete</button> : null}
           </div>
         ))}
         {v.svcsEmpty ? <div style={{padding: "40px", textAlign: "center", color: "#647182", fontSize: "13px"}}>{I(v.svcsEmptyText)}</div> : null}

@@ -119,6 +119,21 @@ function toggleService(h: ConsoleHost, g: CatalogItem, b = false) {
   }).catch((e: unknown) => h.fail(e));
 }
 
+// Delete a service added by mistake (DELETE /admin/services/{key}/, BackEnd contract section 16, 2026-11-26): only a
+// hidden one no request uses. Requests are kept permanently, so a used one answers 409 service_in_use with the reason.
+function deleteService(h: ConsoleHost, g: CatalogItem) {
+  if (h.state.svcsUnavailable || g.is_active !== false) return;
+  h.ask({title: 'Delete "' + g.name_en + '"?', body: 'It is removed from the services list for good. A service that citizens have already requested cannot be deleted: keep it hidden instead.', confirmLabel: 'Delete', bg: '#b3261e', onConfirm: () => h.api.del('/admin/services/' + g.key + '/').then(() => {
+    h.toast('Service deleted · ' + g.name_en, '#E9791E');
+    loadServices(h);
+  }).catch((e: unknown) => {
+    // A server without the delete yet (BackEnd before 2026-11-26) answers 405.
+    if (isStatus(e, 405)) h.ask({title: 'Not available yet', body: 'Deleting a service needs a server update. For now, keep the service hidden: citizens do not see it.', confirmLabel: 'OK', bg: '#3b4a5c', noCancel: true, onConfirm: () => {}});
+    else h.fail(e);
+    loadServices(h);
+  })});
+}
+
 function moveService(h: ConsoleHost, g: CatalogItem, by: number, b = false) {
   const c = catalogSet(b), items = h.state[c.l], i = items.findIndex((x) => x.key === g.key), j = i + by;
   if (h.state[c.un] || i < 0 || j < 0 || j >= items.length) return;
@@ -145,13 +160,17 @@ export function servicesView(h: ConsoleHost) {
         catSub: b ? "Bills & Recharges on the app's Home." : "Services citizens can request from the app's Home.",
         catNew: b ? 'New bill / recharge' : 'New service',
         catUnavailText: b ? "The bills list is not on the server yet. Until it is, citizens see the built-in bills below, and changes can't be saved." : "The services list is not on the server yet. Until it is, citizens see the built-in list below, and changes can't be saved.",
-        catHelp: b ? 'The arrows set the order on Home.' : 'The arrows set the order on Home. Hiding a service keeps the requests already sent.',
+        catHelp: b ? 'The arrows set the order on Home.' : 'The arrows set the order on Home. Hiding a service keeps the requests already sent. Hide a service to edit or delete it.',
         svcRows: L.map((g, i) => {
           const [col, tint] = SVC_COLORS[g.color] || SVC_COLORS.blue;
           const icon = g.logo ? 'img:' + g.logo : (c.icons[g.icon] || c.icons[c.icon]);
           const on = g.is_active !== false;
+          // Services are edited and deleted only while hidden (2026-11-26; the server answers 409 switch_off_first
+          // otherwise); shown, Edit and Delete are greyed. Bills keep Edit at any time and have no Delete.
+          const canChange = !s[c.un] && (b || !on);
           return {name: g.name_en, sub: g.name_te && g.name_te !== g.name_en ? g.name_te : '', on, c: col, tint, img: icon.startsWith('img:') ? icon.slice(4) : '', d: icon.startsWith('img:') ? '' : icon,
-            up: () => moveService(h, g, -1, b), down: () => moveService(h, g, 1, b), canUp: i > 0 && !s[c.un], canDown: i < L.length - 1 && !s[c.un], toggle: () => toggleService(h, g, b), open: () => openService(h, g, b), locked: s[c.un]};
+            up: () => moveService(h, g, -1, b), down: () => moveService(h, g, 1, b), canUp: i > 0 && !s[c.un], canDown: i < L.length - 1 && !s[c.un], toggle: () => toggleService(h, g, b), open: () => { if (canChange) openService(h, g, b); }, locked: s[c.un],
+            canChange, hasDelete: !b, del: () => deleteService(h, g), offHint: b || !on ? undefined : 'Hide the service to edit or delete it'};
         }),
         svcsUnavailable: s[c.un], svcsEmpty: !L.length, svcsEmptyText: s[c.ld] ? 'Loading…' : b ? 'No bills yet. Add one and citizens see it under Bills & Recharges.' : 'No services yet. Add one and citizens can request it from Home.',
         svcShownLabel: L.length ? L.filter((g) => g.is_active !== false).length + ' of ' + L.length + ' on Home' : '', newService: () => openService(h, null, b),

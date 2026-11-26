@@ -37,7 +37,7 @@ export default function Settings({ v }: { v: View }) {
           <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "4px"}}>
             <span style={{display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
               <span id="set-cats" style={{...title, marginBottom: "0"}}>Post categories</span>
-              <span style={{fontSize: "12.5px", color: "#647182", lineHeight: "1.45"}}>A switched-off category is hidden from citizens and from New post.</span>
+              <span style={{fontSize: "12.5px", color: "#647182", lineHeight: "1.45"}}>A switched-off category is hidden from citizens and from New post. Switch a category off to edit or delete it.</span>
             </span>
             {v.canAddCat ? <button onClick={v.addCat} style={{...save, flexShrink: "0"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true" style={{verticalAlign: "-2px", marginRight: "6px"}}><path d="M12 5v14M5 12h14" /></svg>Add category</button> : null}
           </div>
@@ -54,8 +54,8 @@ export default function Settings({ v }: { v: View }) {
                   <span style={help}><span lang="te">{I(_c?.te)}</span>{" · "}{I(_c?.count)}{_c?.count === 1 ? " post" : " posts"}</span>
                 </span>
                 {_c?.canManage ? <span style={{display: "flex", gap: "6px", flexShrink: "0"}}>
-                    <button type="button" onClick={_c?.edit} aria-label={"Edit " + (_c?.en || "")} style={pill("#0D3B7A")}>Edit</button>
-                    <button type="button" onClick={_c?.del} aria-label={"Delete " + (_c?.en || "")} title={_c?.canDelete ? undefined : "Posts use this category: switch it off instead"} style={{...pill("#b3261e"), opacity: _c?.canDelete ? 1 : .45}}>Delete</button>
+                    <button type="button" onClick={_c?.edit} disabled={!_c?.canChange} aria-label={"Edit " + (_c?.en || "")} title={_c?.canChange ? undefined : "Switch the category off to edit it"} style={{...pill("#0D3B7A"), opacity: _c?.canChange ? 1 : .45, cursor: _c?.canChange ? "pointer" : "not-allowed"}}>Edit</button>
+                    <button type="button" onClick={_c?.del} disabled={!_c?.canChange} aria-label={"Delete " + (_c?.en || "")} title={_c?.canChange ? undefined : "Switch the category off to delete it"} style={{...pill("#b3261e"), opacity: _c?.canChange ? 1 : .45, cursor: _c?.canChange ? "pointer" : "not-allowed"}}>Delete</button>
                   </span> : null}
                 <Switch on={_c?.on} onClick={_c?.toggle} label={"Show the " + (_c?.en || "") + " category"} />
               </div>
