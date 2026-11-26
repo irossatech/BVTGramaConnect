@@ -15,6 +15,8 @@ const stepper = {display: "inline-flex", alignItems: "stretch", height: "40px", 
 const stepBtn = {width: "36px", border: "0", background: "#f3f6fa", color: "#0D3B7A", fontSize: "18px", fontWeight: "700", lineHeight: "1", padding: "0"} as const;
 const num = {width: "56px", height: "100%", padding: "0 4px", border: "0", borderLeft: "1px solid #e3e9f0", borderRight: "1px solid #e3e9f0", fontSize: "15px", fontWeight: "700", fontFamily: "'Rubik',sans-serif", textAlign: "center", outlineColor: "#0D3B7A"} as const;
 const save = {height: "38px", padding: "0 16px", border: "0", borderRadius: "999px", background: "#0D3B7A", color: "#fff", fontWeight: "700", cursor: "pointer", fontSize: "13px"} as const;
+// Edit and Delete beside each category, as on the Important numbers page's types.
+const pill = (color: string) => ({height: "30px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "999px", background: "#fff", color, fontWeight: "700", cursor: "pointer", fontSize: "12px"}) as const;
 
 /** An on/off switch that says what it does and whether it is on. */
 function Switch({ on, onClick, label }: { on?: boolean; onClick?: () => void; label: string }) {
@@ -51,6 +53,10 @@ export default function Settings({ v }: { v: View }) {
                   </span>
                   <span style={help}><span lang="te">{I(_c?.te)}</span>{" · "}{I(_c?.count)}{_c?.count === 1 ? " post" : " posts"}</span>
                 </span>
+                {_c?.canManage ? <span style={{display: "flex", gap: "6px", flexShrink: "0"}}>
+                    <button type="button" onClick={_c?.edit} aria-label={"Edit " + (_c?.en || "")} style={pill("#0D3B7A")}>Edit</button>
+                    <button type="button" onClick={_c?.del} aria-label={"Delete " + (_c?.en || "")} title={_c?.canDelete ? undefined : "Posts use this category: switch it off instead"} style={{...pill("#b3261e"), opacity: _c?.canDelete ? 1 : .45}}>Delete</button>
+                  </span> : null}
                 <Switch on={_c?.on} onClick={_c?.toggle} label={"Show the " + (_c?.en || "") + " category"} />
               </div>
             </React.Fragment>

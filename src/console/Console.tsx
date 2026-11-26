@@ -810,10 +810,10 @@ export default class Component extends React.Component<Props, State> {
     const districtOpts = s.geo.map((d) => ({id: String(d.id), label: d.name}));
     // modal
     const m = s.modal;
-    const cannot = !!(m && ((m.needsText && !s.modalText.trim()) || (m.imageLabel && !s.modalFile)));
+    const cannot = !!(m && ((m.needsText && !s.modalText.trim()) || (m.imageLabel && !s.modalFile && !m.imagePreset)));
     const modal = m ? {show: true, title: m.title, body: m.body, hasInput: !!m.hasInput, inputType: m.password ? 'password' : 'text', hasGen: !!m.hasInput && !m.noGen, inputLabel: m.inputLabel || '', inputPh: m.inputPh || '', input2Label: m.input2Label || '', input2Ph: m.input2Ph || '', hasSecret: !!m.secret, secret: m.secret || '', hasCancel: !m.noCancel, needsText: !!m.needsText, textLabel: m.textLabel || '',
       hasSelect: !!m.hasSelect, selectLabel: m.selectLabel || '', options: m.options || [],
-      imageLabel: m.imageLabel || '', image: s.modalImg, pickImage: () => this.pickModalImage(), confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
+      imageLabel: m.imageLabel || '', image: s.modalImg || m.imagePreset || '', pickImage: () => this.pickModalImage(), confirmLabel: m.confirmLabel, bg: m.bg || '#0D3B7A', cannot, opacity: cannot ? .5 : 1} : {show: false, options: [], hasCancel: true};
     const me = s.me || {name: '', username: '', email: ''};
     return {screen: s.screen, is, pg, pageTitle: titles[s.page], navGroups, navOpen: s.navOpen, toggleNav: () => this.setState((st) => ({navOpen: !st.navOpen})), ...notificationsView(this.host), menuOpen: s.menuOpen, toggleMenu: () => this.setState((st) => ({menuOpen: !st.menuOpen, notifOpen: false})), menuProfile: () => this.editProfile(), goSettingsM: () => this.goPage('settings'), canSettings: this.navOk('settings'), menuChangePassword: () => this.openChangePassword(), goAudit: () => this.goPage('audit'),
       meName: me.name, meInitial: (me.name || '?')[0], stateName: s.stateRow ? s.stateRow.name_en : '', stateTe: s.stateRow ? s.stateRow.name_te : '',
