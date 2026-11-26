@@ -405,6 +405,8 @@ export function usersView(h: ConsoleHost) {
     nuEdit: !!nu.id, nuTitle: nu.id ? 'Edit user' : 'Add User', nuSaveLabel: nu.id ? 'Save changes' : 'Create user',
     openAddUser: () => h.setState((st) => ({drawerOpen: true, nu: {...(st.nu.id ? {id: null, name: '', te: '', email: '', username: '', mobile: '', password: '', area: '', nuD: '', nuM: ''} : st.nu), role: nuRoles.some((r) => r.id === st.nu.role) ? st.nu.role : (nuRoles[0] ? nuRoles[0].id : st.nu.role)}})),
     canAddUser: nuRoles.length > 0, nuRoles,
+    // The role filter offers Super Admin to those who manage them (GET /users/?role=SUPER_ADMIN), as the app does.
+    ufSuper: h.can('accounts.manage_super_admin'),
     genNU: (e?: React.MouseEvent) => {
       e?.preventDefault();
       const p = h.newPassword();

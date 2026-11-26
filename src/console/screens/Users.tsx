@@ -19,6 +19,8 @@ export default function Users({ v }: { v: View }) {
         </label>
         <select name="role" aria-label="Role" value={val(v.uf?.role, "")} onChange={v.onUF} style={{height: "38px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "160px"}}>
           <option value="">All roles</option>
+          {/* Super Admins only to those who manage them (accounts.manage_super_admin), as the app's role filter. */}
+          {v.ufSuper ? <option value="super">Super Admin</option> : null}
           <option value="district">District Admin</option>
           <option value="mandal">Mandal Admin</option>
           <option value="village">Village Admin</option>
