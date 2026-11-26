@@ -18,6 +18,7 @@ const LABEL = {
   contact: "Contact",
   privacy: "Privacy policy",
   terms: "Terms",
+  delete: "Delete my wallet account: deleting a citizen wallet account with a code sent to its email",
 };
 const slugTable = readFileSync("src/website/routes.ts", "utf8").match(/const SLUG[^{]*\{([^}]*)\}/);
 if (!slugTable) throw new Error("src/website/routes.ts: SLUG table not found");

@@ -334,7 +334,7 @@ export interface ReportActivity {
 
 // ---- settings ----
 
-export interface Settings {
+export interface Settings extends WalletSettings {
   review_escalation_hours: number;
   citizen_posts_per_day?: number | null;
   /** Banners a citizen's Home shows, newest first; 0 is no limit (Jira BVTGC-92). */
@@ -514,4 +514,90 @@ export interface Ad {
   starts_on: string | null;
   ends_on: string | null;
   is_active: boolean;
+}
+
+// ---- citizen wallet (BackEnd docs/api-contract.md, section 21, the Super Admin table) ----
+
+/** A citizen wallet account in GET /admin/citizen-accounts/ (AccountRow): never the full email or number. */
+export interface CitizenAccountRow {
+  /** The account's user id (a UUID). */
+  id: string;
+  /** "Deleted citizen" once deleted. */
+  name: string;
+  village: { level: string; id: number; name: string } | null;
+  mobile_last4: string;
+  /** True after the Super Admin removed the number (release-mobile). */
+  mobile_missing: boolean;
+  email_hint: string;
+  email_verified: boolean;
+  mobile_verified: boolean;
+  referral_code: string;
+  confirmed_points: number;
+  held_points: number;
+  status: "active" | "blocked" | "deleted";
+  created_at: string;
+  last_active_at: string | null;
+  deleted_at: string | null;
+  /** set_email, release_mobile, block or unblock, delete, and adjust for holders of wallet.adjust_points. */
+  allowed_actions: string[];
+}
+
+/** One side of a referral (ReferralRow.referrer / referee). */
+export interface ReferralParty {
+  id: string;
+  name: string;
+  mobile_last4: string;
+  referral_code: string;
+}
+
+/** A referral in GET /admin/referrals/ (ReferralRow). */
+export interface ReferralRow {
+  id: string;
+  referrer: ReferralParty;
+  referee: ReferralParty;
+  status: "PENDING" | "CONFIRMED" | "REJECTED";
+  reason_key: string | null;
+  comment: string;
+  pending_at: string;
+  confirm_after: string;
+  decided_at: string | null;
+  /** null when the hourly job decided. */
+  decided_by: { id: string; name: string } | null;
+  allowed_actions: string[];
+}
+
+/** A wallet entry in GET /admin/wallets/{id}/ and GET /admin/wallet/entries/ (WalletEntry plus the Super Admin's fields). */
+export interface WalletEntryRow {
+  id: string;
+  points: number;
+  kind: "REFERRAL_REWARD" | "WELCOME_BONUS" | "ADJUSTMENT";
+  status: "HELD" | "CONFIRMED" | "CANCELLED";
+  reason_key: string | null;
+  /** The reason's words in English (the console asks in English), or the Super Admin's own text. */
+  reason: string | null;
+  created_at: string;
+  decided_at: string | null;
+  created_by: { id: string; name: string } | null;
+  referral_id: string | null;
+  /** Only in GET /admin/wallet/entries/: whose wallet. */
+  citizen?: { id: string; name: string; mobile_last4: string };
+}
+
+/** The balance part of a wallet page, and the answer to an adjustment. */
+export interface WalletSummary {
+  confirmed_points: number;
+  held_points: number;
+  next_release_at: string | null;
+}
+
+/** GET /admin/settings/: the citizen wallet's eight settings (BVTGC-129). */
+export interface WalletSettings {
+  wallet_enabled?: boolean;
+  wallet_pilot_mandals?: number[];
+  referral_reward_points?: number;
+  welcome_bonus_points?: number;
+  referral_hold_days?: number;
+  referral_active_days?: number;
+  referrals_per_month?: number;
+  welcome_bonuses_per_phone?: number;
 }

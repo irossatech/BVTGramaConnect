@@ -5,7 +5,7 @@ import { ui } from "../../ui/theme";
 import { ApkLink, appleIcon, playIcon, storeLabel } from "../../ui/parts";
 
 export default function Download({ v }: { v: View }) {
-  const { ink, green, fs, wrap, h2, lead, pill } = ui(v);
+  const { ink, green, display, fs, wrap, h2, lead, pill } = ui(v);
   return (
     <section id="get-app" style={{padding: "clamp(40px,6vw,72px) 0"}}>
       <div style={{...wrap}}>
@@ -31,6 +31,15 @@ export default function Download({ v }: { v: View }) {
           </div>
           <ApkLink v={v} color="#fff" />
           </div>
+          {/* An invite link's friend's code (BVTGC-141; mockup website.html frame 1): shown for a well-formed code only. */}
+          {v.friendCode ? <div style={{position: "relative", flex: "1 1 100%", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 20px", padding: "14px 18px", borderRadius: "16px", background: "rgba(255,255,255,.14)", border: "1.5px dashed rgba(255,255,255,.65)"}}>
+              <div style={{display: "flex", flexDirection: "column", gap: "2px", minWidth: "0"}}>
+                <span style={{fontSize: fs.sm, fontWeight: "700", color: "rgba(255,255,255,.92)"}}>{I(v.t?.refLabel)}</span>
+                <span style={{fontFamily: display, fontWeight: "700", fontSize: "26px", letterSpacing: ".12em", color: "#fff"}}>{I(v.friendCode)}</span>
+                <span style={{fontSize: fs.sm, color: "rgba(255,255,255,.88)"}}>{I(v.t?.refHint)}</span>
+              </div>
+              <button className="gc-pill" onClick={v.copyCode} style={{...pill, height: "42px", marginLeft: "auto", border: "1.5px solid #fff", background: "#fff", color: ink}}>{I(v.t?.refCopy)}</button>
+            </div> : null}
         </div>
       </div>
     </section>

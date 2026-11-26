@@ -1,9 +1,10 @@
 // Settings page (sidebar and profile menu "Settings"): review escalation hours, citizen posts per day, languages,
-// post categories and notification templates. Moved out of Console.tsx unchanged (audit WEB-ARCH-001).
+// post categories, notification templates, and the citizen wallet's eight settings (BVTGC-140). Moved out of Console.tsx unchanged (audit WEB-ARCH-001).
 // Calls GET/PATCH /admin/settings/, /admin/categories/ and /admin/notification-templates/ (.claude/api.md).
 import type * as ds from "../ds";
+import { ApiError } from "../api";
 import type { Category, ListOrPage, NotificationTemplate, Settings } from "../types";
-import { rows, type FieldChange } from "../model";
+import { rows, type FieldChange, type SettingsState, type WalletForm } from "../model";
 import type { ConsoleHost } from "./host";
 
 // Categories the design system has an icon for; any other category shows the "updates" icon.
@@ -56,13 +57,99 @@ function addCategory(h: ConsoleHost) {
     }});
 }
 
+/** The wallet's settings as the server has them; an older server without them keeps the card hidden. */
+function walletFrom(st: Settings, before: WalletForm): WalletForm {
+  if (st.wallet_enabled === undefined) return before;
+  return {known: true, enabled: !!st.wallet_enabled, pilot: st.wallet_pilot_mandals || [], reward: st.referral_reward_points ?? 0, welcome: st.welcome_bonus_points ?? 0,
+    hold: st.referral_hold_days ?? 0, active: st.referral_active_days ?? 0, perMonth: st.referrals_per_month ?? 0, perPhone: st.welcome_bonuses_per_phone ?? 0};
+}
+
 export function loadSettings(h: ConsoleHost) {
   loadAdminCategories(h);
-  h.api.get<Settings>('/admin/settings/').then((st) => h.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, adsLimit: st.ads_banner_limit ?? 0, langs: {te: true, en: !!st.languages?.en}}}))).catch((e: unknown) => h.fail(e));
+  h.api.get<Settings>('/admin/settings/').then((st) => h.setState((s) => ({settings: {...s.settings, escalation: st.review_escalation_hours, citizenPerDay: st.citizen_posts_per_day ?? 0, adsLimit: st.ads_banner_limit ?? 0, langs: {te: true, en: !!st.languages?.en}, wallet: walletFrom(st, s.settings.wallet), walletErr: {}}}))).catch((e: unknown) => h.fail(e));
   if (h.can('notifications.manage_templates')) h.api.get<ListOrPage<NotificationTemplate>>('/admin/notification-templates/').then((d) => {
     const templates = rows(d);
     h.setState((s) => ({settings: {...s.settings, templates}}));
   }).catch((e: unknown) => h.fail(e));
+}
+
+// ---- the citizen wallet (BVTGC-140; BackEnd contract section 21, "Settings"; mockup console.html frame 5) ----
+
+type WalletNum = 'reward' | 'welcome' | 'hold' | 'active' | 'perMonth' | 'perPhone';
+/** Each number: its form key, the server's field, its words. The ranges are the server's; its 400 shows under the field. */
+const WALLET_NUMS: readonly {key: WalletNum; field: string; label: string; help: string}[] = [
+  {key: 'reward', field: 'referral_reward_points', label: 'Referral reward (points)', help: 'For the citizen who invited, once confirmed. 0 to 10,000.'},
+  {key: 'welcome', field: 'welcome_bonus_points', label: 'Welcome bonus (points)', help: 'For the new citizen, once confirmed. 0 to 10,000.'},
+  {key: 'hold', field: 'referral_hold_days', label: 'Holding period (days)', help: 'Points wait this long before they are confirmed. 1 to 90.'},
+  {key: 'active', field: 'referral_active_days', label: 'Active days needed in the holding period', help: 'Days the new citizen must open the app; at most the holding period.'},
+  {key: 'perMonth', field: 'referrals_per_month', label: 'Confirmed referrals per citizen per month', help: '0 means no limit; at most 1,000.'},
+  {key: 'perPhone', field: 'welcome_bonuses_per_phone', label: 'Welcome bonuses per phone', help: 'Accounts made on one phone that get the welcome bonus. 0 to 10.'},
+];
+
+/** One number of the form, typed: every WalletNum field holds a number, or '' while its box is empty. */
+function numPatch(key: WalletNum, value: number | ""): Partial<WalletForm> {
+  const patch: Partial<WalletForm> = {};
+  patch[key] = value;
+  return patch;
+}
+
+function setWallet(h: ConsoleHost, x: Partial<WalletForm>, extra: Partial<SettingsState> = {}) {
+  h.setState((s) => ({settings: {...s.settings, wallet: {...s.settings.wallet, ...x}, walletErr: {}, ...extra}}));
+}
+
+/** The server refused a wallet setting (400 validation_error): its words under each field, and the toast. */
+function walletRefused(h: ConsoleHost, e: unknown) {
+  if (e instanceof ApiError && e.status === 400) {
+    const err: Record<string, string> = {};
+    for (const [k, v] of Object.entries(e.body.fields || {})) err[k] = Array.isArray(v) ? String(v[0] ?? '') : String(v);
+    h.setState((s) => ({settings: {...s.settings, walletErr: err}}));
+  }
+  h.fail(e);
+}
+
+function saveWallet(h: ConsoleHost) {
+  const w = h.state.settings.wallet;
+  const missing = WALLET_NUMS.filter((n) => w[n.key] === '');
+  if (missing.length) {
+    h.setState((s) => ({settings: {...s.settings, walletErr: Object.fromEntries(missing.map((n) => [n.field, 'Enter a number.']))}}));
+    return;
+  }
+  const body: Record<string, number | number[]> = {wallet_pilot_mandals: w.pilot};
+  for (const n of WALLET_NUMS) body[n.field] = Number(w[n.key]) || 0;
+  h.api.patch<Settings>('/admin/settings/', body).then((st) => {
+    if (st) h.setState((s) => ({settings: {...s.settings, wallet: walletFrom(st, s.settings.wallet), walletErr: {}}}));
+    h.toast('Wallet settings saved · phones follow within about 5 minutes');
+  }).catch((e: unknown) => walletRefused(h, e));
+}
+
+/** The wallet card's renderVals() values. */
+function walletSettingsView(h: ConsoleHost) {
+  const s = h.state, w = s.settings.wallet, err = s.settings.walletErr;
+  const mandals = s.geo.flatMap((d) => d.mandals.map((m) => ({id: m.id, label: m.name + ' · ' + d.name})));
+  const name = (id: number) => mandals.find((m) => m.id === id)?.label || 'Mandal ' + id;
+  return {
+    walletShow: w.known && h.can('posts.manage_settings'),
+    walletOn: w.enabled,
+    toggleWallet: () => {
+      const on = !w.enabled;
+      h.api.patch('/admin/settings/', {wallet_enabled: on}).then(() => {
+        setWallet(h, {enabled: on});
+        h.toast(on ? 'Citizen wallet switched on' : 'Citizen wallet switched off', on ? '#6cc04a' : '#E9791E');
+      }).catch((e: unknown) => walletRefused(h, e));
+    },
+    walletPilot: w.pilot.map((id) => ({label: name(id), remove: () => setWallet(h, {pilot: w.pilot.filter((x) => x !== id)})})),
+    walletPilotEmpty: !w.pilot.length,
+    walletPick: s.settings.walletPick,
+    walletPickOpts: [{id: '', label: '+ Add mandal'}, ...mandals.filter((m) => !w.pilot.includes(m.id)).map((m) => ({id: String(m.id), label: m.label})).sort((a, b) => a.label.localeCompare(b.label))],
+    onWalletPick: (e: FieldChange) => {
+      const id = Number(e.target.value);
+      if (id) setWallet(h, {pilot: [...w.pilot, id]}, {walletPick: ''});
+    },
+    walletErrPilot: err.wallet_pilot_mandals || '',
+    walletNums: WALLET_NUMS.map((n) => ({id: 'set-w-' + n.key, label: n.label, help: n.help, value: w[n.key], err: err[n.field] || '',
+      onChange: (e: FieldChange) => setWallet(h, numPatch(n.key, e.target.value === '' ? '' : Math.min(100000, Number(e.target.value.replace(/[^0-9]/g, '')) || 0)))})),
+    saveWallet: () => saveWallet(h),
+  };
 }
 
 /** The page's renderVals() values (screens/Settings.tsx). */
@@ -103,6 +190,7 @@ export function settingsView(h: ConsoleHost) {
       }).catch((e: unknown) => h.fail(e))});
   }}));
   return {
+    ...walletSettingsView(h),
     settings: s.settings, catRows, langRows, templates, badge36: {size: 36},
     canAddCat: h.can('posts.manage_categories'), addCat: () => addCategory(h),
     onEscalation: (e: FieldChange) => h.setState((st) => ({settings: {...st.settings, escalation: Number(e.target.value) || 0}})), saveSettings: () => h.api.patch('/admin/settings/', {review_escalation_hours: s.settings.escalation}).then(() => h.toast('Settings saved · review time limit ' + s.settings.escalation + ' h')).catch((e: unknown) => h.fail(e)),

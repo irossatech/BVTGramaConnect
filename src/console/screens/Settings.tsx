@@ -3,6 +3,7 @@ import React from "react";
 import { I, css, list, val } from "../../shared/dc";
 import * as ds from "../ds";
 import type { View } from "../Console";
+import { SearchSelect } from "../ui/parts";
 
 const card = {background: "#fff", border: "1px solid #eef2f6", borderRadius: "14px", padding: "20px 22px", display: "flex", flexDirection: "column", gap: "4px"} as const;
 const title = {fontFamily: "'Rubik',sans-serif", fontSize: "16px", fontWeight: "700", color: "#0A2550", marginBottom: "6px"} as const;
@@ -116,6 +117,53 @@ export default function Settings({ v }: { v: View }) {
           </section>
         </div>
       </div>
+      {v.walletShow ? <section style={card} aria-labelledby="set-wallet">
+          <div style={{display: "flex", alignItems: "center", gap: "12px"}}>
+            <span id="set-wallet" style={{...title, flex: "1", marginBottom: "0"}}>Citizen wallet</span>
+            <span style={{fontSize: "13px", color: "#3b4a5c"}}>{v.walletOn ? "On" : "Off"}</span>
+            <Switch on={v.walletOn} onClick={v.toggleWallet} label="Citizen wallet on" />
+          </div>
+          <span style={{...help, marginTop: "0", marginBottom: "6px"}}>While off, the wallet is hidden in the app and on the website, and its addresses answer “not found”. The Citizens &amp; wallet page keeps working. Phones follow a change within about 5 minutes.</span>
+          <div style={{...rowLine, flexDirection: "column", alignItems: "stretch", gap: "8px"}}>
+            <span style={name}>Pilot mandals <span style={{fontWeight: "400", color: "#647182"}}>(empty means everywhere)</span></span>
+            <div style={{display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center"}}>
+              {v.walletPilotEmpty ? <span style={{fontSize: "13px", color: "#647182"}}>Everywhere</span> : null}
+              {list(v.walletPilot).map((_m, _i1) => (
+                <React.Fragment key={_i1}>
+                  <span style={{display: "inline-flex", alignItems: "center", gap: "6px", height: "30px", padding: "0 6px 0 12px", borderRadius: "999px", background: "#eef4fb", color: "#0D3B7A", fontSize: "12.5px", fontWeight: "700"}}>
+                    {I(_m.label)}
+                    <button type="button" onClick={_m.remove} aria-label={"Remove " + _m.label} style={{width: "22px", height: "22px", border: "0", borderRadius: "50%", background: "transparent", color: "#0D3B7A", cursor: "pointer", fontSize: "14px", lineHeight: "1"}}>✕</button>
+                  </span>
+                </React.Fragment>
+              ))}
+              <SearchSelect name="walletPick" aria-label="Add a pilot mandal" value={val(v.walletPick, "")} onChange={v.onWalletPick} style={{height: "34px", padding: "0 12px", border: "1px solid #cfd8e3", borderRadius: "10px", background: "#fff", fontSize: "13px", minWidth: "180px"}}>
+                {list(v.walletPickOpts).map((_o, _i1) => (
+                  <React.Fragment key={_i1}>
+                    <option value={_o.id}>{_o.label}</option>
+                  </React.Fragment>
+                ))}
+              </SearchSelect>
+            </div>
+            {v.walletErrPilot ? <span style={{fontSize: "12px", color: "#b3261e"}}>{I(v.walletErrPilot)}</span> : null}
+          </div>
+          <div className="sa-cols" style={{display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: "28px"}}>
+            {list(v.walletNums).map((_n, _i1) => (
+              <React.Fragment key={_i1}>
+                <div style={rowLine}>
+                  <label htmlFor={_n.id} style={{flex: "1", minWidth: "0"}}>
+                    <span style={name}>{I(_n.label)}</span>
+                    <span style={help}>{I(_n.help)}</span>
+                    {_n.err ? <span style={{...help, color: "#b3261e"}}>{I(_n.err)}</span> : null}
+                  </label>
+                  <input id={_n.id} type="text" inputMode="numeric" value={val<number | "">(_n.value, "")} onChange={_n.onChange} style={{...num, width: "80px", height: "40px", border: "1px solid " + (_n.err ? "#b3261e" : "#cfd8e3"), borderRadius: "10px"}} />
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{display: "flex", justifyContent: "flex-end", marginTop: "8px"}}>
+            <button onClick={v.saveWallet} style={save}>Save wallet settings</button>
+          </div>
+        </section> : null}
       <section style={card} aria-labelledby="set-texts">
         <span id="set-texts" style={title}>Notification texts</span>
         <span style={{fontSize: "12.5px", color: "#647182", marginTop: "-4px", marginBottom: "4px"}}>The text phones show for each notification. Each person gets it in their own language.</span>

@@ -187,7 +187,30 @@
     "ariaFooter": "Footer",
     "apkLabel": "Direct download",
     "comingSoon": "Coming soon",
-    "copyright": "© {year} BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India · It is not a government app."
+    "copyright": "© {year} BVT Grama Connect · Andhra Pradesh · Connecting Villages, Empowering India · It is not a government app.",
+    "refLabel": "Your friend's referral code",
+    "refHint": "Enter this code when you create your wallet account in the app.",
+    "refCopy": "Copy",
+    "refCopied": "Code copied",
+    "delStep": "Step {n} of 3",
+    "delTitle": "Delete my wallet account",
+    "delSub": "You can delete your account here, even without the app. We'll send a code to the account's email.",
+    "delLogin": "Email or mobile number",
+    "delLoginErr": "Enter the account's email or its 10-digit mobile number.",
+    "delSend": "Send code",
+    "delOther": "Reading and posting news don't need an account; they keep working.",
+    "delSent": "If this is registered, we sent a code to its email. Check the spam folder too.",
+    "delCode": "6-digit code",
+    "delWarn": "All your points will be lost. Your name, email and mobile number are removed. This can't be undone.",
+    "delUnderstand": "I understand",
+    "delBtn": "Delete my account",
+    "delResend": "Send a new code",
+    "delChange": "Use another email or number",
+    "delDoneTitle": "Your account is deleted",
+    "delDoneSub": "We've sent a confirmation email.",
+    "delDoneMore": "You can keep reading news in the app. You can create a new account at any time.",
+    "delOff": "Wallet accounts are not open yet.",
+    "delWait": "Please wait…"
   },
   "categories": {
     "announce": "Announcements",
@@ -290,6 +313,7 @@
     "contact": "Contact Us",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
+    "delete": "Delete my wallet account",
     "noscript": "Never miss what’s happening in your village. Panchayat notices, scheme deadlines, water and power updates — checked by your local officials and sent straight to your phone. In Telugu, free, and no sign-up.",
     "homeDesc": "Panchayat notices, scheme deadlines, water and power updates for Andhra Pradesh villages, checked by local officials. In Telugu, free, no sign-up.",
     "howDesc": "From your Panchayat to your phone, checked on the way. Panchayat members post, admins check every post, and the news reaches every phone in the village, in Telugu.",
@@ -302,7 +326,7 @@
     "note": "",
     "privacy": {
       "title": "Privacy policy",
-      "updated": "Last updated: 20 November 2026",
+      "updated": "Last updated: 25 November 2026",
       "intro": "This page explains, in plain words, what information the Grama Connect app and this website collect about you, why, who can see it, and what you can do about it. Citizens can use the app without an account.",
       "sections": [
         {
@@ -324,6 +348,21 @@
               "Crash reports: if the app stops or fails, a technical report (the error, your phone model, Android version and app version) goes to Firebase Crashlytics so we can fix it. It never includes your name, phone number or posts.",
               "Officials (Panchayat members and admins): username, name, mobile number, optional email, role and area. These accounts are opened only by their admins. Passwords are stored only in hashed form. Every review action is recorded in an audit log."
             ]
+          ]
+        },
+        {
+          "h": "Wallet accounts (optional)",
+          "body": [
+            "Reading news, posting and service requests need no account. If you open a wallet account in the app, to collect points for inviting friends, we keep:",
+            [
+              "your name, your village, and the date you confirmed you are 18 or older and agreed to these terms;",
+              "your mobile number, in a protected form nobody can read plus its last 4 digits, and your email address, which we need to send you codes (our staff see it partly hidden);",
+              "your password, only in a secure form nobody can read;",
+              "your points, your referrals and the days you open the app (kept for 60 days, for the referral rule)."
+            ],
+            "We email you only a code when you ask for one (to sign up, for a forgotten password, a new email or deleting the account) and a notice when your password or email changes or the account is deleted; never advertising. Our email service receives your address and the message only to deliver it.",
+            "You can delete the account at any time: in the app (Profile, Delete my account) with your password, or on this website at {delete} with a code sent to the account's email. Your name, email and number are removed at once and your points are lost; the history of points stays without your details. A protected form of the number and email is kept for up to one year, so the same person cannot claim a welcome bonus again.",
+            "If you can no longer open your email, or someone else registered your number, call our help line. After calling you back, our staff can set a new email for your account or remove your number from the other account. They never see or set your password, and every such action is recorded."
           ]
         },
         {
@@ -363,13 +402,13 @@
         {
           "h": "How long we keep it",
           "body": [
-            "We keep posts, service requests, contact messages, citizen phone records and the record of official actions; they are not deleted. Officials’ screens show all of them, however old. An official’s account is switched off when the person leaves the role. A block on a phone ends by itself."
+            "We keep posts, service requests, contact messages, citizen phone records and the record of official actions; they are not deleted. Officials’ screens show all of them, however old. An official’s account is switched off when the person leaves the role. A block on a phone ends by itself. Wallet accounts are the one exception: you can delete yours, and its personal details go at once (see “Wallet accounts”)."
           ]
         },
         {
           "h": "Your rights",
           "body": [
-            "Under India’s Digital Personal Data Protection Act, 2023, you can ask to see or correct your personal data, and withdraw your consent. Citizens have no account, and officials' accounts are opened by their admins, so write to {email} or use the Contact page. We will acknowledge your request within 2 working days and respond as the law requires. The records we keep are listed under “How long we keep it”."
+            "Under India’s Digital Personal Data Protection Act, 2023, you can ask to see or correct your personal data, and withdraw your consent. Citizens need no account to read or post; a wallet account you can delete yourself (see “Wallet accounts”); officials' accounts are opened by their admins. For anything else, write to {email} or use the Contact page. We will acknowledge your request within 2 working days and respond as the law requires. The records we keep are listed under “How long we keep it”."
           ]
         },
         {
@@ -400,7 +439,7 @@
     },
     "terms": {
       "title": "Terms of use",
-      "updated": "Last updated: 20 November 2026",
+      "updated": "Last updated: 25 November 2026",
       "intro": "These terms apply when you use the Grama Connect app or this website. By using them, you agree to these terms.",
       "sections": [
         {
@@ -439,6 +478,18 @@
           "h": "Service requests",
           "body": [
             "A request passes your details to your village officials. Sending one does not guarantee the service; the officials will contact you about next steps. You can cancel a request in the app while it is still open; a cancelled request stays on record."
+          ]
+        },
+        {
+          "h": "Wallet, points and referrals",
+          "body": [
+            "The wallet is optional and only for people aged 18 or older: one account per mobile number and per email.",
+            [
+              "Points have no cash value. They cannot be transferred, sold or exchanged for money. Until bill payments and recharges start in the app, they cannot be spent either; how they can be used then will be shown in the app first.",
+              "When a friend joins with your code, the points of both of you wait on hold for a few days and are confirmed only if the friend uses the app; accounts made on one phone may not earn each other points. The amounts and rules are shown in the app and may change.",
+              "We may not confirm, or may correct, points earned through fake or repeated accounts, and may block an account that misuses the wallet. Every such decision is recorded, and its reason shows in your wallet.",
+              "Deleting your account loses its points."
+            ]
           ]
         },
         {

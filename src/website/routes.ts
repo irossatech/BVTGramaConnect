@@ -1,6 +1,6 @@
 // The website's pages and their addresses. Each page has its own readable address (/howitworks/, /privacy/…)
 // so search engines can list it; old #how-style links still work (Site.tsx).
-export const PAGES = ["home", "how", "officials", "faq", "contact", "privacy", "terms"] as const;
+export const PAGES = ["home", "how", "officials", "faq", "contact", "privacy", "terms", "delete"] as const;
 export type Page = (typeof PAGES)[number];
 
 const SLUG: Record<Page, string> = {
@@ -11,6 +11,8 @@ const SLUG: Record<Page, string> = {
   contact: "contact",
   privacy: "privacy",
   terms: "terms",
+  // "Delete my wallet account" (BVTGC-142): the deletion address given to Google Play (wallet.ts DELETE_PATH).
+  delete: "delete-account",
 };
 
 export const isPage = (x: string): x is Page => (PAGES as readonly string[]).includes(x);

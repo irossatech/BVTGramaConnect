@@ -4,7 +4,7 @@ One repo, one Next.js app, two pages, one build.
 
 | App | Page | Component | Built to | Served at |
 |---|---|---|---|---|
-| Public website | `src/pages/index.tsx`, `src/pages/[page].tsx`, `src/pages/404.tsx` (via `src/website/SitePage.tsx`) | `src/website/Site.tsx` | `dist/index.html`, `dist/<page>/index.html`, `dist/404.html` | `/`, `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/`, `/terms/`; any other address gets `404.html` (Nginx `error_page`) |
+| Public website | `src/pages/index.tsx`, `src/pages/[page].tsx`, `src/pages/404.tsx` (via `src/website/SitePage.tsx`) | `src/website/Site.tsx` | `dist/index.html`, `dist/<page>/index.html`, `dist/404.html` | `/`, `/howitworks/`, `/officials/`, `/faq/`, `/contact/`, `/privacy/`, `/terms/`, `/delete-account/` (BVTGC-142); any other address gets `404.html` (Nginx `error_page`) |
 | Super Admin console | `src/pages/console/index.tsx` (via `src/console/ConsolePage.tsx`) | `src/console/Console.tsx` | `dist/console/index.html` | `/console/` |
 
 ## Folder map
@@ -13,7 +13,7 @@ One repo, one Next.js app, two pages, one build.
 src/
   pages/                    routes only (Next.js Pages Router); each file just renders a page shell
     index.tsx               /              website home
-    [page].tsx              /howitworks/, /officials/, /faq/, /contact/, /privacy/, /terms/
+    [page].tsx              /howitworks/, /officials/, /faq/, /contact/, /privacy/, /terms/, /delete-account/
     console/index.tsx       /console/      Super Admin console
     _document.tsx           <html lang>, no machine translation on the website
 
@@ -23,7 +23,7 @@ src/
     sections/               what you see, one file per part
       Header.tsx  Footer.tsx
       Home.tsx              → home/Hero, Services, DayInVillage, Steps, Audiences, Download
-      HowItWorks.tsx  Officials.tsx  Faq.tsx  Contact.tsx  Legal.tsx
+      HowItWorks.tsx  Officials.tsx  Faq.tsx  Contact.tsx  Legal.tsx  DeleteAccount.tsx (BVTGC-142)
     locales/                the words: every text a visitor sees, and nothing else
       te.json               Telugu
       en.json               English (same keys; i18n.ts makes TypeScript fail the build if one misses a key)
@@ -54,6 +54,7 @@ src/
       ads.ts                Sponsored banners page and its form
       numbers.ts            Important numbers and contact types
       settings.ts           Settings
+      wallet.ts             Citizens & wallet (BVTGC-139/140): accounts, the account panel, the wallet dialogs
       notifications.ts      the bell (the once-a-minute refresh stays in Console.tsx with the idle sign-out)
     AppShell.tsx            the signed-in console's markup (sidebar, top bar, screens, panels, dialogs): its own download,
                             loaded with React.lazy after sign-in (WEB-PERF-003); Console.tsx keeps the logic and state
@@ -61,12 +62,13 @@ src/
     layout/                 AuthLayout (sign-in frame), Sidebar, TopBar, Notifications (the bell's list)
     screens/                one file per screen: Login, ChangePassword, Dashboard, Geography, Users, Posts,
                             Reports, Audit, Messages, Requests, Services (and bills), ServiceTabs, Ads,
-                            Numbers, Settings, Checking
+                            Numbers, Settings, CitizensWallet, Checking
     panels/                 side panels, forms and dialogs: DetailPanel (PostDetail, UserDetail), UserDrawer,
                             RequestPanel, ServiceForm, AdForm, ComposeForm (New post), NumberForm, TypeForm,
-                            ConfirmModal, ImportProgress, Toasts
+                            ConfirmModal, ImportProgress, Toasts, CitizenAccountPanel and WalletDialog (Citizens & wallet)
     ui/parts.tsx            pieces several screens use (TickBox, SelBar, Pager, DistrictOptions)
     types.ts                the API data the console reads and sends
+    walletText.ts           Citizens & wallet's small rules and words, without React (tests/wallet-console.test.mjs)
     api.ts                  server calls (session login, CSRF header, downloads)
     csv-parts.ts            CSV import: checks the file and splits it into parts
     ds.tsx                  Badge and IconBadge from the design system
@@ -111,18 +113,18 @@ The console renders client-only (`next/dynamic` with `ssr: false`), as the proto
 ## Website
 
 - `src/website/Site.tsx` is the approved prototype `Public Website.dc.html` with the allowed port changes.
-- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `privacy`, `terms`. `go()` pushes the page's address (`/faq/`) onto the history, and `popstate` sets the page from the address, so Back and Forward work; old `/#faq` links move to `/faq/`. Below 820 px a ResizeObserver switches to the mobile layout.
+- Pages switch in component state (`state.page`): `home`, `how`, `officials`, `faq`, `contact`, `privacy`, `terms`, `delete` ("Delete my wallet account", BVTGC-142: two calls, an email code, no login; not in the menus; its address is in the privacy policy and given to Google Play). `go()` pushes the page's address (`/faq/`) onto the history, and `popstate` sets the page from the address, so Back and Forward work; old `/#faq` links move to `/faq/`. Below 820 px a ResizeObserver switches to the mobile layout.
 - The 404 page (`src/pages/404.tsx`, `notFound`) is the same component with `state.missing` set: the header and footer with the not-found message (`sections/NotFound.tsx`) between them, until the visitor goes to a real page. It is `noindex`.
 - Keyboard and screen readers: "Skip to main content" (`.gc-skip`, the first element, off screen until focused) focuses `<main id="main">`; after a page change through a link, Back or Forward, `componentDidUpdate` focuses the new page's `h1` (`focusPage`), not on the first load.
 - Every Telugu and English text is in `src/website/locales/te.json` and `en.json` (loaded by `i18n.ts`); the code holds no visible text. Telugu is the default; a visitor's switch to English is remembered on their own device (`localStorage` key `gc-lang`, wrapped in try/catch) and applied when the page starts, so the exported HTML stays Telugu. Search results (titles, descriptions) are Telugu, ending in the English brand name.
-- Data: the office details are in the locale files and the store links are build settings (`GC_PLAY_STORE_URL`, `GC_APP_STORE_URL`), not fetched; `GET /app-config/` can switch English off; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback.
+- Data: the office details are in the locale files and the store links are build settings (`GC_PLAY_STORE_URL`, `GC_APP_STORE_URL`), not fetched; `GET /app-config/` can switch English off; the Contact form posts to `POST /public/contact-messages/`. `GET /public/showcase/` fills the hero's phone picture through the `phone` and `miniCards` render values, cached per language; the prototype's static values are the fallback. An invite link's `?ref=` shows the friend's referral code in the download panel (BVTGC-141, `wallet.ts`, no server call); the privacy policy and terms describe the citizen wallet (accounts, points, deletion).
 
 ## Console
 
 - `src/console/Console.tsx` holds all the state and what every screen shares: sign-in and the session, the idle sign-out and the bell's once-a-minute refresh, navigation, the confirm dialog, toasts, the geography tree, row selection, Telugu name suggestions and the profile menu. Each screen's logic lives in its own module in `src/console/logic/` (audit WEB-ARCH-001, split from 14 to 16 Nov 2026, PRs #14 to #28): its loaders, actions and its part of `renderVals()` (a function such as `contactsView(host)` that `renderVals()` spreads in). A module reaches the console only through `ConsoleHost` (`logic/host.ts`), which `Console.tsx` builds as `this.host`; modules may import each other's exported loaders (the Dashboard's cards call `loadPosts` and `loadUsers`). A new screen gets its own module the same way. The split changed no behaviour: `Console.tsx` went from 3,395 to 873 lines, and each step was checked against the code before it (at the end 554 scenarios: HTML, server calls, toasts, dialogs and state identical), with mistakes planted on purpose to prove the checks catch them. Loaders per page call the API through `this.api` (`src/console/api.ts`). Adapters turn API objects into the exact view-model shapes the markup binds to. Static maps translate API enums such as `UNPUBLISHED` into prototype keys such as `TakenDown`. `fail(e)` is the single error handler.
 - **Sign-in:** username and password through a Django session. `src/console/api.ts` first calls `GET /auth/csrf/` for the readable `csrftoken` cookie, then `POST /auth/session/login/`; the server sets the HttpOnly `sessionid` cookie, so page scripts never see a token. Every call is same-origin with cookies, and every write sends `X-CSRFToken` (read from the cookie on each request, because Django rotates it at login). On page load the console calls `GET /me/`; a 401 keeps the login screen. Only users with `web_admin.access_web_console` get in. When `must_change_password` is set, the change-password card comes first; the same card opens from "Change password" in the profile menu, with "‹ Back" instead of "‹ Sign out". A 401 from any call (idle timeout, logout elsewhere, block, password reset) returns to the login screen with "Your session has ended". The bell's once-a-minute poll keeps the server session fresh, so the console also signs itself out (same message, and `POST /auth/session/logout/`) after 30 minutes without a key press, click, scroll or pointer move (`IDLE_MS`). Every sign-out puts the whole state back to `INITIAL` (lists, panels, forms, timers), and answers still on their way are dropped: each list and panel load takes a `ticket()`, and only the latest one may write its result.
 - **Permissions:** `GET /me/` returns `permissions` as `app_label.codename` strings. The console hides sidebar pages (`NAV_PERM`), Add User and its role choices (`accounts.manage_*`), Settings in the menu, Audit Export CSV and the user panel's buttons (the user's `allowed_actions`). A missing list means no permissions. The server still enforces every action.
-- **Additions to the prototype**, all in the prototype's own inline styles: username and password fields; the change-password card; a pager under Users, Posts and Audit (server-side, 20 per page); empty and loading rows; "Reset password" in the user panel; a Roles list with Remove and "+ Add role" in the user panel; a Contact messages page after Audit Log, built like the Audit Log page, with a masked mobile, no message column and a View panel built from the service request panel (`panels/ContactPanel.tsx`; audit WEB-DP-001, 13 Nov 2026); Urgent and event chips, a video player and Mark urgent in the post panel; one Export CSV handler per report and no Export PDF; labels for every audit action key; Username, optional Email and Mobile, and "Temporary password (optional)" with Generate in Add User; "Import CSV"; "Change password" in the profile menu; Reset password (a dialog with Generate) and Unlock in the user panel; a dialog that shows a temporary password once, with Copy and no Cancel; bindings for the signed-in name, state name, category filter and real photos. A `409 already_decided` review answer shows in the existing toast.
+- **Additions to the prototype**, all in the prototype's own inline styles: username and password fields; the change-password card; a pager under Users, Posts and Audit (server-side, 20 per page); empty and loading rows; "Reset password" in the user panel; a Roles list with Remove and "+ Add role" in the user panel; a Contact messages page after Audit Log, built like the Audit Log page, with a masked mobile, no message column and a View panel built from the service request panel (`panels/ContactPanel.tsx`; audit WEB-DP-001, 13 Nov 2026); Urgent and event chips, a video player and Mark urgent in the post panel; one Export CSV handler per report and no Export PDF; labels for every audit action key; Username, optional Email and Mobile, and "Temporary password (optional)" with Generate in Add User; "Import CSV"; "Change password" in the profile menu; Reset password (a dialog with Generate) and Unlock in the user panel; a dialog that shows a temporary password once, with Copy and no Cancel; bindings for the signed-in name, state name, category filter and real photos. A `409 already_decided` review answer shows in the existing toast. **Citizens & wallet** (BVTGC-139/140, approved mockup BackEnd `docs/features/citizen-wallet/mockups/console.html`, Admin's approval of 2026-11-25): a page in the Citizens group of the side bar, built from the Users and Contact messages screens (search, filters, table, pager), an account panel built from the Contact message panel, and its own dialog built from the confirm dialog (a call-back tick, an email, a reason, the server's field errors under each field).
 - The console is a fixed 1440 px canvas, as designed. The login screen fills the window (`frameW`/`frameH`).
 
 ## Build and serving
