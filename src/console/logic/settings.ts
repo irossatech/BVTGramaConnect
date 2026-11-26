@@ -6,6 +6,7 @@ import { ApiError } from "../api";
 import type { Category, ListOrPage, NotificationTemplate, Settings } from "../types";
 import { rows, type FieldChange, type SettingsState, type WalletForm } from "../model";
 import type { ConsoleHost } from "./host";
+import { mandalPickLabel } from "../walletText";
 
 // Categories the design system has an icon for; any other category shows the "updates" icon.
 const CAT_ICONS: readonly ds.Category[] = ['announce', 'schemes', 'news', 'updates'];
@@ -125,7 +126,9 @@ function saveWallet(h: ConsoleHost) {
 /** The wallet card's renderVals() values. */
 function walletSettingsView(h: ConsoleHost) {
   const s = h.state, w = s.settings.wallet, err = s.settings.walletErr;
-  const mandals = s.geo.flatMap((d) => d.mandals.map((m) => ({id: m.id, label: m.name + ' · ' + d.name})));
+  // The chips name a pilot mandal in English; the picker also shows its Telugu name, so its search finds either
+  // (BVTGC-162: typing తెనాలి found nothing).
+  const mandals = s.geo.flatMap((d) => d.mandals.map((m) => ({id: m.id, label: m.name + ' · ' + d.name, pick: mandalPickLabel(m.name, m.te, d.name)})));
   const name = (id: number) => mandals.find((m) => m.id === id)?.label || 'Mandal ' + id;
   return {
     walletShow: w.known && h.can('posts.manage_settings'),
@@ -140,7 +143,7 @@ function walletSettingsView(h: ConsoleHost) {
     walletPilot: w.pilot.map((id) => ({label: name(id), remove: () => setWallet(h, {pilot: w.pilot.filter((x) => x !== id)})})),
     walletPilotEmpty: !w.pilot.length,
     walletPick: s.settings.walletPick,
-    walletPickOpts: [{id: '', label: '+ Add mandal'}, ...mandals.filter((m) => !w.pilot.includes(m.id)).map((m) => ({id: String(m.id), label: m.label})).sort((a, b) => a.label.localeCompare(b.label))],
+    walletPickOpts: [{id: '', label: '+ Add mandal'}, ...mandals.filter((m) => !w.pilot.includes(m.id)).map((m) => ({id: String(m.id), label: m.pick})).sort((a, b) => a.label.localeCompare(b.label))],
     onWalletPick: (e: FieldChange) => {
       const id = Number(e.target.value);
       if (id) setWallet(h, {pilot: [...w.pilot, id]}, {walletPick: ''});

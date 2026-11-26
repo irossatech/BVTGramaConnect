@@ -83,6 +83,13 @@ export function tooPersonalToSearch(text: string): boolean {
 export const PERSONAL_SEARCH_TEXT = "A full number or email is not searched here";
 export const PERSONAL_SEARCH_HINT = "Search by a name, the last 4 digits or a referral code. For a caller's full number or email, use “Find by mobile or email” on the Accounts tab.";
 
+/** A mandal in the wallet card's "+ Add mandal" picker (BVTGC-162): "Tenali (తెనాలి) · Guntur", so the picker's
+ *  search finds it by its English or its Telugu name; "Tenali · Guntur" when the data has no Telugu name. */
+export function mandalPickLabel(name: string, te: string, district: string): string {
+  const telugu = (te || "").trim();
+  return (telugu && telugu !== name ? name + " (" + telugu + ")" : name) + " · " + district;
+}
+
 /** "l***@gmail.com · ••3210": how a row names its contact details, or "No number" when the Super Admin removed it. */
 export function contactLine(emailHint: string, last4: string, missing: boolean): string {
   const mobile = missing ? "No number" : last4 ? "••" + last4 : "—";

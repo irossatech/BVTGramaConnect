@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { accountTone, contactLine, entryKind, entryTone, findBody, parsePoints, reasonWords, referralTone, signed, tooPersonalToSearch } from "../src/console/walletText.ts";
+import { accountTone, contactLine, entryKind, entryTone, findBody, mandalPickLabel, parsePoints, reasonWords, referralTone, signed, tooPersonalToSearch } from "../src/console/walletText.ts";
 
 test("a full number or email is never searched in a web address (BVTGC-161)", () => {
   for (const personal of ["9876543210", "+91 98765 43210", "98765-43210", "09876543210", "lakshmi@gmail.com", "@gmail", "ravi 9876543210"]) {
@@ -9,6 +9,13 @@ test("a full number or email is never searched in a web address (BVTGC-161)", ()
   for (const fine of ["", "Ravi", "రవి కుమార్", "3210", "K7QX2MPA", "K7QX2345", "987654321"]) {
     assert.equal(tooPersonalToSearch(fine), false, fine);
   }
+});
+
+test("the pilot picker names a mandal in English and Telugu, so its search finds either (BVTGC-162)", () => {
+  assert.equal(mandalPickLabel("Tenali", "తెనాలి", "Guntur"), "Tenali (తెనాలి) · Guntur");
+  assert.equal(mandalPickLabel("Tenali", "", "Guntur"), "Tenali · Guntur");
+  assert.equal(mandalPickLabel("Tenali", "Tenali", "Guntur"), "Tenali · Guntur");
+  assert.ok(mandalPickLabel("Tenali", "తెనాలి", "Guntur").includes("తెనా"));
 });
 
 // Citizens & wallet (BVTGC-139/140): the small rules behind the page, without React.
