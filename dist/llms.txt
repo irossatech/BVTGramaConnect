@@ -15,3 +15,4 @@
 - [Contact](https://www.gramaconnect.com/contact/)
 - [Privacy policy](https://www.gramaconnect.com/privacy/)
 - [Terms](https://www.gramaconnect.com/terms/)
+- [Delete my wallet account](https://www.gramaconnect.com/delete-account/): deleting a citizen wallet account with a code sent to its email
